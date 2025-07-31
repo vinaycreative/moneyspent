@@ -32,7 +32,7 @@ export function DashboardStats({
   const spendingTrend = getSpendingTrend()
 
   return (
-    <div className="space-y-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Total Spent Card */}
       <div className="bg-red-50 rounded-xl p-4 border border-red-100">
         <div className="flex justify-between items-start mb-2">
@@ -66,7 +66,7 @@ export function DashboardStats({
       </div>
 
       {/* Net Savings Card */}
-      <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+      {/* <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
         <div className="flex justify-between items-start mb-2">
           <div className="flex items-center gap-2">
             <DollarSign className="w-5 h-5 text-blue-500" />
@@ -84,10 +84,10 @@ export function DashboardStats({
             ? `Saving ${savingsPercentage}% of income`
             : "Spending more than earning"}
         </div>
-      </div>
+      </div> */}
 
       {/* Quick Insights */}
-      {transactionCount > 0 && (
+      {/* {transactionCount > 0 && (
         <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
           <div className="flex items-center gap-2 mb-3">
             <Target className="w-4 h-4 text-gray-600" />
@@ -136,7 +136,7 @@ export function DashboardStats({
             )}
           </div>
         </div>
-      )}
+      )} */}
     </div>
   )
 }

@@ -5,6 +5,7 @@ import BottomNavigation from "@/components/BottomNavigation"
 import Header from "@/components/Header"
 import { QueryProvider } from "@/lib/query-provider"
 import { AuthProvider } from "@/lib/contexts/auth-context"
+import PrivateLayout from "./(private)/layout"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,11 +35,13 @@ export default function RootLayout({
       >
         <QueryProvider>
           <AuthProvider>
-            <div className="h-dvh grid grid-rows-[60px_1fr_70px] bg-white">
+            {/* <div className="h-dvh grid grid-rows-[60px_1fr_70px] bg-white">
               <Header title="Money Manager" />
               <main className="overflow-y-auto">{children}</main>
               <BottomNavigation />
-            </div>
+            </div> */}
+            {/* <PrivateLayout>{children}</PrivateLayout> */}
+            {children}
           </AuthProvider>
         </QueryProvider>
       </body>

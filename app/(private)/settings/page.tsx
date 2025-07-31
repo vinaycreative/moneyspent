@@ -3,75 +3,75 @@
 import { useState } from "react"
 import {
   User,
-  Bell,
-  Shield,
-  CreditCard,
   HelpCircle,
   LogOut,
   ChevronRight,
-  Moon,
   Globe,
   DollarSign,
   Tag,
-  Plus,
-  Settings,
-  Palette,
-  Smartphone,
-  Lock,
-  Database,
   Info,
+  Settings,
 } from "lucide-react"
 import { useAuth } from "@/lib/contexts/auth-context"
 import CategoryManagementModal from "@/components/CategoryManagementModal"
+import { useRouter } from "next/navigation"
 
 interface SettingItem {
   id: string
   title: string
   subtitle: string
   icon: any
-  action: "navigate" | "toggle" | "logout" | "modal" | "function"
-  value?: boolean
-  function?: () => void
+  action: "navigate" | "modal" | "logout"
 }
 
 export default function SettingsPage() {
   const { user, profile, signOut } = useAuth()
-  const [notifications, setNotifications] = useState(true)
-  const [darkMode, setDarkMode] = useState(false)
   const [currency, setCurrency] = useState("INR")
   const [showCategoryModal, setShowCategoryModal] = useState(false)
+  const router = useRouter()
 
-  const handleToggle = (id: string) => {
-    switch (id) {
-      case "notifications":
-        setNotifications(!notifications)
-        break
-      case "darkMode":
-        setDarkMode(!darkMode)
-        break
-    }
-  }
-
-  const handleAction = (item: SettingItem) => {
+  const handleAction = async (item: SettingItem) => {
     switch (item.action) {
-      case "toggle":
-        handleToggle(item.id)
-        break
       case "modal":
         if (item.id === "categories") {
           setShowCategoryModal(true)
         }
         break
-      case "function":
-        if (item.function) {
-          item.function()
+      case "logout":
+        try {
+          await signOut()
+          // Redirect to login page after successful logout
+          router.push("/login")
+        } catch (error) {
+          console.error("Logout failed:", error)
+          // Still redirect to login page even if there's an error
+          router.push("/login")
         }
         break
-      case "logout":
-        signOut()
-        break
-      default:
-        // Handle navigation
+      case "navigate":
+        // Handle navigation for other items
+        switch (item.id) {
+          case "profile":
+            // Navigate to profile page (you can implement this later)
+            console.log("Navigate to profile")
+            break
+          case "currency":
+            // Handle currency selection (you can implement this later)
+            console.log("Currency settings")
+            break
+          case "language":
+            // Handle language selection (you can implement this later)
+            console.log("Language settings")
+            break
+          case "help":
+            // Handle help and support (you can implement this later)
+            console.log("Help and support")
+            break
+          case "about":
+            // Handle about page (you can implement this later)
+            console.log("About page")
+            break
+        }
         break
     }
   }
@@ -92,28 +92,6 @@ export default function SettingsPage() {
       action: "modal",
     },
     {
-      id: "notifications",
-      title: "Notifications",
-      subtitle: "Manage notification preferences",
-      icon: Bell,
-      action: "toggle",
-      value: notifications,
-    },
-    {
-      id: "security",
-      title: "Security",
-      subtitle: "Password, 2FA, and privacy settings",
-      icon: Shield,
-      action: "navigate",
-    },
-    {
-      id: "payment",
-      title: "Payment Methods",
-      subtitle: "Manage cards and bank accounts",
-      icon: CreditCard,
-      action: "navigate",
-    },
-    {
       id: "currency",
       title: "Currency",
       subtitle: `Current: ${currency}`,
@@ -128,42 +106,6 @@ export default function SettingsPage() {
       action: "navigate",
     },
     {
-      id: "darkMode",
-      title: "Dark Mode",
-      subtitle: "Switch between light and dark theme",
-      icon: Moon,
-      action: "toggle",
-      value: darkMode,
-    },
-    {
-      id: "appearance",
-      title: "Appearance",
-      subtitle: "Customize app look and feel",
-      icon: Palette,
-      action: "navigate",
-    },
-    {
-      id: "devices",
-      title: "Connected Devices",
-      subtitle: "Manage your active sessions",
-      icon: Smartphone,
-      action: "navigate",
-    },
-    {
-      id: "privacy",
-      title: "Privacy & Data",
-      subtitle: "Control your data and privacy",
-      icon: Lock,
-      action: "navigate",
-    },
-    {
-      id: "storage",
-      title: "Storage & Backup",
-      subtitle: "Manage data storage and backups",
-      icon: Database,
-      action: "navigate",
-    },
-    {
       id: "help",
       title: "Help & Support",
       subtitle: "Get help and contact support",
@@ -172,7 +114,7 @@ export default function SettingsPage() {
     },
     {
       id: "about",
-      title: "About",
+      title: "About Us",
       subtitle: "App version and information",
       icon: Info,
       action: "navigate",
@@ -239,21 +181,7 @@ export default function SettingsPage() {
                         <div className="text-sm text-gray-500">{item.subtitle}</div>
                       </div>
 
-                      {item.action === "toggle" ? (
-                        <div
-                          className={`w-12 h-6 rounded-full transition-colors ${
-                            item.value ? "bg-blue-500" : "bg-gray-300"
-                          }`}
-                        >
-                          <div
-                            className={`w-5 h-5 rounded-full bg-white transition-transform ${
-                              item.value ? "translate-x-6" : "translate-x-0.5"
-                            }`}
-                          />
-                        </div>
-                      ) : (
-                        <ChevronRight className="w-5 h-5 text-gray-400" />
-                      )}
+                      <ChevronRight className="w-5 h-5 text-gray-400" />
                     </button>
                   )
                 })}
