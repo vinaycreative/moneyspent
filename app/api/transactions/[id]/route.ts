@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { TablesUpdate } from "@/types/supabase"
 
-type AccountUpdate = TablesUpdate<"accounts">
+type TransactionUpdate = TablesUpdate<"transactions">
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -19,24 +19,30 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: account, error } = await supabase
-      .from("accounts")
-      .select("*")
+    const { data: transaction, error } = await supabase
+      .from("transactions")
+      .select(
+        `
+        *,
+        categories(name, icon),
+        accounts(name)
+      `
+      )
       .eq("id", id)
       .eq("user_id", user.id)
       .single()
 
     if (error) {
       if (error.code === "PGRST116") {
-        return NextResponse.json({ error: "Account not found" }, { status: 404 })
+        return NextResponse.json({ error: "Transaction not found" }, { status: 404 })
       }
-      console.error("Account fetch error:", error)
-      return NextResponse.json({ error: "Failed to fetch account" }, { status: 500 })
+      console.error("Transaction fetch error:", error)
+      return NextResponse.json({ error: "Failed to fetch transaction" }, { status: 500 })
     }
 
-    return NextResponse.json({ account })
+    return NextResponse.json({ transaction })
   } catch (error) {
-    console.error("Account API error:", error)
+    console.error("Transaction API error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
@@ -56,31 +62,37 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Get account data from request body
-    const accountData: AccountUpdate = await request.json()
+    // Get transaction data from request body
+    const transactionData: TransactionUpdate = await request.json()
 
-    const { data: account, error } = await supabase
-      .from("accounts")
+    const { data: transaction, error } = await supabase
+      .from("transactions")
       .update({
-        ...accountData,
+        ...transactionData,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)
       .eq("user_id", user.id)
-      .select()
+      .select(
+        `
+        *,
+        categories(name, icon),
+        accounts(name)
+      `
+      )
       .single()
 
     if (error) {
       if (error.code === "PGRST116") {
-        return NextResponse.json({ error: "Account not found" }, { status: 404 })
+        return NextResponse.json({ error: "Transaction not found" }, { status: 404 })
       }
-      console.error("Account update error:", error)
-      return NextResponse.json({ error: "Failed to update account" }, { status: 500 })
+      console.error("Transaction update error:", error)
+      return NextResponse.json({ error: "Failed to update transaction" }, { status: 500 })
     }
 
-    return NextResponse.json({ account })
+    return NextResponse.json({ transaction })
   } catch (error) {
-    console.error("Account update API error:", error)
+    console.error("Transaction update API error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
@@ -103,16 +115,33 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { error } = await supabase.from("accounts").delete().eq("id", id).eq("user_id", user.id)
+    // Check if transaction exists and belongs to user
+    const { data: existingTransaction, error: fetchError } = await supabase
+      .from("transactions")
+      .select("id")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .single()
 
-    if (error) {
-      console.error("Account deletion error:", error)
-      return NextResponse.json({ error: "Failed to delete account" }, { status: 500 })
+    if (fetchError || !existingTransaction) {
+      return NextResponse.json({ error: "Transaction not found" }, { status: 404 })
     }
 
-    return NextResponse.json({ success: true })
+    // Delete the transaction
+    const { error } = await supabase
+      .from("transactions")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", user.id) // Ensure user owns the transaction
+
+    if (error) {
+      console.error("Transaction deletion error:", error)
+      return NextResponse.json({ error: "Failed to delete transaction" }, { status: 500 })
+    }
+
+    return NextResponse.json({ message: "Transaction deleted successfully" })
   } catch (error) {
-    console.error("Account deletion API error:", error)
+    console.error("Transaction deletion API error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

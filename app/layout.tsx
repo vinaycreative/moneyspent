@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import BottomNavigation from "@/components/BottomNavigation"
+import Header from "@/components/Header"
 import { QueryProvider } from "@/lib/query-provider"
 import { AuthProvider } from "@/lib/contexts/auth-context"
 
@@ -28,13 +29,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}
         suppressHydrationWarning
       >
         <QueryProvider>
           <AuthProvider>
-            {children}
-            <BottomNavigation />
+            <div className="h-dvh grid grid-rows-[60px_1fr_70px] bg-white">
+              <Header title="Money Manager" />
+              <main className="overflow-y-auto">{children}</main>
+              <BottomNavigation />
+            </div>
           </AuthProvider>
         </QueryProvider>
       </body>

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { TablesUpdate } from "@/types/supabase"
 
-type AccountUpdate = TablesUpdate<"accounts">
+type CategoryUpdate = TablesUpdate<"categories">
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -19,24 +19,21 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: account, error } = await supabase
-      .from("accounts")
+    const { data: category, error } = await supabase
+      .from("categories")
       .select("*")
       .eq("id", id)
       .eq("user_id", user.id)
       .single()
 
     if (error) {
-      if (error.code === "PGRST116") {
-        return NextResponse.json({ error: "Account not found" }, { status: 404 })
-      }
-      console.error("Account fetch error:", error)
-      return NextResponse.json({ error: "Failed to fetch account" }, { status: 500 })
+      console.error("Category fetch error:", error)
+      return NextResponse.json({ error: "Category not found" }, { status: 404 })
     }
 
-    return NextResponse.json({ account })
+    return NextResponse.json({ category })
   } catch (error) {
-    console.error("Account API error:", error)
+    console.error("Category API error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
@@ -56,31 +53,26 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Get account data from request body
-    const accountData: AccountUpdate = await request.json()
+    // Get category data from request body
+    const categoryData: CategoryUpdate = await request.json()
 
-    const { data: account, error } = await supabase
-      .from("accounts")
-      .update({
-        ...accountData,
-        updated_at: new Date().toISOString(),
-      })
+    // Update the category
+    const { data: category, error } = await supabase
+      .from("categories")
+      .update(categoryData)
       .eq("id", id)
-      .eq("user_id", user.id)
+      .eq("user_id", user.id) // Ensure user owns the category
       .select()
       .single()
 
     if (error) {
-      if (error.code === "PGRST116") {
-        return NextResponse.json({ error: "Account not found" }, { status: 404 })
-      }
-      console.error("Account update error:", error)
-      return NextResponse.json({ error: "Failed to update account" }, { status: 500 })
+      console.error("Category update error:", error)
+      return NextResponse.json({ error: "Failed to update category" }, { status: 500 })
     }
 
-    return NextResponse.json({ account })
+    return NextResponse.json({ category })
   } catch (error) {
-    console.error("Account update API error:", error)
+    console.error("Category update API error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
@@ -103,16 +95,33 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { error } = await supabase.from("accounts").delete().eq("id", id).eq("user_id", user.id)
+    // Check if category exists and belongs to user
+    const { data: existingCategory, error: fetchError } = await supabase
+      .from("categories")
+      .select("id")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .single()
 
-    if (error) {
-      console.error("Account deletion error:", error)
-      return NextResponse.json({ error: "Failed to delete account" }, { status: 500 })
+    if (fetchError || !existingCategory) {
+      return NextResponse.json({ error: "Category not found" }, { status: 404 })
     }
 
-    return NextResponse.json({ success: true })
+    // Delete the category
+    const { error } = await supabase
+      .from("categories")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", user.id) // Ensure user owns the category
+
+    if (error) {
+      console.error("Category deletion error:", error)
+      return NextResponse.json({ error: "Failed to delete category" }, { status: 500 })
+    }
+
+    return NextResponse.json({ message: "Category deleted successfully" })
   } catch (error) {
-    console.error("Account deletion API error:", error)
+    console.error("Category deletion API error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

@@ -273,7 +273,7 @@ function TransactionForm({
           {showDatePicker && (
             <div
               ref={datePickerRef}
-              className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 p-3"
+              className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-[999] p-3"
             >
               <div className="grid grid-cols-7 gap-1 text-xs">
                 <div className="text-center font-medium text-gray-500">Su</div>

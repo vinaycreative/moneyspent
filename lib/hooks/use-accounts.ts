@@ -4,154 +4,132 @@ import { TablesInsert, TablesUpdate } from "@/types/supabase"
 type AccountInsert = TablesInsert<"accounts">
 type AccountUpdate = TablesUpdate<"accounts">
 
-// Query Keys
-export const accountKeys = {
-  all: ["accounts"] as const,
-  lists: () => [...accountKeys.all, "list"] as const,
-  list: (filters: { userId: string; isActive?: boolean; type?: string }) =>
-    [...accountKeys.lists(), filters] as const,
-  details: () => [...accountKeys.all, "detail"] as const,
-  detail: (id: string) => [...accountKeys.details(), id] as const,
+interface UseAccountsOptions {
+  enabled?: boolean
 }
 
-// Get all accounts for a user
-export function useAccounts(
-  userId: string,
-  options?: {
-    isActive?: boolean
-    type?: string
-    enabled?: boolean
-  }
-) {
-  return useQuery({
-    queryKey: accountKeys.list({
-      userId,
-      isActive: options?.isActive,
-      type: options?.type,
-    }),
-    queryFn: async () => {
-      const params = new URLSearchParams()
-      if (options?.isActive !== undefined) {
-        params.append("isActive", options.isActive.toString())
-      }
-      if (options?.type) {
-        params.append("type", options.type)
-      }
+interface UseAccountsFilters {
+  isActive?: boolean
+  type?: string
+}
 
-      const response = await fetch(`/api/accounts?${params.toString()}`)
+export function useAccounts(userId: string, options: UseAccountsOptions = {}) {
+  const { enabled = true } = options
+
+  return useQuery({
+    queryKey: ["accounts", userId],
+    queryFn: async () => {
+      const response = await fetch(`/api/accounts?userId=${userId}`)
       if (!response.ok) {
         throw new Error("Failed to fetch accounts")
       }
       const data = await response.json()
-      return data.accounts
+      // Return the accounts array from the response
+      return data.accounts || []
     },
-    enabled: options?.enabled !== false && !!userId,
+    enabled: enabled && !!userId,
   })
 }
 
-// Get a specific account
-export function useAccount(id: string, enabled = true) {
-  return useQuery({
-    queryKey: accountKeys.detail(id),
-    queryFn: async () => {
-      const response = await fetch(`/api/accounts/${id}`)
-      if (!response.ok) {
-        throw new Error("Failed to fetch account")
-      }
-      const data = await response.json()
-      return data.account
-    },
-    enabled: enabled && !!id,
-  })
-}
-
-// Create a new account
 export function useCreateAccount() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (account: AccountInsert) => {
+    mutationFn: async (accountData: AccountInsert) => {
       const response = await fetch("/api/accounts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(account),
+        body: JSON.stringify(accountData),
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || "Failed to create account")
+        throw new Error(error.message || "Failed to create account")
       }
 
-      const data = await response.json()
-      return data.account
+      return response.json()
     },
-    onSuccess: (data) => {
-      // Invalidate and refetch accounts list
-      queryClient.invalidateQueries({ queryKey: accountKeys.lists() })
+    onSuccess: (data, variables) => {
+      // Invalidate and refetch accounts
+      queryClient.invalidateQueries({ queryKey: ["accounts", variables.user_id] })
 
-      // Add the new account to the cache
-      queryClient.setQueryData(accountKeys.detail(data.id), data)
+      // Update the cache with the new account
+      queryClient.setQueryData(["accounts", variables.user_id], (oldData: any) => {
+        if (oldData) {
+          return [...oldData, data.account]
+        }
+        return [data.account]
+      })
     },
   })
 }
 
-// Update an account
 export function useUpdateAccount() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: AccountUpdate & { id: string }) => {
+    mutationFn: async ({ id, data }: { id: string; data: AccountUpdate }) => {
       const response = await fetch(`/api/accounts/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(updates),
+        body: JSON.stringify(data),
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || "Failed to update account")
+        throw new Error(error.message || "Failed to update account")
       }
 
-      const data = await response.json()
-      return data.account
+      return response.json()
     },
-    onSuccess: (data) => {
-      // Invalidate and refetch accounts list
-      queryClient.invalidateQueries({ queryKey: accountKeys.lists() })
+    onSuccess: (data, variables) => {
+      // Invalidate and refetch accounts
+      queryClient.invalidateQueries({ queryKey: ["accounts"] })
 
-      // Update the specific account in cache
-      queryClient.setQueryData(accountKeys.detail(data.id), data)
+      // Update the cache with the updated account
+      queryClient.setQueryData(["accounts"], (oldData: any) => {
+        if (oldData) {
+          return oldData.map((account: any) =>
+            account.id === variables.id ? data.account : account
+          )
+        }
+        return oldData
+      })
     },
   })
 }
 
-// Delete an account
 export function useDeleteAccount() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const response = await fetch(`/api/accounts/${id}`, {
+    mutationFn: async (accountId: string) => {
+      const response = await fetch(`/api/accounts/${accountId}`, {
         method: "DELETE",
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || "Failed to delete account")
+        throw new Error(error.message || "Failed to delete account")
       }
 
-      return id
+      return response.json()
     },
-    onSuccess: (id) => {
-      // Invalidate and refetch accounts list
-      queryClient.invalidateQueries({ queryKey: accountKeys.lists() })
+    onSuccess: (data, accountId) => {
+      // Invalidate and refetch accounts
+      queryClient.invalidateQueries({ queryKey: ["accounts"] })
 
-      // Remove the account from cache
-      queryClient.removeQueries({ queryKey: accountKeys.detail(id) })
+      // Remove the deleted account from cache
+      queryClient.setQueryData(["accounts"], (oldData: any) => {
+        if (oldData) {
+          return oldData.filter((account: any) => account.id !== accountId)
+        }
+        return oldData
+      })
     },
   })
 }

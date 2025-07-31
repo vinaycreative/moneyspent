@@ -4,191 +4,150 @@ import { TablesInsert, TablesUpdate } from "@/types/supabase"
 type TransactionInsert = TablesInsert<"transactions">
 type TransactionUpdate = TablesUpdate<"transactions">
 
-// Query Keys
-export const transactionKeys = {
-  all: ["transactions"] as const,
-  lists: () => [...transactionKeys.all, "list"] as const,
-  list: (filters: { userId: string; startDate?: string; endDate?: string; type?: string }) =>
-    [...transactionKeys.lists(), filters] as const,
-  details: () => [...transactionKeys.all, "detail"] as const,
-  detail: (id: string) => [...transactionKeys.details(), id] as const,
+interface UseTransactionsOptions {
+  enabled?: boolean
 }
 
-// Get all transactions for a user
-export function useTransactions(
-  userId: string,
-  options?: {
-    startDate?: string
-    endDate?: string
-    type?: string
-    enabled?: boolean
-  }
-) {
-  return useQuery({
-    queryKey: transactionKeys.list({
-      userId,
-      startDate: options?.startDate,
-      endDate: options?.endDate,
-      type: options?.type,
-    }),
-    queryFn: async () => {
-      const params = new URLSearchParams()
-      if (options?.startDate) {
-        params.append("startDate", options.startDate)
-      }
-      if (options?.endDate) {
-        params.append("endDate", options.endDate)
-      }
-      if (options?.type) {
-        params.append("type", options.type)
-      }
+export function useTransactions(userId: string, options: UseTransactionsOptions = {}) {
+  const { enabled = true } = options
 
-      const response = await fetch(`/api/transactions?${params.toString()}`)
+  return useQuery({
+    queryKey: ["transactions", userId],
+    queryFn: async () => {
+      const response = await fetch(`/api/transactions?userId=${userId}`)
       if (!response.ok) {
         throw new Error("Failed to fetch transactions")
       }
       const data = await response.json()
-      return data.transactions
+      return data.transactions || []
     },
-    enabled: options?.enabled !== false && !!userId,
+    enabled: enabled && !!userId,
   })
 }
 
-// Get a specific transaction
-export function useTransaction(id: string, enabled = true) {
-  return useQuery({
-    queryKey: transactionKeys.detail(id),
-    queryFn: async () => {
-      const response = await fetch(`/api/transactions/${id}`)
-      if (!response.ok) {
-        throw new Error("Failed to fetch transaction")
-      }
-      const data = await response.json()
-      return data.transaction
-    },
-    enabled: enabled && !!id,
-  })
-}
-
-// Create a new transaction
 export function useCreateTransaction() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (transaction: TransactionInsert) => {
+    mutationFn: async (transactionData: TransactionInsert) => {
       const response = await fetch("/api/transactions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(transaction),
+        body: JSON.stringify(transactionData),
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || "Failed to create transaction")
+        throw new Error(error.message || "Failed to create transaction")
       }
 
-      const data = await response.json()
-      return data.transaction
+      return response.json()
     },
-    onSuccess: (data) => {
-      // Invalidate and refetch transactions list
-      queryClient.invalidateQueries({ queryKey: transactionKeys.lists() })
+    onSuccess: (data, variables) => {
+      // Invalidate and refetch transactions
+      queryClient.invalidateQueries({ queryKey: ["transactions", variables.user_id] })
+      queryClient.invalidateQueries({ queryKey: ["transactionSummary"] })
+      queryClient.invalidateQueries({ queryKey: ["analytics"] })
 
-      // Add the new transaction to the cache
-      queryClient.setQueryData(transactionKeys.detail(data.id), data)
+      // Update the cache with the new transaction
+      queryClient.setQueryData(["transactions", variables.user_id], (oldData: any) => {
+        if (oldData) {
+          return [...oldData, data.transaction]
+        }
+        return [data.transaction]
+      })
     },
   })
 }
 
-// Update a transaction
 export function useUpdateTransaction() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: TransactionUpdate & { id: string }) => {
+    mutationFn: async ({ id, data }: { id: string; data: TransactionUpdate }) => {
       const response = await fetch(`/api/transactions/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(updates),
+        body: JSON.stringify(data),
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || "Failed to update transaction")
+        throw new Error(error.message || "Failed to update transaction")
       }
 
-      const data = await response.json()
-      return data.transaction
+      return response.json()
     },
-    onSuccess: (data) => {
-      // Invalidate and refetch transactions list
-      queryClient.invalidateQueries({ queryKey: transactionKeys.lists() })
+    onSuccess: (data, variables) => {
+      // Invalidate and refetch transactions
+      queryClient.invalidateQueries({ queryKey: ["transactions"] })
+      queryClient.invalidateQueries({ queryKey: ["transactionSummary"] })
+      queryClient.invalidateQueries({ queryKey: ["analytics"] })
 
-      // Update the specific transaction in cache
-      queryClient.setQueryData(transactionKeys.detail(data.id), data)
+      // Update the cache with the updated transaction
+      queryClient.setQueryData(["transactions"], (oldData: any) => {
+        if (oldData) {
+          return oldData.map((transaction: any) =>
+            transaction.id === variables.id ? data.transaction : transaction
+          )
+        }
+        return oldData
+      })
     },
   })
 }
 
-// Delete a transaction
 export function useDeleteTransaction() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const response = await fetch(`/api/transactions/${id}`, {
+    mutationFn: async (transactionId: string) => {
+      const response = await fetch(`/api/transactions/${transactionId}`, {
         method: "DELETE",
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || "Failed to delete transaction")
+        throw new Error(error.message || "Failed to delete transaction")
       }
 
-      return id
+      return response.json()
     },
-    onSuccess: (id) => {
-      // Invalidate and refetch transactions list
-      queryClient.invalidateQueries({ queryKey: transactionKeys.lists() })
+    onSuccess: (data, transactionId) => {
+      // Invalidate and refetch transactions
+      queryClient.invalidateQueries({ queryKey: ["transactions"] })
+      queryClient.invalidateQueries({ queryKey: ["transactionSummary"] })
+      queryClient.invalidateQueries({ queryKey: ["analytics"] })
 
-      // Remove the transaction from cache
-      queryClient.removeQueries({ queryKey: transactionKeys.detail(id) })
+      // Remove the deleted transaction from cache
+      queryClient.setQueryData(["transactions"], (oldData: any) => {
+        if (oldData) {
+          return oldData.filter((transaction: any) => transaction.id !== transactionId)
+        }
+        return oldData
+      })
     },
   })
 }
 
-// Get transaction summary (using database function)
-export function useTransactionSummary(
-  userId: string,
-  options?: {
-    startDate?: string
-    endDate?: string
-    enabled?: boolean
-  }
-) {
-  return useQuery({
-    queryKey: ["transaction-summary", userId, options?.startDate, options?.endDate],
-    queryFn: async () => {
-      const params = new URLSearchParams()
-      if (options?.startDate) {
-        params.append("startDate", options.startDate)
-      }
-      if (options?.endDate) {
-        params.append("endDate", options.endDate)
-      }
+export function useTransactionSummary(userId: string, options: UseTransactionsOptions = {}) {
+  const { enabled = true } = options
 
-      const response = await fetch(`/api/transactions/summary?${params.toString()}`)
+  return useQuery({
+    queryKey: ["transactionSummary", userId],
+    queryFn: async () => {
+      const response = await fetch(`/api/transactions/summary?userId=${userId}`)
       if (!response.ok) {
         throw new Error("Failed to fetch transaction summary")
       }
       const data = await response.json()
       return data.summary
     },
-    enabled: options?.enabled !== false && !!userId,
+    enabled: enabled && !!userId,
   })
 }
 

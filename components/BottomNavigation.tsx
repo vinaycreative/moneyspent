@@ -16,8 +16,8 @@ export default function BottomNavigation() {
   ]
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 z-50">
-      <div className="max-w-md mx-auto flex items-center justify-around">
+    <div className="bg-white border-t border-gray-200 h-[70px] flex items-center z-[2]">
+      <div className="max-w-md mx-auto flex items-center justify-around w-full px-4">
         {navigationItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.path

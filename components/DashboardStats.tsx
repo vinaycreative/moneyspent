@@ -40,15 +40,13 @@ export function DashboardStats({
             <TrendingDown className="w-5 h-5 text-red-500" />
             <div className="text-sm text-red-600 font-medium">Total Spent</div>
           </div>
-          {isLoading && (
-            <div className="animate-pulse bg-red-200 h-4 w-16 rounded"></div>
-          )}
+          {isLoading && <div className="animate-pulse bg-red-200 h-4 w-16 rounded"></div>}
         </div>
-        <div className="text-2xl font-bold text-red-600">
-          ₹ {totalExpenses.toLocaleString()}
-        </div>
+        <div className="text-2xl font-bold text-red-600">₹ {totalExpenses.toLocaleString()}</div>
         <div className="text-xs text-red-500 mt-1">
-          {transactionCount > 0 ? `${transactionCount} transaction${transactionCount !== 1 ? 's' : ''}` : 'No transactions yet'}
+          {transactionCount > 0
+            ? `${transactionCount} transaction${transactionCount !== 1 ? "s" : ""}`
+            : "No transactions yet"}
         </div>
       </div>
 
@@ -59,15 +57,11 @@ export function DashboardStats({
             <TrendingUp className="w-5 h-5 text-green-500" />
             <div className="text-sm text-green-600 font-medium">Total Income</div>
           </div>
-          {isLoading && (
-            <div className="animate-pulse bg-green-200 h-4 w-16 rounded"></div>
-          )}
+          {isLoading && <div className="animate-pulse bg-green-200 h-4 w-16 rounded"></div>}
         </div>
-        <div className="text-2xl font-bold text-green-600">
-          ₹ {totalIncome.toLocaleString()}
-        </div>
+        <div className="text-2xl font-bold text-green-600">₹ {totalIncome.toLocaleString()}</div>
         <div className="text-xs text-green-500 mt-1">
-          {totalIncome > 0 ? 'Income received' : 'No income yet'}
+          {totalIncome > 0 ? "Income received" : "No income yet"}
         </div>
       </div>
 
@@ -78,15 +72,17 @@ export function DashboardStats({
             <DollarSign className="w-5 h-5 text-blue-500" />
             <div className="text-sm text-blue-600 font-medium">Net Savings</div>
           </div>
-          {isLoading && (
-            <div className="animate-pulse bg-blue-200 h-4 w-16 rounded"></div>
-          )}
+          {isLoading && <div className="animate-pulse bg-blue-200 h-4 w-16 rounded"></div>}
         </div>
-        <div className={`text-2xl font-bold ${netSavings >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+        <div
+          className={`text-2xl font-bold ${netSavings >= 0 ? "text-blue-600" : "text-red-600"}`}
+        >
           ₹ {netSavings.toLocaleString()}
         </div>
         <div className="text-xs text-blue-500 mt-1">
-          {netSavings >= 0 ? `Saving ${savingsPercentage}% of income` : 'Spending more than earning'}
+          {netSavings >= 0
+            ? `Saving ${savingsPercentage}% of income`
+            : "Spending more than earning"}
         </div>
       </div>
 
@@ -100,17 +96,34 @@ export function DashboardStats({
           <div className="space-y-2 text-xs">
             <div className="flex justify-between">
               <span className="text-gray-600">Savings Rate:</span>
-              <span className={`font-medium ${savingsPercentage >= 20 ? 'text-green-600' : savingsPercentage >= 10 ? 'text-yellow-600' : 'text-red-600'}`}>
+              <span
+                className={`font-medium ${
+                  savingsPercentage >= 20
+                    ? "text-green-600"
+                    : savingsPercentage >= 10
+                    ? "text-yellow-600"
+                    : "text-red-600"
+                }`}
+              >
                 {savingsPercentage}%
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Spending Trend:</span>
-              <span className={`font-medium ${
-                spendingTrend === 'positive' ? 'text-green-600' : 
-                spendingTrend === 'negative' ? 'text-red-600' : 'text-gray-600'
-              }`}>
-                {spendingTrend === 'positive' ? 'Good' : spendingTrend === 'negative' ? 'High' : 'Neutral'}
+              <span
+                className={`font-medium ${
+                  spendingTrend === "positive"
+                    ? "text-green-600"
+                    : spendingTrend === "negative"
+                    ? "text-red-600"
+                    : "text-gray-600"
+                }`}
+              >
+                {spendingTrend === "positive"
+                  ? "Good"
+                  : spendingTrend === "negative"
+                  ? "High"
+                  : "Neutral"}
               </span>
             </div>
             {totalIncome > 0 && (
@@ -126,4 +139,4 @@ export function DashboardStats({
       )}
     </div>
   )
-} 
+}
