@@ -17,7 +17,7 @@ export default function LoginPage() {
       setError(null)
 
       // Get the correct redirect URL for the current environment
-      const redirectUrl = `https://moneymanager-beta.vercel.app/auth/v1/callback`
+      const redirectUrl = `${window.location.origin}/auth/callback`
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
