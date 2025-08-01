@@ -16,10 +16,13 @@ export default function LoginPage() {
       setIsLoading(true)
       setError(null)
 
+      // Get the correct redirect URL for the current environment
+      const redirectUrl = `${window.location.origin}/auth/callback`
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectUrl,
           queryParams: {
             access_type: "offline",
             prompt: "consent",
@@ -29,6 +32,7 @@ export default function LoginPage() {
 
       if (error) {
         setError(error.message)
+        console.error("OAuth error:", error)
       }
     } catch (err) {
       setError("An unexpected error occurred")
