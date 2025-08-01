@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import BottomNavigation from "@/components/BottomNavigation"
@@ -6,6 +6,8 @@ import Header from "@/components/Header"
 import { QueryProvider } from "@/lib/query-provider"
 import { AuthProvider } from "@/lib/contexts/auth-context"
 import PrivateLayout from "./(private)/layout"
+import PWAInstallPrompt from "@/components/PWAInstallPrompt"
+import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,6 +22,36 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Money Manager",
   description: "Track your finances with ease",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Money Manager",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: [
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "default",
+    "apple-mobile-web-app-title": "Money Manager",
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: "#3b82f6",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 }
 
 export default function RootLayout({
@@ -35,13 +67,9 @@ export default function RootLayout({
       >
         <QueryProvider>
           <AuthProvider>
-            {/* <div className="h-dvh grid grid-rows-[60px_1fr_70px] bg-white">
-              <Header title="Money Manager" />
-              <main className="overflow-y-auto">{children}</main>
-              <BottomNavigation />
-            </div> */}
-            {/* <PrivateLayout>{children}</PrivateLayout> */}
             {children}
+            <PWAInstallPrompt />
+            <ServiceWorkerRegistration />
           </AuthProvider>
         </QueryProvider>
       </body>

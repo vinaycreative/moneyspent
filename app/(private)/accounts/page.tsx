@@ -52,7 +52,7 @@ export default function AccountsPage() {
     )
   }
 
-  const totalBalance = accounts.reduce((sum, account) => sum + (account.balance || 0), 0)
+  const totalBalance = accounts.reduce((sum: number, account: any) => sum + (account.balance || 0), 0)
 
   const getAccountIcon = (type: string) => {
     switch (type) {
@@ -101,7 +101,7 @@ export default function AccountsPage() {
     }
   }
 
-  const accountToDelete = accounts.find((account) => account.id === deleteAccountId)
+  const accountToDelete = accounts.find((account: any) => account.id === deleteAccountId)
 
   return (
     <div className="max-w-md mx-auto h-full">
@@ -158,7 +158,7 @@ export default function AccountsPage() {
           </div>
         ) : accounts.length > 0 ? (
           <div className="space-y-4">
-            {accounts.map((account) => {
+            {accounts.map((account: any) => {
               const Icon = getAccountIcon(account.type)
               const color = getAccountColor(account.type)
 

@@ -158,10 +158,10 @@ export function useUpdateAccountBalance() {
     },
     onSuccess: (data) => {
       // Invalidate and refetch accounts list
-      queryClient.invalidateQueries({ queryKey: accountKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: ["accounts"] })
 
       // Update the specific account in cache
-      queryClient.setQueryData(accountKeys.detail(data.id), data)
+      queryClient.setQueryData(["accounts", data.id], data)
     },
   })
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, Plus, Edit2, Trash2, Save, X as XIcon } from "lucide-react"
+import { X, Plus, Edit2, Trash2, Save, X as XIcon, Tag } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -200,7 +200,7 @@ export default function CategoryManagementModal({ isOpen, onClose }: CategoryMan
               </div>
             ) : categories && categories.length > 0 ? (
               <div className="space-y-3">
-                {categories.map((category) => (
+                {categories.map((category: any) => (
                   <div
                     key={category.id}
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
