@@ -2,13 +2,27 @@
 
 import { useState, useEffect } from "react"
 import { ArrowLeft, ArrowRight, Plus } from "lucide-react"
-import { AddTransactionModal } from "@/components/AddTransactionModal"
+import { ReusableDrawer } from "@/components/ReusableDrawer"
+import { AddTransactionFormContent } from "@/components/AddTransactionFormContent"
+import { useAddTransactionDrawer } from "@/lib/hooks/use-add-transaction-drawer"
 import { DashboardStats } from "@/components/DashboardStats"
 import { useAuth } from "@/lib/contexts/auth-context"
 import { useTransactions, useTransactionSummary } from "@/lib/hooks"
 
 export default function Dashboard() {
   const { user, profile, isLoading } = useAuth()
+  const {
+    isOpen,
+    openDrawer,
+    closeDrawer,
+    activeTab,
+    setActiveTab,
+    formData,
+    setFormData,
+    handleSubmit,
+    isSubmitDisabled,
+    isLoading: isSubmitting,
+  } = useAddTransactionDrawer()
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [currentDate] = useState("Today")
 
@@ -166,13 +180,34 @@ export default function Dashboard() {
 
       {/* Add Transaction Button */}
       <div className="px-4 mb-6">
-        <AddTransactionModal>
-          <button className="w-full bg-black text-white rounded-xl py-4 flex items-center justify-center gap-2 font-medium hover:bg-gray-800 transition-colors">
-            <Plus className="w-5 h-5" />
-            Add Transaction
-          </button>
-        </AddTransactionModal>
+        <button
+          onClick={openDrawer}
+          className="w-full bg-black text-white rounded-xl py-4 flex items-center justify-center gap-2 font-medium hover:bg-gray-800 transition-colors"
+        >
+          <Plus className="w-5 h-5" />
+          Add Transaction
+        </button>
       </div>
+
+      {/* Add Transaction Drawer */}
+      <ReusableDrawer
+        isOpen={isOpen}
+        onOpenChange={(open) => !open && closeDrawer()}
+        title="Add Transaction"
+        onCancel={closeDrawer}
+        onSubmit={handleSubmit}
+        submitTitle={isSubmitting ? "Adding..." : "Add"}
+        submitIcon={<Plus className="w-4 h-4" />}
+        submitDisabled={isSubmitDisabled}
+      >
+        <AddTransactionFormContent
+          formData={formData}
+          onFormDataChange={setFormData}
+          activeTab={activeTab}
+          onActiveTabChange={setActiveTab}
+          isLoading={isSubmitting}
+        />
+      </ReusableDrawer>
 
       {/* Recent Transactions */}
       <div className="px-4 pb-6">

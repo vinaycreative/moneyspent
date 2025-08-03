@@ -13,7 +13,9 @@ import {
   Settings,
 } from "lucide-react"
 import { useAuth } from "@/lib/contexts/auth-context"
-import CategoryManagementModal from "@/components/CategoryManagementModal"
+import { ReusableDrawer } from "@/components/ReusableDrawer"
+import { CategoryManagementContent } from "@/components/CategoryManagementContent"
+import { useCategoryDrawer } from "@/lib/hooks/use-category-drawer"
 import { useRouter } from "next/navigation"
 
 interface SettingItem {
@@ -27,14 +29,14 @@ interface SettingItem {
 export default function SettingsPage() {
   const { user, profile, signOut } = useAuth()
   const [currency, setCurrency] = useState("INR")
-  const [showCategoryModal, setShowCategoryModal] = useState(false)
+  const { isOpen, openDrawer, closeDrawer } = useCategoryDrawer()
   const router = useRouter()
 
   const handleAction = async (item: SettingItem) => {
     switch (item.action) {
       case "modal":
         if (item.id === "categories") {
-          setShowCategoryModal(true)
+          openDrawer()
         }
         break
       case "logout":
@@ -220,11 +222,18 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Category Management Modal */}
-        <CategoryManagementModal
-          isOpen={showCategoryModal}
-          onClose={() => setShowCategoryModal(false)}
-        />
+        {/* Category Management Drawer */}
+        <ReusableDrawer
+          isOpen={isOpen}
+          onOpenChange={(open) => !open && closeDrawer()}
+          title="Manage Categories"
+          onCancel={closeDrawer}
+          onSubmit={() => {}} // No submit action needed for this drawer
+          submitTitle=""
+          submitDisabled={true}
+        >
+          <CategoryManagementContent onClose={closeDrawer} />
+        </ReusableDrawer>
       </div>
     </div>
   )

@@ -1,8 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Calendar, ChevronDown } from "lucide-react"
-import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog"
+import { Calendar } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -14,87 +13,52 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useAuth } from "@/lib/contexts/auth-context"
-import { useCreateTransaction, useCategories, useAccounts } from "@/lib/hooks"
-import { TablesInsert } from "@/types/supabase"
+import { useCategories, useAccounts } from "@/lib/hooks"
 
-type TransactionInsert = TablesInsert<"transactions">
-
-interface AddTransactionModalProps {
-  children: React.ReactNode
+export interface TransactionFormData {
+  date: string
+  amount: string
+  description: string
+  category: string
+  account: string
 }
 
-export function AddTransactionModal({ children }: AddTransactionModalProps) {
-  const { user } = useAuth()
-  const [isOpen, setIsOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState("expense")
-  const [showDatePicker, setShowDatePicker] = useState(false)
-  const [formData, setFormData] = useState({
-    date: "",
-    amount: "",
-    description: "",
-    category: "",
-    account: "",
-  })
+interface AddTransactionFormContentProps {
+  formData: TransactionFormData
+  onFormDataChange: (data: TransactionFormData) => void
+  activeTab: string
+  onActiveTabChange: (tab: string) => void
+  isLoading?: boolean
+}
 
+export function AddTransactionFormContent({
+  formData,
+  onFormDataChange,
+  activeTab,
+  onActiveTabChange,
+  isLoading = false,
+}: AddTransactionFormContentProps) {
+  const { user } = useAuth()
+  const [showDatePicker, setShowDatePicker] = useState(false)
   const datePickerRef = useRef<HTMLDivElement>(null)
 
   // Get categories and accounts
   const { data: categories, isLoading: categoriesLoading } = useCategories(user?.id || "", {
-    enabled: !!user?.id && isOpen,
+    enabled: !!user?.id,
   })
   const { data: accounts, isLoading: accountsLoading } = useAccounts(user?.id || "", {
-    enabled: !!user?.id && isOpen,
+    enabled: !!user?.id,
   })
 
-  // Create transaction mutation
-  const createTransaction = useCreateTransaction()
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
+  const handleInputChange = (field: keyof TransactionFormData, value: string) => {
+    onFormDataChange({
+      ...formData,
       [field]: value,
-    }))
-  }
-
-  const handleSubmit = async () => {
-    if (!user?.id) {
-      console.error("No user ID available")
-      return
-    }
-
-    try {
-      const transactionData: TransactionInsert = {
-        user_id: user.id,
-        title: formData.description || "Untitled Transaction",
-        amount: parseFloat(formData.amount) || 0,
-        type: activeTab as "expense" | "income",
-        transaction_date: formData.date || new Date().toISOString().split("T")[0],
-        description: formData.description || null,
-        category_id: formData.category || null,
-        account_id: formData.account || null,
-      }
-
-      await createTransaction.mutateAsync(transactionData)
-
-      // Reset form and close modal
-      setFormData({
-        date: "",
-        amount: "",
-        description: "",
-        category: "",
-        account: "",
-      })
-      setIsOpen(false)
-    } catch (error) {
-      console.error("Failed to create transaction:", error)
-    }
+    })
   }
 
   const handleDateSelect = (date: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      date: date,
-    }))
+    handleInputChange("date", date)
     setShowDatePicker(false)
   }
 
@@ -134,103 +98,70 @@ export function AddTransactionModal({ children }: AddTransactionModalProps) {
   const filteredCategories = categories?.filter((cat: any) => cat.type === activeTab) || []
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-md w-full mx-4 p-0 bg-white rounded-xl border-0 shadow-2xl">
-        <DialogTitle className="sr-only">Add Transaction</DialogTitle>
-        {/* Custom Header */}
-        <div className="px-6 pt-6 pb-4">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-bold text-gray-600">Money Manager</h1>
-          </div>
+    <div className="p-6">
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={onActiveTabChange} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-lg">
+          <TabsTrigger
+            value="expense"
+            className="data-[state=active]:bg-white data-[state=active]:text-orange-500 text-gray-600 rounded-md"
+          >
+            Expense
+          </TabsTrigger>
+          <TabsTrigger
+            value="income"
+            className="data-[state=active]:bg-white data-[state=active]:text-orange-500 text-gray-600 rounded-md"
+          >
+            Income
+          </TabsTrigger>
+        </TabsList>
 
-          <div className="text-center">
-            <div className="text-gray-600 font-medium">Today</div>
-            <div className="text-sm text-gray-500">Add Transaction</div>
-          </div>
-        </div>
+        <TabsContent value="expense" className="mt-6">
+          <TransactionForm
+            formData={formData}
+            onInputChange={handleInputChange}
+            showDatePicker={showDatePicker}
+            setShowDatePicker={setShowDatePicker}
+            onDateSelect={handleDateSelect}
+            formatDateForDisplay={formatDateForDisplay}
+            getCurrentDate={getCurrentDate}
+            categories={filteredCategories}
+            accounts={accounts || []}
+            categoriesLoading={categoriesLoading}
+            accountsLoading={accountsLoading}
+          />
+        </TabsContent>
 
-        {/* Tabs */}
-        <div className="px-6 pb-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-lg">
-              <TabsTrigger
-                value="expense"
-                className="data-[state=active]:bg-white data-[state=active]:text-orange-500 text-gray-600 rounded-md"
-              >
-                Expense
-              </TabsTrigger>
-              <TabsTrigger
-                value="income"
-                className="data-[state=active]:bg-white data-[state=active]:text-orange-500 text-gray-600 rounded-md"
-              >
-                Income
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="expense" className="mt-6">
-              <TransactionForm
-                formData={formData}
-                onInputChange={handleInputChange}
-                onSubmit={handleSubmit}
-                showDatePicker={showDatePicker}
-                setShowDatePicker={setShowDatePicker}
-                onDateSelect={handleDateSelect}
-                formatDateForDisplay={formatDateForDisplay}
-                getCurrentDate={getCurrentDate}
-                transactionType="expense"
-                categories={filteredCategories}
-                accounts={accounts || []}
-                isLoading={createTransaction.isPending}
-                categoriesLoading={categoriesLoading}
-                accountsLoading={accountsLoading}
-              />
-            </TabsContent>
-
-            <TabsContent value="income" className="mt-6">
-              <TransactionForm
-                formData={formData}
-                onInputChange={handleInputChange}
-                onSubmit={handleSubmit}
-                showDatePicker={showDatePicker}
-                setShowDatePicker={setShowDatePicker}
-                onDateSelect={handleDateSelect}
-                formatDateForDisplay={formatDateForDisplay}
-                getCurrentDate={getCurrentDate}
-                transactionType="income"
-                categories={filteredCategories}
-                accounts={accounts || []}
-                isLoading={createTransaction.isPending}
-                categoriesLoading={categoriesLoading}
-                accountsLoading={accountsLoading}
-              />
-            </TabsContent>
-          </Tabs>
-        </div>
-      </DialogContent>
-    </Dialog>
+        <TabsContent value="income" className="mt-6">
+          <TransactionForm
+            formData={formData}
+            onInputChange={handleInputChange}
+            showDatePicker={showDatePicker}
+            setShowDatePicker={setShowDatePicker}
+            onDateSelect={handleDateSelect}
+            formatDateForDisplay={formatDateForDisplay}
+            getCurrentDate={getCurrentDate}
+            categories={filteredCategories}
+            accounts={accounts || []}
+            categoriesLoading={categoriesLoading}
+            accountsLoading={accountsLoading}
+          />
+        </TabsContent>
+      </Tabs>
+    </div>
   )
 }
 
 interface TransactionFormProps {
-  formData: {
-    date: string
-    amount: string
-    description: string
-    category: string
-    account: string
-  }
-  onInputChange: (field: string, value: string) => void
-  onSubmit: () => void
+  formData: TransactionFormData
+  onInputChange: (field: keyof TransactionFormData, value: string) => void
   showDatePicker: boolean
   setShowDatePicker: (show: boolean) => void
   onDateSelect: (date: string) => void
   formatDateForDisplay: (date: string) => string
   getCurrentDate: () => string
-  transactionType: "expense" | "income"
   categories: any[]
   accounts: any[]
-  isLoading: boolean
   categoriesLoading: boolean
   accountsLoading: boolean
 }
@@ -238,16 +169,13 @@ interface TransactionFormProps {
 function TransactionForm({
   formData,
   onInputChange,
-  onSubmit,
   showDatePicker,
   setShowDatePicker,
   onDateSelect,
   formatDateForDisplay,
   getCurrentDate,
-  transactionType,
   categories,
   accounts,
-  isLoading,
   categoriesLoading,
   accountsLoading,
 }: TransactionFormProps) {
@@ -413,15 +341,6 @@ function TransactionForm({
           </SelectContent>
         </Select>
       </div>
-
-      {/* Add Button */}
-      <button
-        onClick={onSubmit}
-        disabled={!formData.amount || isLoading}
-        className="w-full bg-gray-800 text-white py-4 rounded-lg font-medium mt-6 hover:bg-gray-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-      >
-        {isLoading ? "Adding..." : "Add"}
-      </button>
     </div>
   )
-}
+} 

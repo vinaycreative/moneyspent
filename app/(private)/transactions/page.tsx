@@ -13,7 +13,9 @@ import {
   MoreVertical,
   Trash2,
 } from "lucide-react"
-import { AddTransactionModal } from "@/components/AddTransactionModal"
+import { ReusableDrawer } from "@/components/ReusableDrawer"
+import { AddTransactionFormContent } from "@/components/AddTransactionFormContent"
+import { useAddTransactionDrawer } from "@/lib/hooks/use-add-transaction-drawer"
 import { EditTransactionModal } from "@/components/EditTransactionModal"
 import { Plus } from "lucide-react"
 import { useAuth } from "@/lib/contexts/auth-context"
@@ -22,6 +24,18 @@ import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/
 
 export default function Transactions() {
   const { user, isLoading: authLoading } = useAuth()
+  const {
+    isOpen,
+    openDrawer,
+    closeDrawer,
+    activeTab,
+    setActiveTab,
+    formData,
+    setFormData,
+    handleSubmit,
+    isSubmitDisabled,
+    isLoading: isSubmitting,
+  } = useAddTransactionDrawer()
   const [selectedDateRange, setSelectedDateRange] = useState("all")
   const [showDateFilter, setShowDateFilter] = useState(false)
   const [customStartDate, setCustomStartDate] = useState("")
@@ -133,11 +147,12 @@ export default function Transactions() {
       <div className="px-4 py-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-xl font-bold text-black">Transactions</h1>
-          <AddTransactionModal>
-            <button className="p-2 rounded-lg bg-purple-100 hover:bg-purple-200 transition-colors">
-              <Plus className="w-5 h-5 text-purple-600" />
-            </button>
-          </AddTransactionModal>
+          <button 
+            onClick={openDrawer}
+            className="p-2 rounded-lg bg-purple-100 hover:bg-purple-200 transition-colors"
+          >
+            <Plus className="w-5 h-5 text-purple-600" />
+          </button>
         </div>
       </div>
 
@@ -471,6 +486,26 @@ export default function Transactions() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Add Transaction Drawer */}
+      <ReusableDrawer
+        isOpen={isOpen}
+        onOpenChange={(open) => !open && closeDrawer()}
+        title="Add Transaction"
+        onCancel={closeDrawer}
+        onSubmit={handleSubmit}
+        submitTitle={isSubmitting ? "Adding..." : "Add"}
+        submitIcon={<Plus className="w-4 h-4" />}
+        submitDisabled={isSubmitDisabled}
+      >
+        <AddTransactionFormContent
+          formData={formData}
+          onFormDataChange={setFormData}
+          activeTab={activeTab}
+          onActiveTabChange={setActiveTab}
+          isLoading={isSubmitting}
+        />
+      </ReusableDrawer>
     </div>
   )
 }

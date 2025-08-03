@@ -14,7 +14,9 @@ import {
 } from "lucide-react"
 import { useAuth } from "@/lib/contexts/auth-context"
 import { useAccounts, useDeleteAccount } from "@/lib/hooks"
-import { AddAccountModal } from "@/components/AddAccountModal"
+import { ReusableDrawer } from "@/components/ReusableDrawer"
+import { AddAccountFormContent } from "@/components/AddAccountFormContent"
+import { useAddAccountDrawer } from "@/lib/hooks/use-add-account-drawer"
 import { EditAccountModal } from "@/components/EditAccountModal"
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog"
 
@@ -23,6 +25,16 @@ export default function AccountsPage() {
   const [showBalances, setShowBalances] = useState(true)
   const [deleteAccountId, setDeleteAccountId] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const {
+    isOpen,
+    openDrawer,
+    closeDrawer,
+    formData,
+    setFormData,
+    handleSubmit,
+    isSubmitDisabled,
+    isLoading: isSubmitting,
+  } = useAddAccountDrawer()
 
   // Get user's accounts
   const { data: accounts = [], isLoading: accountsLoading } = useAccounts(user?.id || "", {
@@ -52,7 +64,10 @@ export default function AccountsPage() {
     )
   }
 
-  const totalBalance = accounts.reduce((sum: number, account: any) => sum + (account.balance || 0), 0)
+  const totalBalance = accounts.reduce(
+    (sum: number, account: any) => sum + (account.balance || 0),
+    0
+  )
 
   const getAccountIcon = (type: string) => {
     switch (type) {
@@ -109,11 +124,12 @@ export default function AccountsPage() {
       <div className="px-4 py-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-xl font-bold text-black">My Accounts</h1>
-          <AddAccountModal>
-            <button className="p-2 rounded-lg bg-purple-100 hover:bg-purple-200 transition-colors">
-              <Plus className="w-5 h-5 text-purple-600" />
-            </button>
-          </AddAccountModal>
+          <button
+            onClick={openDrawer}
+            className="p-2 rounded-lg bg-purple-100 hover:bg-purple-200 transition-colors"
+          >
+            <Plus className="w-5 h-5 text-purple-600" />
+          </button>
         </div>
       </div>
 
@@ -226,18 +242,20 @@ export default function AccountsPage() {
       <div className="px-4 mt-6 pb-6">
         <h2 className="text-lg font-bold text-black mb-4">Quick Actions</h2>
         <div className="grid grid-cols-2 gap-3">
-          <AddAccountModal>
-            <button className="p-4 rounded-xl border border-gray-200 text-center hover:bg-gray-50 transition-colors">
-              <div className="text-2xl mb-2">💳</div>
-              <div className="text-sm font-medium text-black">Add Card</div>
-            </button>
-          </AddAccountModal>
-          <AddAccountModal>
-            <button className="p-4 rounded-xl border border-gray-200 text-center hover:bg-gray-50 transition-colors">
-              <div className="text-2xl mb-2">🏦</div>
-              <div className="text-sm font-medium text-black">Add Account</div>
-            </button>
-          </AddAccountModal>
+          <button
+            onClick={openDrawer}
+            className="p-4 rounded-xl border border-gray-200 text-center hover:bg-gray-50 transition-colors"
+          >
+            <div className="text-2xl mb-2">💳</div>
+            <div className="text-sm font-medium text-black">Add Card</div>
+          </button>
+          <button
+            onClick={openDrawer}
+            className="p-4 rounded-xl border border-gray-200 text-center hover:bg-gray-50 transition-colors"
+          >
+            <div className="text-2xl mb-2">🏦</div>
+            <div className="text-sm font-medium text-black">Add Account</div>
+          </button>
         </div>
       </div>
 
@@ -275,6 +293,25 @@ export default function AccountsPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Add Account Drawer */}
+      <ReusableDrawer
+        isOpen={isOpen}
+        onOpenChange={(open) => !open && closeDrawer()}
+        title="Add Account"
+        onCancel={closeDrawer}
+        onSubmit={handleSubmit}
+        submitTitle={isSubmitting ? "Adding..." : "Add"}
+        submitIcon={<Plus className="w-4 h-4" />}
+        submitDisabled={isSubmitDisabled}
+      >
+        <AddAccountFormContent
+          formData={formData}
+          onFormDataChange={setFormData}
+          onSubmit={handleSubmit}
+          isLoading={isSubmitting}
+        />
+      </ReusableDrawer>
     </div>
   )
 }
