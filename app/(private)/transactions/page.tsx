@@ -16,10 +16,10 @@ import {
 import { ReusableDrawer } from "@/components/ReusableDrawer"
 import { AddTransactionFormContent } from "@/components/AddTransactionFormContent"
 import { useAddTransactionDrawer } from "@/lib/hooks/use-add-transaction-drawer"
-import { EditTransactionModal } from "@/components/EditTransactionModal"
+import { EditTransactionDrawer } from "@/components/EditTransactionDrawer"
 import { Plus } from "lucide-react"
 import { useAuth } from "@/lib/contexts/auth-context"
-import { useFilteredTransactions, useTransactionSummary, useDeleteTransaction } from "@/lib/hooks"
+import { useFilteredTransactions, useTransactionSummary, useDeleteTransaction, useEditTransactionDrawer } from "@/lib/hooks"
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog"
 
 export default function Transactions() {
@@ -36,6 +36,22 @@ export default function Transactions() {
     isSubmitDisabled,
     isLoading: isSubmitting,
   } = useAddTransactionDrawer()
+
+  // Edit transaction drawer
+  const {
+    isOpen: isEditOpen,
+    openDrawer: openEditDrawer,
+    closeDrawer: closeEditDrawer,
+    activeTab: editActiveTab,
+    setActiveTab: setEditActiveTab,
+    formData: editFormData,
+    setFormData: setEditFormData,
+    handleTabChange: handleEditTabChange,
+    handleSubmit: handleEditSubmit,
+    isSubmitDisabled: isEditSubmitDisabled,
+    isLoading: isEditLoading,
+  } = useEditTransactionDrawer()
+
   const [selectedDateRange, setSelectedDateRange] = useState("all")
   const [showDateFilter, setShowDateFilter] = useState(false)
   const [customStartDate, setCustomStartDate] = useState("")
@@ -156,20 +172,79 @@ export default function Transactions() {
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="px-4 mb-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search transactions..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          />
+      {/* Summary Cards */}
+      <div className="px-4 mb-6">
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="bg-red-50 rounded-xl p-4 border border-red-300">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingDown className="w-4 h-4 text-red-500" />
+              <div className="text-sm text-red-600 font-medium">Total Expenses</div>
+            </div>
+            {summaryLoading ? (
+              <div className="animate-pulse bg-red-200 h-6 w-20 rounded"></div>
+            ) : (
+              <div className="text-xl font-bold text-red-600">
+                ₹ {totalExpenses.toLocaleString()}
+              </div>
+            )}
+          </div>
+          <div className="bg-green-50 rounded-xl p-4 border border-green-300">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className="w-4 h-4 text-green-500" />
+              <div className="text-sm text-green-600 font-medium">Total Income</div>
+            </div>
+            {summaryLoading ? (
+              <div className="animate-pulse bg-green-200 h-6 w-20 rounded"></div>
+            ) : (
+              <div className="text-xl font-bold text-green-600">
+                ₹ {totalIncome.toLocaleString()}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Net Savings Card */}
+        <div className="mb-6">
+          <div
+            className={`rounded-xl p-4 border ${
+              netSavings >= 0 ? "bg-blue-50 border-blue-300" : "bg-orange-50 border-orange-300"
+            }`}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <div
+                className={`w-4 h-4 rounded-full ${
+                  netSavings >= 0 ? "bg-blue-500" : "bg-orange-500"
+                }`}
+              ></div>
+              <div
+                className={`text-sm font-medium ${
+                  netSavings >= 0 ? "text-blue-600" : "text-orange-600"
+                }`}
+              >
+                Net Savings
+              </div>
+            </div>
+            {summaryLoading ? (
+              <div className="animate-pulse bg-gray-200 h-6 w-24 rounded"></div>
+            ) : (
+              <div
+                className={`text-xl font-bold ${
+                  netSavings >= 0 ? "text-blue-600" : "text-orange-600"
+                }`}
+              >
+                ₹ {netSavings.toLocaleString()}
+              </div>
+            )}
+            <div
+              className={`text-xs mt-1 ${netSavings >= 0 ? "text-blue-500" : "text-orange-500"}`}
+            >
+              {netSavings >= 0 ? "You're saving well!" : "You're spending more than earning"}
+            </div>
+          </div>
         </div>
       </div>
 
+      
       {/* Date Filter */}
       <div className="px-4 mb-6">
         <div className="relative">
@@ -294,77 +369,21 @@ export default function Transactions() {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="px-4 mb-6">
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="bg-red-50 rounded-xl p-4 border border-red-100">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingDown className="w-4 h-4 text-red-500" />
-              <div className="text-sm text-red-600 font-medium">Total Expenses</div>
-            </div>
-            {summaryLoading ? (
-              <div className="animate-pulse bg-red-200 h-6 w-20 rounded"></div>
-            ) : (
-              <div className="text-xl font-bold text-red-600">
-                ₹ {totalExpenses.toLocaleString()}
-              </div>
-            )}
-          </div>
-          <div className="bg-green-50 rounded-xl p-4 border border-green-100">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-4 h-4 text-green-500" />
-              <div className="text-sm text-green-600 font-medium">Total Income</div>
-            </div>
-            {summaryLoading ? (
-              <div className="animate-pulse bg-green-200 h-6 w-20 rounded"></div>
-            ) : (
-              <div className="text-xl font-bold text-green-600">
-                ₹ {totalIncome.toLocaleString()}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Net Savings Card */}
-        <div className="mb-6">
-          <div
-            className={`rounded-xl p-4 border ${
-              netSavings >= 0 ? "bg-blue-50 border-blue-100" : "bg-orange-50 border-orange-100"
-            }`}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <div
-                className={`w-4 h-4 rounded-full ${
-                  netSavings >= 0 ? "bg-blue-500" : "bg-orange-500"
-                }`}
-              ></div>
-              <div
-                className={`text-sm font-medium ${
-                  netSavings >= 0 ? "text-blue-600" : "text-orange-600"
-                }`}
-              >
-                Net Savings
-              </div>
-            </div>
-            {summaryLoading ? (
-              <div className="animate-pulse bg-gray-200 h-6 w-24 rounded"></div>
-            ) : (
-              <div
-                className={`text-xl font-bold ${
-                  netSavings >= 0 ? "text-blue-600" : "text-orange-600"
-                }`}
-              >
-                ₹ {netSavings.toLocaleString()}
-              </div>
-            )}
-            <div
-              className={`text-xs mt-1 ${netSavings >= 0 ? "text-blue-500" : "text-orange-500"}`}
-            >
-              {netSavings >= 0 ? "You're saving well!" : "You're spending more than earning"}
-            </div>
-          </div>
+{/* Search Bar */}
+<div className="px-4 mb-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search transactions..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          />
         </div>
       </div>
+
+      
 
       {/* Transactions List */}
       <div className="px-4 pb-6">
@@ -376,7 +395,7 @@ export default function Transactions() {
         {transactionsLoading ? (
           <div className="space-y-4">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="flex items-center gap-3 p-3 rounded-lg animate-pulse">
+              <div key={i} className="flex items-center gap-3 p-3 rounded-lg animate-pulse border border-gray-200">
                 <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
                 <div className="flex-1 space-y-2">
                   <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -391,7 +410,7 @@ export default function Transactions() {
             {sortedTransactions.map((transaction: any) => (
               <div
                 key={transaction.id}
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center bg-white gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200"
               >
                 <div
                   className={`w-10 h-10 rounded-lg flex items-center justify-center ${
@@ -423,11 +442,25 @@ export default function Transactions() {
 
                 {/* Action Buttons */}
                 <div className="flex items-center gap-1">
-                  <EditTransactionModal transaction={transaction}>
-                    <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                  <EditTransactionDrawer
+                    transaction={transaction}
+                    isOpen={isEditOpen}
+                    onOpenChange={(open) => !open && closeEditDrawer()}
+                    activeTab={editActiveTab}
+                    onTabChange={handleEditTabChange}
+                    formData={editFormData}
+                    onFormDataChange={setEditFormData}
+                    onSubmit={handleEditSubmit}
+                    isLoading={isEditLoading}
+                    isSubmitDisabled={isEditSubmitDisabled}
+                  >
+                    <button 
+                      className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                      onClick={() => openEditDrawer(transaction)}
+                    >
                       <MoreVertical className="w-4 h-4 text-gray-500" />
                     </button>
-                  </EditTransactionModal>
+                  </EditTransactionDrawer>
                   <button
                     onClick={() => handleDeleteClick(transaction.id)}
                     className="p-2 rounded-lg hover:bg-red-50 transition-colors"

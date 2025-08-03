@@ -67,6 +67,8 @@ export function AddAccountFormContent({
   return (
     <div className="p-6">
       <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+
         {/* Account Name */}
         <div>
           <Label className="text-gray-800 font-medium">Account Name</Label>
@@ -139,6 +141,7 @@ export function AddAccountFormContent({
               ))}
             </SelectContent>
           </Select>
+        </div>
         </div>
 
         {/* Preview */}

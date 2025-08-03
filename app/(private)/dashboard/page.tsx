@@ -219,7 +219,7 @@ export default function Dashboard() {
         {transactionsLoading ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="flex items-center gap-3 p-3 rounded-lg animate-pulse">
+              <div key={i} className="flex items-center gap-3 p-3 rounded-lg animate-pulse border border-gray-200">
                 <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
                 <div className="flex-1 space-y-2">
                   <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -234,7 +234,7 @@ export default function Dashboard() {
             {transactionsForDate.slice(0, 5).map((transaction: any) => (
               <div
                 key={transaction.id}
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200"
               >
                 <div
                   className={`w-10 h-10 rounded-lg flex items-center justify-center ${

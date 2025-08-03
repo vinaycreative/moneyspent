@@ -14,8 +14,9 @@ import {
 } from "lucide-react"
 import { useAuth } from "@/lib/contexts/auth-context"
 import { ReusableDrawer } from "@/components/ReusableDrawer"
-import { CategoryManagementContent } from "@/components/CategoryManagementContent"
-import { useCategoryDrawer } from "@/lib/hooks/use-category-drawer"
+import { ViewCategoriesContent } from "@/components/ViewCategoriesContent"
+import { CategoryFormContent } from "@/components/CategoryFormContent"
+import { useViewCategoriesDrawer, useAddEditCategoryDrawer } from "@/lib/hooks"
 import { useRouter } from "next/navigation"
 
 interface SettingItem {
@@ -29,14 +30,26 @@ interface SettingItem {
 export default function SettingsPage() {
   const { user, profile, signOut } = useAuth()
   const [currency, setCurrency] = useState("INR")
-  const { isOpen, openDrawer, closeDrawer } = useCategoryDrawer()
+  const { isOpen: isViewOpen, openDrawer: openViewDrawer, closeDrawer: closeViewDrawer } = useViewCategoriesDrawer()
+  const {
+    isOpen: isAddEditOpen,
+    openDrawer: openAddEditDrawer,
+    closeDrawer: closeAddEditDrawer,
+    selectedCategory,
+    isEditing,
+    formData,
+    setFormData,
+    handleSubmit,
+    isSubmitDisabled,
+    isLoading,
+  } = useAddEditCategoryDrawer()
   const router = useRouter()
 
   const handleAction = async (item: SettingItem) => {
     switch (item.action) {
       case "modal":
         if (item.id === "categories") {
-          openDrawer()
+          openViewDrawer()
         }
         break
       case "logout":
@@ -76,6 +89,16 @@ export default function SettingsPage() {
         }
         break
     }
+  }
+
+  const handleAddCategory = () => {
+    closeViewDrawer()
+    openAddEditDrawer()
+  }
+
+  const handleEditCategory = (category: any) => {
+    closeViewDrawer()
+    openAddEditDrawer(category)
   }
 
   const settingsItems: SettingItem[] = [
@@ -222,17 +245,41 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Category Management Drawer */}
+        {/* View Categories Drawer */}
         <ReusableDrawer
-          isOpen={isOpen}
-          onOpenChange={(open) => !open && closeDrawer()}
+          isOpen={isViewOpen}
+          onOpenChange={(open) => !open && closeViewDrawer()}
           title="Manage Categories"
-          onCancel={closeDrawer}
+          onCancel={closeViewDrawer}
           onSubmit={() => {}} // No submit action needed for this drawer
           submitTitle=""
           submitDisabled={true}
         >
-          <CategoryManagementContent onClose={closeDrawer} />
+          <ViewCategoriesContent
+            onClose={closeViewDrawer}
+            onAddCategory={handleAddCategory}
+            onEditCategory={handleEditCategory}
+          />
+        </ReusableDrawer>
+
+        {/* Add/Edit Category Drawer */}
+        <ReusableDrawer
+          isOpen={isAddEditOpen}
+          onOpenChange={(open) => !open && closeAddEditDrawer()}
+          title={isEditing ? "Edit Category" : "Add Category"}
+          onCancel={closeAddEditDrawer}
+          onSubmit={handleSubmit}
+          submitTitle={isLoading ? (isEditing ? "Updating..." : "Adding...") : (isEditing ? "Update" : "Add")}
+          submitDisabled={isSubmitDisabled}
+        >
+          <CategoryFormContent
+            category={selectedCategory}
+            formData={formData}
+            onFormDataChange={setFormData}
+            onSubmit={handleSubmit}
+            isLoading={isLoading}
+            isSubmitDisabled={isSubmitDisabled}
+          />
         </ReusableDrawer>
       </div>
     </div>

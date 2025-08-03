@@ -49,16 +49,18 @@ export function ReusableDrawer({
           </div>
 
           {/* Action - Fixed */}
-          <div className="px-6 py-4 border-t border-gray-200 flex-shrink-0">
-            <button
-              onClick={onSubmit}
-              disabled={submitDisabled}
-              className="w-full bg-gray-800 text-white py-4 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-gray-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-            >
-              {submitIcon && <span>{submitIcon}</span>}
-              {submitTitle}
-            </button>
-          </div>
+          {submitTitle && (
+            <div className="px-6 py-4 border-t border-gray-200 flex-shrink-0">
+              <button
+                onClick={onSubmit}
+                disabled={submitDisabled}
+                className="w-full bg-gray-800 text-white py-4 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-gray-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                {submitIcon && <span>{submitIcon}</span>}
+                {submitTitle}
+              </button>
+            </div>
+          )}
         </Drawer.Content>
       </Drawer.Portal>
     </Drawer.Root>
