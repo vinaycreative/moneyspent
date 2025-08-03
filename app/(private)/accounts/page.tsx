@@ -13,11 +13,11 @@ import {
   Trash2,
 } from "lucide-react"
 import { useAuth } from "@/lib/contexts/auth-context"
-import { useAccounts, useDeleteAccount } from "@/lib/hooks"
+import { useAccounts, useDeleteAccount, useEditAccountDrawer } from "@/lib/hooks"
 import { ReusableDrawer } from "@/components/ReusableDrawer"
 import { AddAccountFormContent } from "@/components/AddAccountFormContent"
 import { useAddAccountDrawer } from "@/lib/hooks/use-add-account-drawer"
-import { EditAccountModal } from "@/components/EditAccountModal"
+import { EditAccountDrawer } from "@/components/EditAccountDrawer"
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog"
 
 export default function AccountsPage() {
@@ -35,6 +35,18 @@ export default function AccountsPage() {
     isSubmitDisabled,
     isLoading: isSubmitting,
   } = useAddAccountDrawer()
+
+  // Edit account drawer
+  const {
+    isOpen: isEditOpen,
+    openDrawer: openEditDrawer,
+    closeDrawer: closeEditDrawer,
+    formData: editFormData,
+    setFormData: setEditFormData,
+    handleSubmit: handleEditSubmit,
+    isSubmitDisabled: isEditSubmitDisabled,
+    isLoading: isEditLoading,
+  } = useEditAccountDrawer()
 
   // Get user's accounts
   const { data: accounts = [], isLoading: accountsLoading } = useAccounts(user?.id || "", {
@@ -73,7 +85,7 @@ export default function AccountsPage() {
     switch (type) {
       case "bank":
         return Building2
-      case "credit_card":
+      case "credit":
         return CreditCard
       case "cash":
         return Wallet
@@ -88,7 +100,7 @@ export default function AccountsPage() {
     switch (type) {
       case "bank":
         return "bg-blue-500"
-      case "credit_card":
+      case "credit":
         return "bg-purple-500"
       case "cash":
         return "bg-green-500"
@@ -214,11 +226,23 @@ export default function AccountsPage() {
 
                   {/* Action Buttons */}
                   <div className="flex items-center gap-1">
-                    <EditAccountModal account={account}>
-                      <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    <EditAccountDrawer
+                      account={account}
+                      isOpen={isEditOpen}
+                      onOpenChange={(open) => !open && closeEditDrawer()}
+                      formData={editFormData}
+                      onFormDataChange={setEditFormData}
+                      onSubmit={handleEditSubmit}
+                      isLoading={isEditLoading}
+                      isSubmitDisabled={isEditSubmitDisabled}
+                    >
+                      <button 
+                        className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                        onClick={() => openEditDrawer(account)}
+                      >
                         <MoreVertical className="w-4 h-4 text-gray-500" />
                       </button>
-                    </EditAccountModal>
+                    </EditAccountDrawer>
                     <button
                       onClick={() => handleDeleteClick(account.id)}
                       className="p-2 rounded-lg hover:bg-red-50 transition-colors"

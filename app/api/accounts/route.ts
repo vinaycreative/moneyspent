@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { TablesInsert, TablesUpdate } from "@/types/supabase"
+import { ensureUserExists } from "@/lib/utils"
 
 type AccountInsert = TablesInsert<"accounts">
 type AccountUpdate = TablesUpdate<"accounts">
@@ -66,6 +67,9 @@ export async function POST(request: NextRequest) {
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    // Ensure user exists in the users table
+    await ensureUserExists(user)
 
     // Get account data from request body
     const accountData: AccountInsert = await request.json()

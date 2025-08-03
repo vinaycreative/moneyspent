@@ -42,7 +42,7 @@ export function AddAccountFormContent({
 
   const accountTypes = [
     { value: "bank", label: "Bank Account", icon: Building2, color: "bg-blue-500" },
-    { value: "credit_card", label: "Credit Card", icon: CreditCard, color: "bg-purple-500" },
+    { value: "credit", label: "Credit Card", icon: CreditCard, color: "bg-purple-500" },
     { value: "cash", label: "Cash", icon: Wallet, color: "bg-green-500" },
     { value: "savings", label: "Savings", icon: PiggyBank, color: "bg-orange-500" },
   ]

@@ -249,6 +249,7 @@ function TransactionForm({
         </div>
       </div>
 
+      <div className="grid grid-cols-2 gap-4">
       {/* Amount Field */}
       <div className="space-y-2">
         <Label className="text-gray-800 font-medium">Amount</Label>
@@ -341,6 +342,8 @@ function TransactionForm({
           </SelectContent>
         </Select>
       </div>
+
+        </div>    
     </div>
   )
 } 
