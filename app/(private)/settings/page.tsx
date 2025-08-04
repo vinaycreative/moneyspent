@@ -240,7 +240,7 @@ export default function SettingsPage() {
 
           {/* App Version */}
           <div className="px-4 mt-6 text-center">
-            <div className="text-xs text-gray-400">Money Manager v1.0.0</div>
+            <div className="text-xs text-gray-400">MoneySpend v1.0.0</div>
             <div className="text-xs text-gray-400 mt-1">Built with Next.js & Supabase</div>
           </div>
         </div>

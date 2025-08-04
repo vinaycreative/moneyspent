@@ -85,7 +85,7 @@ export default function PWAInstallPrompt() {
           </div>
 
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-900 text-sm">Install Money Manager</h3>
+            <h3 className="font-semibold text-gray-900 text-sm">Install MoneySpend</h3>
             <p className="text-gray-600 text-xs mt-1">
               Add to your home screen for quick access and offline use
             </p>

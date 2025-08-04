@@ -1,7 +1,8 @@
 {
-  "name": "mywallet",
+  "name": "moneyspend",
   "version": "0.1.0",
   "private": true,
+  "description": "Your Personal Finance Manager - Track expenses, manage budgets, and achieve your financial goals",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",

@@ -30,7 +30,7 @@ export default function OfflinePage() {
         </button>
 
         <div className="mt-8 text-sm text-gray-500">
-          <p>Money Manager works offline for viewing cached data.</p>
+          <p>MoneySpend works offline for viewing cached data.</p>
           <p className="mt-1">New transactions will sync when you're back online.</p>
         </div>
       </div>

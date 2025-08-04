@@ -40,9 +40,10 @@ export function DashboardStats({
             <TrendingDown className="w-5 h-5 text-red-500" />
             <div className="text-sm text-red-600 font-medium">Total Spent</div>
           </div>
-          {isLoading && <div className="animate-pulse bg-red-200 h-[114px]  w-16 rounded"></div>}
+          
+          
         </div>
-        <div className="text-2xl font-bold text-red-600">₹ {totalExpenses.toLocaleString()}</div>
+        <div className="text-2xl font-bold text-red-600 flex items-center gap-2">₹ {isLoading? <div className="animate-pulse bg-red-200 h-6 w-16 rounded"></div> : totalExpenses.toLocaleString()}</div>
         <div className="text-xs text-red-500 mt-1">
           {transactionCount > 0
             ? `${transactionCount} transaction${transactionCount !== 1 ? "s" : ""}`
@@ -57,9 +58,10 @@ export function DashboardStats({
             <TrendingUp className="w-5 h-5 text-green-500" />
             <div className="text-sm text-green-600 font-medium">Total Income</div>
           </div>
-          {isLoading && <div className="animate-pulse bg-green-200 h-4 w-16 rounded"></div>}
+          
         </div>
-        <div className="text-2xl font-bold text-green-600">₹ {totalIncome.toLocaleString()}</div>
+        <div className="text-2xl font-bold text-green-600 flex items-center gap-2">₹ {isLoading ? <div className="animate-pulse bg-green-200 h-6 w-16 rounded"></div> : totalIncome.toLocaleString()}</div>
+        
         <div className="text-xs text-green-500 mt-1">
           {totalIncome > 0 ? "Income received" : "No income yet"}
         </div>

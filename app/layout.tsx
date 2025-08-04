@@ -20,13 +20,13 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Money Manager",
-  description: "Track your finances with ease",
+  title: "MoneySpend - Your Personal Finance Manager",
+  description: "Track expenses, manage budgets, and achieve your financial goals with MoneySpend",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Money Manager",
+    title: "MoneySpend",
   },
   formatDetection: {
     telephone: false,
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "default",
-    "apple-mobile-web-app-title": "Money Manager",
+    "apple-mobile-web-app-title": "MoneySpend",
   },
 }
 
