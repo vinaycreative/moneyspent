@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import moment from "moment-timezone"
 import { Calendar, Edit, TrendingDown, TrendingUp } from "lucide-react"
 import { ReusableDrawer } from "@/components/ReusableDrawer"
@@ -78,6 +78,23 @@ export function EditTransactionDrawer({
   const { data: categories = [] } = useCategories(user?.id || "", { enabled: !!user?.id })
   const { data: accounts = [] } = useAccounts(user?.id || "", { enabled: !!user?.id })
 
+  // Close date picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (datePickerRef.current && !datePickerRef.current.contains(event.target as Node)) {
+        setShowDatePicker(false)
+      }
+    }
+
+    if (showDatePicker) {
+      document.addEventListener("mousedown", handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [showDatePicker])
+
   const handleInputChange = (field: string, value: string) => {
     onFormDataChange({
       ...formData,
@@ -129,12 +146,26 @@ export function EditTransactionDrawer({
   }
 
   const isSelectedDate = (date: Date) => {
-    return formatDate(date) === formData.transaction_date
+    // Convert the stored transaction_date to date-only format for comparison
+    const storedDate = new Date(formData.transaction_date)
+    const dateOnly = formatDate(storedDate)
+    return formatDate(date) === dateOnly
   }
 
   const handleDateSelect = (date: Date) => {
-    handleInputChange("transaction_date", formatDate(date))
+    // Convert the selected date to full ISO string with current time
+    const now = new Date()
+    const selectedDate = new Date(date)
+    selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds())
+    
+    handleInputChange("transaction_date", selectedDate.toISOString())
     setShowDatePicker(false)
+  }
+
+  // Get the date-only part for the input display
+  const getDateForDisplay = () => {
+    const date = new Date(formData.transaction_date)
+    return formatDate(date)
   }
 
   return (

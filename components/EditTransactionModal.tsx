@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Calendar, Trash2, Edit, TrendingDown, TrendingUp } from "lucide-react"
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -72,6 +72,23 @@ export function EditTransactionModal({ transaction, children }: EditTransactionM
   // Get categories and accounts for dropdowns
   const { data: categories = [] } = useCategories(user?.id || "", { enabled: !!user?.id })
   const { data: accounts = [] } = useAccounts(user?.id || "", { enabled: !!user?.id })
+
+  // Close date picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (datePickerRef.current && !datePickerRef.current.contains(event.target as Node)) {
+        setShowDatePicker(false)
+      }
+    }
+
+    if (showDatePicker) {
+      document.addEventListener("mousedown", handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [showDatePicker])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -183,14 +200,19 @@ export function EditTransactionModal({ transaction, children }: EditTransactionM
   }
 
   const isSelectedDate = (date: Date) => {
-    return formatDate(date) === formData.transaction_date
+    // Convert the stored transaction_date to date-only format for comparison
+    const storedDate = new Date(formData.transaction_date)
+    const dateOnly = formatDate(storedDate)
+    return formatDate(date) === dateOnly
   }
 
   const handleDateSelect = (date: Date) => {
-    setFormData((prev) => ({
-      ...prev,
-      transaction_date: formatDate(date),
-    }))
+    // Convert the selected date to full ISO string with current time
+    const now = new Date()
+    const selectedDate = new Date(date)
+    selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds())
+    
+    handleInputChange("transaction_date", selectedDate.toISOString())
     setShowDatePicker(false)
   }
 

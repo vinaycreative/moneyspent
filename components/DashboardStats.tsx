@@ -40,7 +40,7 @@ export function DashboardStats({
             <TrendingDown className="w-5 h-5 text-red-500" />
             <div className="text-sm text-red-600 font-medium">Total Spent</div>
           </div>
-          {isLoading && <div className="animate-pulse bg-red-200 h-4 w-16 rounded"></div>}
+          {isLoading && <div className="animate-pulse bg-red-200 h-[114px]  w-16 rounded"></div>}
         </div>
         <div className="text-2xl font-bold text-red-600">₹ {totalExpenses.toLocaleString()}</div>
         <div className="text-xs text-red-500 mt-1">

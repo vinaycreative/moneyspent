@@ -8,6 +8,7 @@ import { useAddTransactionDrawer } from "@/lib/hooks/use-add-transaction-drawer"
 import { DashboardStats } from "@/components/DashboardStats"
 import { useAuth } from "@/lib/contexts/auth-context"
 import { useTransactions, useTransactionSummary } from "@/lib/hooks"
+import moment from "moment-timezone"
 
 export default function Dashboard() {
   const { user, profile, isLoading } = useAuth()
@@ -217,7 +218,7 @@ export default function Dashboard() {
         </div>
 
         {transactionsLoading ? (
-          <div className="space-y-4">
+          <div className="space-y-2">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="flex items-center gap-3 p-3 rounded-lg animate-pulse border border-gray-200">
                 <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
@@ -230,7 +231,7 @@ export default function Dashboard() {
             ))}
           </div>
         ) : transactionsForDate.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-2">
             {transactionsForDate.slice(0, 5).map((transaction: any) => (
               <div
                 key={transaction.id}
@@ -246,8 +247,9 @@ export default function Dashboard() {
 
                 <div className="flex-1">
                   <div className="font-medium text-black">{transaction.title}</div>
-                  <div className="text-sm text-gray-500">
-                    {transaction.categories?.name || "Uncategorized"}
+                  <div className="text-xs text-gray-500 flex items-center gap-1">
+                  <span className="font-medium">{moment(transaction.updated_at).tz("Asia/Kolkata").format('lll')}</span> - 
+                    <span className="font-medium">{transaction.categories?.name || "Uncategorized"}</span> - <span className="font-medium">{transaction.accounts?.name}</span>  
                   </div>
                 </div>
 

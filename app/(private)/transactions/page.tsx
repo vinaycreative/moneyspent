@@ -213,10 +213,8 @@ export default function Transactions() {
               </div>
             )}
           </div>
-        </div>
-
-        {/* Net Savings Card */}
-        <div className="mb-6">
+          {/* Net Savings Card */}
+        <div className="col-span-2">
           <div
             className={`rounded-xl p-4 border ${
               netSavings >= 0 ? "bg-blue-50 border-blue-300" : "bg-orange-50 border-orange-300"
@@ -254,11 +252,14 @@ export default function Transactions() {
             </div>
           </div>
         </div>
+        </div>
+
+        
       </div>
 
       
       {/* Date Filter */}
-      <div className="px-4 mb-6">
+      <div className="px-4 mb-4">
         <div className="relative">
           <button
             onClick={() => setShowDateFilter(!showDateFilter)}
@@ -405,7 +406,7 @@ export default function Transactions() {
         </h2>
 
         {transactionsLoading ? (
-          <div className="space-y-4">
+          <div className="space-y-2">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="flex items-center gap-3 p-3 rounded-lg animate-pulse border border-gray-200">
                 <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
@@ -418,11 +419,24 @@ export default function Transactions() {
             ))}
           </div>
         ) : sortedTransactions.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-2">
             {sortedTransactions.map((transaction: any) => (
+              <EditTransactionDrawer
+              transaction={transaction}
+              isOpen={isEditOpen}
+              onOpenChange={(open) => !open && closeEditDrawer()}
+              activeTab={editActiveTab}
+              onTabChange={handleEditTabChange}
+              formData={editFormData}
+              onFormDataChange={setEditFormData}
+              onSubmit={handleEditSubmit}
+              isLoading={isEditLoading}
+              isSubmitDisabled={isEditSubmitDisabled}
+            >
               <div
                 key={transaction.id}
                 className="flex items-center bg-white gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200"
+                onClick={() => openEditDrawer(transaction)}
               >
                 <div
                   className={`w-10 h-10 rounded-lg flex items-center justify-center ${
@@ -434,8 +448,8 @@ export default function Transactions() {
 
                 <div className="flex-1">
                   <div className="font-medium text-black">{transaction.title}</div>
-                  <div className="text-sm text-gray-500">
-                    {moment(transaction.created_at).tz("Asia/Kolkata").format('lll')}
+                  <div className="text-xs text-gray-500 flex items-center gap-1">
+                    <span className="font-medium">{moment(transaction.created_at).tz("Asia/Kolkata").format('lll')}</span> - <span className="font-medium">{transaction.accounts?.name}</span>  
                   </div>
                 </div>
 
@@ -450,25 +464,7 @@ export default function Transactions() {
 
                 {/* Action Buttons */}
                 <div className="flex items-center gap-1">
-                  <EditTransactionDrawer
-                    transaction={transaction}
-                    isOpen={isEditOpen}
-                    onOpenChange={(open) => !open && closeEditDrawer()}
-                    activeTab={editActiveTab}
-                    onTabChange={handleEditTabChange}
-                    formData={editFormData}
-                    onFormDataChange={setEditFormData}
-                    onSubmit={handleEditSubmit}
-                    isLoading={isEditLoading}
-                    isSubmitDisabled={isEditSubmitDisabled}
-                  >
-                    <button 
-                      className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                      onClick={() => openEditDrawer(transaction)}
-                    >
-                      <MoreVertical className="w-4 h-4 text-gray-500" />
-                    </button>
-                  </EditTransactionDrawer>
+                  
                   <button
                     onClick={() => handleDeleteClick(transaction.id)}
                     className="p-2 rounded-lg hover:bg-red-50 transition-colors"
@@ -477,6 +473,7 @@ export default function Transactions() {
                   </button>
                 </div>
               </div>
+                </EditTransactionDrawer>
             ))}
           </div>
         ) : (

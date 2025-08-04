@@ -15,6 +15,7 @@ import {
   CheckCircle,
   ArrowUpRight,
   ArrowDownRight,
+  IndianRupee,
 } from "lucide-react"
 import { useAuth } from "@/lib/contexts/auth-context"
 import { useAnalytics, useTransactionSummary } from "@/lib/hooks"
@@ -196,7 +197,7 @@ export default function Analytics() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-3 gap-3 mb-6 px-4">
+      <div className="grid grid-cols-2 gap-2 mb-4 px-4">
         <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-4 border border-red-200">
           <div className="flex items-center gap-2 mb-2">
             <TrendingDown className="w-4 h-4 text-red-600" />
@@ -224,14 +225,14 @@ export default function Analytics() {
           )}
         </div>
         <div
-          className={`rounded-xl p-4 border ${
+          className={`rounded-xl col-span-2 p-4 border ${
             netSavings >= 0
               ? "bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200"
               : "bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200"
           }`}
         >
           <div className="flex items-center gap-2 mb-2">
-            <DollarSign
+            <IndianRupee
               className={`w-4 h-4 ${netSavings >= 0 ? "text-blue-600" : "text-orange-600"}`}
             />
             <div
