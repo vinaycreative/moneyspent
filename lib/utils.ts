@@ -27,3 +27,33 @@ export async function ensureUserExists(user: any): Promise<void> {
     })
   }
 }
+
+/**
+ * Calculate the new account balance after a transaction
+ * @param currentBalance - Current account balance
+ * @param amount - Transaction amount
+ * @param type - Transaction type ('income' or 'expense')
+ * @returns New account balance
+ */
+export function calculateNewBalance(currentBalance: number, amount: number, type: string): number {
+  if (type === "income") {
+    return currentBalance + amount
+  } else {
+    return currentBalance - amount
+  }
+}
+
+/**
+ * Calculate the adjusted balance when reversing a transaction effect
+ * @param currentBalance - Current account balance
+ * @param amount - Transaction amount to reverse
+ * @param type - Transaction type ('income' or 'expense')
+ * @returns Adjusted account balance
+ */
+export function calculateReversedBalance(currentBalance: number, amount: number, type: string): number {
+  if (type === "income") {
+    return currentBalance - amount
+  } else {
+    return currentBalance + amount
+  }
+}

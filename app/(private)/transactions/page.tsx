@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import moment from "moment-timezone"
 import {
   ArrowLeft,
   ArrowRight,
@@ -93,9 +94,20 @@ export default function Transactions() {
     )
   })
 
-  // Sort transactions by date (newest first)
+  // Sort transactions by date (newest first) and created_at for better ordering
   const sortedTransactions = searchFilteredTransactions.sort((a: any, b: any) => {
-    return new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime()
+    // First sort by transaction_date (newest first)
+    const dateA = new Date(a.transaction_date).getTime()
+    const dateB = new Date(b.transaction_date).getTime()
+    
+    if (dateA !== dateB) {
+      return dateB - dateA
+    }
+    
+    // If dates are the same, sort by created_at (newest first)
+    const createdA = new Date(a.created_at).getTime()
+    const createdB = new Date(b.created_at).getTime()
+    return createdB - createdA
   })
 
   if (authLoading) {
@@ -423,11 +435,7 @@ export default function Transactions() {
                 <div className="flex-1">
                   <div className="font-medium text-black">{transaction.title}</div>
                   <div className="text-sm text-gray-500">
-                    {new Date(transaction.transaction_date).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
+                    {moment(transaction.created_at).tz("Asia/Kolkata").format('lll')}
                   </div>
                 </div>
 

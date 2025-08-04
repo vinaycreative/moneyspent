@@ -51,17 +51,32 @@ export function useCreateAccount() {
 
       return response.json()
     },
-    onSuccess: (data, variables) => {
-      // Invalidate and refetch accounts
-      queryClient.invalidateQueries({ queryKey: ["accounts", variables.user_id] })
+    onMutate: async (variables) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["accounts", variables.user_id] })
 
-      // Update the cache with the new account
+      // Snapshot the previous value
+      const previousAccounts = queryClient.getQueryData(["accounts", variables.user_id])
+
+      // Optimistically update accounts
       queryClient.setQueryData(["accounts", variables.user_id], (oldData: any) => {
         if (oldData) {
-          return [...oldData, data.account]
+          return [...oldData, { ...variables, id: "temp-id", created_at: new Date().toISOString() }]
         }
-        return [data.account]
+        return [{ ...variables, id: "temp-id", created_at: new Date().toISOString() }]
       })
+
+      return { previousAccounts }
+    },
+    onError: (err, variables, context) => {
+      // Rollback on error
+      if (context?.previousAccounts) {
+        queryClient.setQueryData(["accounts", variables.user_id], context.previousAccounts)
+      }
+    },
+    onSettled: (data, error, variables) => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: ["accounts", variables.user_id] })
     },
   })
 }
@@ -86,19 +101,34 @@ export function useUpdateAccount() {
 
       return response.json()
     },
-    onSuccess: (data, variables) => {
-      // Invalidate and refetch accounts
-      queryClient.invalidateQueries({ queryKey: ["accounts"] })
+    onMutate: async (variables) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["accounts", variables.data.user_id] })
 
-      // Update the cache with the updated account
-      queryClient.setQueryData(["accounts"], (oldData: any) => {
+      // Snapshot the previous value
+      const previousAccounts = queryClient.getQueryData(["accounts", variables.data.user_id])
+
+      // Optimistically update accounts
+      queryClient.setQueryData(["accounts", variables.data.user_id], (oldData: any) => {
         if (oldData) {
           return oldData.map((account: any) =>
-            account.id === variables.id ? data.account : account
+            account.id === variables.id ? { ...account, ...variables.data } : account
           )
         }
         return oldData
       })
+
+      return { previousAccounts }
+    },
+    onError: (err, variables, context) => {
+      // Rollback on error
+      if (context?.previousAccounts) {
+        queryClient.setQueryData(["accounts", variables.data.user_id], context.previousAccounts)
+      }
+    },
+    onSettled: (data, error, variables) => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: ["accounts", variables.data.user_id] })
     },
   })
 }
@@ -119,17 +149,32 @@ export function useDeleteAccount() {
 
       return response.json()
     },
-    onSuccess: (data, accountId) => {
-      // Invalidate and refetch accounts
-      queryClient.invalidateQueries({ queryKey: ["accounts"] })
+    onMutate: async (accountId) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["accounts"] })
 
-      // Remove the deleted account from cache
+      // Snapshot the previous value
+      const previousAccounts = queryClient.getQueryData(["accounts"])
+
+      // Optimistically remove account
       queryClient.setQueryData(["accounts"], (oldData: any) => {
         if (oldData) {
           return oldData.filter((account: any) => account.id !== accountId)
         }
         return oldData
       })
+
+      return { previousAccounts }
+    },
+    onError: (err, accountId, context) => {
+      // Rollback on error
+      if (context?.previousAccounts) {
+        queryClient.setQueryData(["accounts"], context.previousAccounts)
+      }
+    },
+    onSettled: (data, error, accountId) => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: ["accounts"] })
     },
   })
 }
@@ -156,12 +201,34 @@ export function useUpdateAccountBalance() {
       const data = await response.json()
       return data.account
     },
-    onSuccess: (data) => {
-      // Invalidate and refetch accounts list
-      queryClient.invalidateQueries({ queryKey: ["accounts"] })
+    onMutate: async (variables) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["accounts"] })
 
-      // Update the specific account in cache
-      queryClient.setQueryData(["accounts", data.id], data)
+      // Snapshot the previous value
+      const previousAccounts = queryClient.getQueryData(["accounts"])
+
+      // Optimistically update account balance
+      queryClient.setQueryData(["accounts"], (oldData: any) => {
+        if (oldData) {
+          return oldData.map((account: any) =>
+            account.id === variables.id ? { ...account, balance: variables.balance } : account
+          )
+        }
+        return oldData
+      })
+
+      return { previousAccounts }
+    },
+    onError: (err, variables, context) => {
+      // Rollback on error
+      if (context?.previousAccounts) {
+        queryClient.setQueryData(["accounts"], context.previousAccounts)
+      }
+    },
+    onSettled: (data, error, variables) => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: ["accounts"] })
     },
   })
 }

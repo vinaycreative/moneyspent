@@ -68,8 +68,15 @@ export function AddTransactionFormContent({
   }
 
   const formatDateForDisplay = (dateString: string) => {
-    if (!dateString) return ""
+    if (!dateString) return "Today"
     const date = new Date(dateString)
+    const today = new Date()
+    const isToday = date.toDateString() === today.toDateString()
+    
+    if (isToday) {
+      return "Today"
+    }
+    
     return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",

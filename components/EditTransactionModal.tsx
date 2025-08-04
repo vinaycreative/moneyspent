@@ -21,6 +21,7 @@ import {
   useAccounts,
 } from "@/lib/hooks"
 import { TablesUpdate } from "@/types/supabase"
+import moment from "moment-timezone"
 
 type TransactionUpdate = TablesUpdate<"transactions">
 
@@ -328,7 +329,7 @@ export function EditTransactionModal({ transaction, children }: EditTransactionM
                 <Input
                   type="text"
                   placeholder="Select date"
-                  value={new Date(formData.transaction_date).toLocaleDateString()}
+                  value={moment(formData.transaction_date).tz("Asia/Kolkata").format('lll')}
                   onClick={() => setShowDatePicker(!showDatePicker)}
                   readOnly
                   className="w-full border-gray-300 bg-white cursor-pointer"
@@ -396,7 +397,7 @@ export function EditTransactionModal({ transaction, children }: EditTransactionM
                       {selectedCategory?.name || "Category"} • {selectedAccount?.name || "Account"}
                     </div>
                     <div className="text-xs text-gray-400">
-                      {new Date(formData.transaction_date).toLocaleDateString()}
+                      {moment(formData.transaction_date).tz("Asia/Kolkata").format('lll')}
                     </div>
                   </div>
                   <div className="text-right">

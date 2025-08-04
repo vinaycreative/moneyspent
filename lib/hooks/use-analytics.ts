@@ -1,4 +1,5 @@
 import { useMemo } from "react"
+import moment from "moment-timezone"
 import { useFilteredTransactions } from "./use-filtered-transactions"
 
 interface CategoryData {
@@ -128,9 +129,7 @@ export function useAnalytics({
     // Find most active day
     const dayCounts = new Map<string, number>()
     filteredTransactions.forEach((transaction: any) => {
-      const day = new Date(transaction.transaction_date).toLocaleDateString("en-US", {
-        weekday: "long",
-      })
+      const day = moment(transaction.transaction_date).format('dddd')
       dayCounts.set(day, (dayCounts.get(day) || 0) + 1)
     })
     const mostActiveDay =

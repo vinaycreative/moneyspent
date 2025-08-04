@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
+import moment from "moment-timezone"
 import { Calendar, Edit, TrendingDown, TrendingUp } from "lucide-react"
 import { ReusableDrawer } from "@/components/ReusableDrawer"
 import { Input } from "@/components/ui/input"
@@ -237,7 +238,7 @@ export function EditTransactionDrawer({
               <Input
                 type="text"
                 placeholder="Select date"
-                value={new Date(formData.transaction_date).toLocaleDateString()}
+                value={moment(formData.transaction_date).tz("Asia/Kolkata").format('lll')}
                 onClick={() => setShowDatePicker(!showDatePicker)}
                 readOnly
                 className="w-full border-gray-300 bg-white cursor-pointer"
@@ -306,7 +307,7 @@ export function EditTransactionDrawer({
                     {selectedCategory?.name || "Category"} • {selectedAccount?.name || "Account"}
                   </div>
                   <div className="text-xs text-gray-400">
-                    {new Date(formData.transaction_date).toLocaleDateString()}
+                    {moment(formData.transaction_date).tz("Asia/Kolkata").format('lll')}
                   </div>
                 </div>
                 <div className="text-right">
