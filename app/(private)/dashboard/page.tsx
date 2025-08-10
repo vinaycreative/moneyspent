@@ -9,6 +9,8 @@ import { DashboardStats } from "@/components/DashboardStats"
 import { useAuth } from "@/lib/contexts/auth-context"
 import { useTransactions, useTransactionSummary } from "@/lib/hooks"
 import moment from "moment-timezone"
+import { Label } from "@/components/ui/label"
+import { CustomCalender } from "@/components/CustomCalender"
 
 export default function Dashboard() {
   const { user, profile, isLoading } = useAuth()
@@ -135,6 +137,8 @@ export default function Dashboard() {
 
   const netSavings = totalIncome - totalExpenses
 
+
+
   return (
     <div className="max-w-md mx-auto h-full">
       {/* Date Navigation */}
@@ -179,6 +183,7 @@ export default function Dashboard() {
         />
       </div>
 
+
       {/* Add Transaction Button */}
       <div className="px-4 mb-6">
         <button
@@ -189,6 +194,8 @@ export default function Dashboard() {
           Add Transaction
         </button>
       </div>
+
+     
 
       {/* Add Transaction Drawer */}
       <ReusableDrawer

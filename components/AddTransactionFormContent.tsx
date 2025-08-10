@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Calendar } from "lucide-react"
+import { Calendar as CalendarIcon } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,9 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { DatePicker } from "@/components/ui/date-picker"
 import { useAuth } from "@/lib/contexts/auth-context"
 import { useCategories, useAccounts } from "@/lib/hooks"
+import { CustomCalender } from "@/components/CustomCalender"
 
 export interface TransactionFormData {
   date: Date | undefined
@@ -64,7 +64,7 @@ export function AddTransactionFormContent({
   const filteredCategories = categories?.filter((cat: any) => cat.type === activeTab) || []
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Transaction Type Tabs */}
       <Tabs value={activeTab} onValueChange={onActiveTabChange} className="mb-6">
         <TabsList className="grid w-full grid-cols-2">
@@ -81,10 +81,9 @@ export function AddTransactionFormContent({
         {/* Date Picker */}
         <div className="space-y-2">
           <Label className="text-gray-800 font-medium">Date</Label>
-          <DatePicker
-            date={formData.date}
-            onDateChange={handleDateChange}
-            placeholder="Select date"
+          <CustomCalender 
+            selected={formData.date}
+            onSelect={handleDateChange}
             disabled={isLoading}
           />
         </div>
@@ -121,7 +120,7 @@ export function AddTransactionFormContent({
                   Loading categories...
                 </SelectItem>
               ) : filteredCategories.length > 0 ? (
-                filteredCategories.map((category) => (
+                filteredCategories.map((category: any) => (
                   <SelectItem key={category.id} value={category.id}>
                     <div className="flex items-center gap-2">
                       <span>{category.icon}</span>
@@ -157,7 +156,7 @@ export function AddTransactionFormContent({
                   Loading accounts...
                 </SelectItem>
               ) : accounts && accounts.length > 0 ? (
-                accounts.map((account) => (
+                accounts.map((account: any) => (
                   <SelectItem key={account.id} value={account.id}>
                     {account.name}
                   </SelectItem>
