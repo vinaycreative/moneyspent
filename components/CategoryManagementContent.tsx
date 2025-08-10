@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Plus, Edit2, Trash2, Save, X as XIcon, Tag } from "lucide-react"
+import { useState } from "react"
+import { Edit2, Trash2, Tag, Plus, XIcon } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -18,6 +18,7 @@ import {
   useUpdateCategory,
   useDeleteCategory,
 } from "@/lib/hooks"
+import { DeleteConfirmationSheet } from "./DeleteConfirmationSheet"
 
 interface CategoryForm {
   name: string
@@ -34,11 +35,13 @@ export function CategoryManagementContent({ onClose }: CategoryManagementContent
   const { user } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [editingCategory, setEditingCategory] = useState<any>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [categoryToDelete, setCategoryToDelete] = useState<any>(null)
   const [formData, setFormData] = useState<CategoryForm>({
     name: "",
     type: "expense",
-    icon: "📁",
-    color: "bg-gray-400",
+    icon: "💰",
+    color: "bg-gray-500",
   })
 
   // Get categories from API
@@ -257,14 +260,26 @@ export function CategoryManagementContent({ onClose }: CategoryManagementContent
     }
   }
 
-  const handleDeleteCategory = async (categoryId: string) => {
-    if (!categoryId) return
+  const handleDeleteClick = (category: any) => {
+    setCategoryToDelete(category)
+    setShowDeleteConfirm(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!categoryToDelete?.id) return
 
     try {
-      await deleteCategory.mutateAsync(categoryId)
+      await deleteCategory.mutateAsync(categoryToDelete.id)
+      setShowDeleteConfirm(false)
+      setCategoryToDelete(null)
     } catch (error) {
       console.error("Error deleting category:", error)
     }
+  }
+
+  const handleDeleteCancel = () => {
+    setShowDeleteConfirm(false)
+    setCategoryToDelete(null)
   }
 
   const handleEditCategory = (category: any) => {
@@ -347,7 +362,7 @@ export function CategoryManagementContent({ onClose }: CategoryManagementContent
                     <Edit2 className="w-4 h-4 text-blue-500" />
                   </button>
                   <button
-                    onClick={() => handleDeleteCategory(category.id)}
+                    onClick={() => handleDeleteClick(category)}
                     className="p-1 hover:bg-red-100 rounded transition-colors"
                     title="Delete category"
                   >
@@ -467,6 +482,37 @@ export function CategoryManagementContent({ onClose }: CategoryManagementContent
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Sheet */}
+      <DeleteConfirmationSheet
+        isOpen={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Delete Category"
+        description="Are you sure you want to delete"
+        itemName={categoryToDelete?.name}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+        isPending={deleteCategory.isPending}
+        confirmText="Delete Category"
+        additionalDetails={
+          categoryToDelete && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Type:</span>
+                <span className="font-medium text-gray-900 capitalize">
+                  {categoryToDelete.type}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Icon:</span>
+                <span className="font-medium text-gray-900">
+                  {categoryToDelete.icon}
+                </span>
+              </div>
+            </div>
+          )
+        }
+      />
     </div>
   )
 }

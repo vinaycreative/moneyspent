@@ -18,7 +18,7 @@ import { ReusableDrawer } from "@/components/ReusableDrawer"
 import { AddAccountFormContent } from "@/components/AddAccountFormContent"
 import { useAddAccountDrawer } from "@/lib/hooks/use-add-account-drawer"
 import { EditAccountDrawer } from "@/components/EditAccountDrawer"
-import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog"
+import { DeleteConfirmationSheet } from "@/components/DeleteConfirmationSheet"
 
 export default function AccountsPage() {
   const { user, isLoading } = useAuth()
@@ -283,40 +283,46 @@ export default function AccountsPage() {
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <DialogContent className="max-w-md w-full mx-4 p-0 bg-white rounded-xl border-0 shadow-2xl">
-          <DialogTitle className="sr-only">Delete Account Confirmation</DialogTitle>
-          <div className="p-6">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Trash2 className="w-8 h-8 text-red-600" />
-              </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Delete Account</h2>
-              <p className="text-gray-600">
-                Are you sure you want to delete "{accountToDelete?.name}"? This action cannot be
-                undone.
-              </p>
-            </div>
-
+      {/* Delete Confirmation Sheet */}
+      <DeleteConfirmationSheet
+        isOpen={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Delete Account"
+        description="Are you sure you want to delete"
+        itemName={accountToDelete?.name}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setShowDeleteConfirm(false)}
+        isPending={deleteAccount.isPending}
+        confirmText="Delete Account"
+        additionalDetails={
+          accountToDelete && (
             <div className="space-y-3">
-              <button
-                onClick={handleDeleteConfirm}
-                disabled={deleteAccount.isPending}
-                className="w-full bg-red-500 text-white rounded-lg py-3 font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
-              >
-                {deleteAccount.isPending ? "Deleting..." : "Delete Account"}
-              </button>
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="w-full bg-gray-100 text-gray-700 rounded-lg py-3 font-medium hover:bg-gray-200 transition-colors"
-              >
-                Cancel
-              </button>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Type:</span>
+                <span className="font-medium text-gray-900 capitalize">
+                  {accountToDelete.type}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Balance:</span>
+                <span className={`font-medium ${
+                  accountToDelete.balance >= 0 ? "text-green-600" : "text-red-600"
+                }`}>
+                  ₹ {accountToDelete.balance.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Status:</span>
+                <span className={`font-medium ${
+                  accountToDelete.balance >= 0 ? "text-green-600" : "text-red-600"
+                }`}>
+                  {accountToDelete.balance >= 0 ? "Available" : "Due"}
+                </span>
+              </div>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          )
+        }
+      />
 
       {/* Add Account Drawer */}
       <ReusableDrawer

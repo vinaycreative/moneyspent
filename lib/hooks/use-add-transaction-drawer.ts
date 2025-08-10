@@ -11,7 +11,7 @@ export function useAddTransactionDrawer() {
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("expense")
   const [formData, setFormData] = useState<TransactionFormData>({
-    date: "",
+    date: new Date(),
     amount: "",
     description: "",
     category: "",
@@ -28,7 +28,7 @@ export function useAddTransactionDrawer() {
     setIsOpen(false)
     // Reset form data when closing
     setFormData({
-      date: "",
+      date: new Date(),
       amount: "",
       description: "",
       category: "",

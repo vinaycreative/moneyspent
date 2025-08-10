@@ -1,5 +1,6 @@
 import { useState } from "react"
-import { useUpdateTransaction } from "./use-transactions"
+import { useAuth } from "@/lib/contexts/auth-context"
+import { useUpdateTransaction } from "@/lib/hooks"
 import { TablesUpdate } from "@/types/supabase"
 
 type TransactionUpdate = TablesUpdate<"transactions">
@@ -32,7 +33,7 @@ export function useEditTransactionDrawer() {
     type: "expense" as "expense" | "income",
     category_id: "",
     account_id: "",
-    transaction_date: new Date().toISOString().split("T")[0],
+    transaction_date: undefined as Date | undefined,
     description: "",
   })
 
@@ -47,7 +48,7 @@ export function useEditTransactionDrawer() {
       type: transaction.type,
       category_id: transaction.category_id,
       account_id: transaction.account_id,
-      transaction_date: transaction.transaction_date,
+      transaction_date: new Date(transaction.transaction_date),
       description: transaction.description || "",
     })
     setIsOpen(true)
@@ -63,7 +64,7 @@ export function useEditTransactionDrawer() {
       type: "expense",
       category_id: "",
       account_id: "",
-      transaction_date: new Date().toISOString().split("T")[0],
+      transaction_date: undefined,
       description: "",
     })
   }
@@ -80,13 +81,26 @@ export function useEditTransactionDrawer() {
     if (!selectedTransaction) return
 
     try {
+      // Create a proper date with time for the transaction
+      let transactionDate: string
+      if (formData.transaction_date) {
+        // If user selected a specific date, combine it with current time
+        const selectedDate = new Date(formData.transaction_date)
+        const now = new Date()
+        selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds())
+        transactionDate = selectedDate.toISOString()
+      } else {
+        // If no date selected, use current date and time
+        transactionDate = new Date().toISOString()
+      }
+
       const transactionData: TransactionUpdate = {
         title: formData.title,
         amount: parseFloat(formData.amount) || 0,
         type: formData.type,
         category_id: formData.category_id,
         account_id: formData.account_id,
-        transaction_date: formData.transaction_date,
+        transaction_date: transactionDate,
         description: formData.description || null,
         updated_at: new Date().toISOString(),
       }

@@ -21,7 +21,7 @@ import { EditTransactionDrawer } from "@/components/EditTransactionDrawer"
 import { Plus } from "lucide-react"
 import { useAuth } from "@/lib/contexts/auth-context"
 import { useFilteredTransactions, useTransactionSummary, useDeleteTransaction, useEditTransactionDrawer } from "@/lib/hooks"
-import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog"
+import { DeleteConfirmationSheet } from "@/components/DeleteConfirmationSheet"
 
 export default function Transactions() {
   const { user, isLoading: authLoading } = useAuth()
@@ -466,7 +466,10 @@ export default function Transactions() {
                 <div className="flex items-center gap-1">
                   
                   <button
-                    onClick={() => handleDeleteClick(transaction.id)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDeleteClick(transaction.id)
+                    }}
                     className="p-2 rounded-lg hover:bg-red-50 transition-colors"
                   >
                     <Trash2 className="w-4 h-4 text-red-500" />
@@ -490,40 +493,51 @@ export default function Transactions() {
         )}
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <DialogContent className="max-w-md w-full mx-4 p-0 bg-white rounded-xl border-0 shadow-2xl">
-          <DialogTitle className="sr-only">Delete Transaction Confirmation</DialogTitle>
-          <div className="p-6">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Trash2 className="w-8 h-8 text-red-600" />
-              </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Delete Transaction</h2>
-              <p className="text-gray-600">
-                Are you sure you want to delete "{transactionToDelete?.title}"? This action cannot
-                be undone.
-              </p>
-            </div>
-
+      {/* Delete Confirmation Sheet */}
+      <DeleteConfirmationSheet
+        isOpen={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Delete Transaction"
+        description="Are you sure you want to delete"
+        itemName={transactionToDelete?.title}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setShowDeleteConfirm(false)}
+        isPending={deleteTransaction.isPending}
+        confirmText="Delete Transaction"
+        additionalDetails={
+          transactionToDelete && (
             <div className="space-y-3">
-              <button
-                onClick={handleDeleteConfirm}
-                disabled={deleteTransaction.isPending}
-                className="w-full bg-red-500 text-white rounded-lg py-3 font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
-              >
-                {deleteTransaction.isPending ? "Deleting..." : "Delete Transaction"}
-              </button>
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="w-full bg-gray-100 text-gray-700 rounded-lg py-3 font-medium hover:bg-gray-200 transition-colors"
-              >
-                Cancel
-              </button>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Amount:</span>
+                <span className={`font-medium ${
+                  transactionToDelete.type === "expense" ? "text-red-600" : "text-green-600"
+                }`}>
+                  {transactionToDelete.type === "expense" ? "-" : "+"} ₹{" "}
+                  {transactionToDelete.amount.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Date:</span>
+                <span className="font-medium text-gray-900">
+                  {moment(transactionToDelete.transaction_date).tz("Asia/Kolkata").format('lll')}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Category:</span>
+                <span className="font-medium text-gray-900">
+                  {transactionToDelete.categories?.name || "Uncategorized"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Account:</span>
+                <span className="font-medium text-gray-900">
+                  {transactionToDelete.accounts?.name || "Unknown"}
+                </span>
+              </div>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          )
+        }
+      />
 
       {/* Add Transaction Drawer */}
       <ReusableDrawer
