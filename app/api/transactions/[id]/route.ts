@@ -3,6 +3,10 @@ import { createClient } from "@/lib/supabase/server"
 import { TablesUpdate } from "@/types/supabase"
 import { calculateNewBalance, calculateReversedBalance } from "@/lib/utils"
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+export const fetchCache = "force-no-store"
+
 type TransactionUpdate = TablesUpdate<"transactions">
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -17,7 +21,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: { "Cache-Control": "no-store" } })
     }
 
     const { data: transaction, error } = await supabase
@@ -35,16 +39,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     if (error) {
       if (error.code === "PGRST116") {
-        return NextResponse.json({ error: "Transaction not found" }, { status: 404 })
+        return NextResponse.json({ error: "Transaction not found" }, { status: 404, headers: { "Cache-Control": "no-store" } })
       }
       console.error("Transaction fetch error:", error)
-      return NextResponse.json({ error: "Failed to fetch transaction" }, { status: 500 })
+      return NextResponse.json({ error: "Failed to fetch transaction" }, { status: 500, headers: { "Cache-Control": "no-store" } })
     }
 
-    return NextResponse.json({ transaction })
+    return new NextResponse(JSON.stringify({ transaction }), { status: 200, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } })
   } catch (error) {
     console.error("Transaction API error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ error: "Internal server error" }, { status: 500, headers: { "Cache-Control": "no-store" } })
   }
 }
 
@@ -60,7 +64,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: { "Cache-Control": "no-store" } })
     }
 
     // Get the existing transaction to calculate balance changes
@@ -73,10 +77,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     if (fetchError) {
       if (fetchError.code === "PGRST116") {
-        return NextResponse.json({ error: "Transaction not found" }, { status: 404 })
+        return NextResponse.json({ error: "Transaction not found" }, { status: 404, headers: { "Cache-Control": "no-store" } })
       }
       console.error("Transaction fetch error:", fetchError)
-      return NextResponse.json({ error: "Failed to fetch transaction" }, { status: 500 })
+      return NextResponse.json({ error: "Failed to fetch transaction" }, { status: 500, headers: { "Cache-Control": "no-store" } })
     }
 
     // Get transaction data from request body
@@ -102,10 +106,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     if (error) {
       if (error.code === "PGRST116") {
-        return NextResponse.json({ error: "Transaction not found" }, { status: 404 })
+        return NextResponse.json({ error: "Transaction not found" }, { status: 404, headers: { "Cache-Control": "no-store" } })
       }
       console.error("Transaction update error:", error)
-      return NextResponse.json({ error: "Failed to update transaction" }, { status: 500 })
+      return NextResponse.json({ error: "Failed to update transaction" }, { status: 500, headers: { "Cache-Control": "no-store" } })
     }
 
     // Update account balance if account_id is provided
@@ -120,7 +124,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
       if (accountError) {
         console.error("Account fetch error:", accountError)
-        return NextResponse.json({ error: "Failed to fetch account" }, { status: 500 })
+        return NextResponse.json({ error: "Failed to fetch account" }, { status: 500, headers: { "Cache-Control": "no-store" } })
       }
 
       // Calculate balance change
@@ -149,14 +153,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
       if (updateError) {
         console.error("Account balance update error:", updateError)
-        return NextResponse.json({ error: "Failed to update account balance" }, { status: 500 })
+        return NextResponse.json({ error: "Failed to update account balance" }, { status: 500, headers: { "Cache-Control": "no-store" } })
       }
     }
 
-    return NextResponse.json({ transaction })
+    return new NextResponse(JSON.stringify({ transaction }), { status: 200, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } })
   } catch (error) {
     console.error("Transaction update API error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ error: "Internal server error" }, { status: 500, headers: { "Cache-Control": "no-store" } })
   }
 }
 
@@ -175,7 +179,7 @@ export async function DELETE(
     } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: { "Cache-Control": "no-store" } })
     }
 
     // Get the existing transaction to calculate balance changes
@@ -187,7 +191,7 @@ export async function DELETE(
       .single()
 
     if (fetchError || !existingTransaction) {
-      return NextResponse.json({ error: "Transaction not found" }, { status: 404 })
+      return NextResponse.json({ error: "Transaction not found" }, { status: 404, headers: { "Cache-Control": "no-store" } })
     }
 
     // Update account balance if account_id is provided
@@ -202,7 +206,7 @@ export async function DELETE(
 
       if (accountError) {
         console.error("Account fetch error:", accountError)
-        return NextResponse.json({ error: "Failed to fetch account" }, { status: 500 })
+        return NextResponse.json({ error: "Failed to fetch account" }, { status: 500, headers: { "Cache-Control": "no-store" } })
       }
 
       // Calculate new balance by reversing the transaction effect
@@ -222,7 +226,7 @@ export async function DELETE(
 
       if (updateError) {
         console.error("Account balance update error:", updateError)
-        return NextResponse.json({ error: "Failed to update account balance" }, { status: 500 })
+        return NextResponse.json({ error: "Failed to update account balance" }, { status: 500, headers: { "Cache-Control": "no-store" } })
       }
     }
 
@@ -235,12 +239,12 @@ export async function DELETE(
 
     if (error) {
       console.error("Transaction deletion error:", error)
-      return NextResponse.json({ error: "Failed to delete transaction" }, { status: 500 })
+      return NextResponse.json({ error: "Failed to delete transaction" }, { status: 500, headers: { "Cache-Control": "no-store" } })
     }
 
-    return NextResponse.json({ message: "Transaction deleted successfully" })
+    return new NextResponse(JSON.stringify({ message: "Transaction deleted successfully" }), { status: 200, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } })
   } catch (error) {
     console.error("Transaction deletion API error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ error: "Internal server error" }, { status: 500, headers: { "Cache-Control": "no-store" } })
   }
 }

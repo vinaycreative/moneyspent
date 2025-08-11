@@ -92,8 +92,10 @@ export function AddTransactionFormContent({
         <div className="space-y-2">
           <Label className="text-gray-800 font-medium">Amount</Label>
           <Input
-            type="number"
+            type="text"
+            typeof="currency"
             placeholder="Enter amount"
+            prefix="₹" 
             value={formData.amount}
             onChange={(e) => handleInputChange("amount", e.target.value)}
             className="w-full border-gray-300 bg-white"

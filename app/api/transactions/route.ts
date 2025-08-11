@@ -3,6 +3,10 @@ import { createClient } from "@/lib/supabase/server"
 import { TablesInsert, TablesUpdate } from "@/types/supabase"
 import { ensureUserExists, calculateNewBalance } from "@/lib/utils"
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+export const fetchCache = "force-no-store"
+
 type TransactionInsert = TablesInsert<"transactions">
 type TransactionUpdate = TablesUpdate<"transactions">
 
@@ -66,13 +70,19 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error("Transactions fetch error:", error)
-      return NextResponse.json({ error: "Failed to fetch transactions" }, { status: 500 })
+      return NextResponse.json({ error: "Failed to fetch transactions" }, { status: 500, headers: { "Cache-Control": "no-store" } })
     }
 
-    return NextResponse.json({ transactions })
+    return new NextResponse(JSON.stringify({ transactions }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+      },
+    })
   } catch (error) {
     console.error("Transactions API error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ error: "Internal server error" }, { status: 500, headers: { "Cache-Control": "no-store" } })
   }
 }
 
@@ -87,7 +97,7 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: { "Cache-Control": "no-store" } })
     }
 
     // Ensure user exists in the users table
@@ -127,7 +137,7 @@ export async function POST(request: NextRequest) {
 
     if (transactionError) {
       console.error("Transaction creation error:", transactionError)
-      return NextResponse.json({ error: "Failed to create transaction" }, { status: 500 })
+      return NextResponse.json({ error: "Failed to create transaction" }, { status: 500, headers: { "Cache-Control": "no-store" } })
     }
 
     // Update account balance if account_id is provided
@@ -142,7 +152,7 @@ export async function POST(request: NextRequest) {
 
       if (accountError) {
         console.error("Account fetch error:", accountError)
-        return NextResponse.json({ error: "Failed to fetch account" }, { status: 500 })
+        return NextResponse.json({ error: "Failed to fetch account" }, { status: 500, headers: { "Cache-Control": "no-store" } })
       }
 
       // Calculate new balance
@@ -162,13 +172,19 @@ export async function POST(request: NextRequest) {
 
       if (updateError) {
         console.error("Account balance update error:", updateError)
-        return NextResponse.json({ error: "Failed to update account balance" }, { status: 500 })
+        return NextResponse.json({ error: "Failed to update account balance" }, { status: 500, headers: { "Cache-Control": "no-store" } })
       }
     }
 
-    return NextResponse.json({ transaction }, { status: 201 })
+    return new NextResponse(JSON.stringify({ transaction }), {
+      status: 201,
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+      },
+    })
   } catch (error) {
     console.error("Transaction creation API error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ error: "Internal server error" }, { status: 500, headers: { "Cache-Control": "no-store" } })
   }
 }

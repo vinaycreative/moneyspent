@@ -30,25 +30,34 @@ self.addEventListener("install", (event) => {
 
 // Fetch event - serve from cache when offline, but prefer network for fresh content
 self.addEventListener("fetch", (event) => {
+  const request = event.request
+
   // Skip non-GET requests
-  if (event.request.method !== "GET") {
+  if (request.method !== "GET") {
     return
   }
 
-  // Skip chrome-extension and other non-http requests
-  if (!event.request.url.startsWith("http")) {
+  // Skip non-http requests
+  if (!request.url.startsWith("http")) {
+    return
+  }
+
+  // Always bypass caching for API requests and Next data requests
+  const isApiRequest = request.url.includes("/api/") || request.url.includes("/_next/data/")
+  if (isApiRequest) {
+    event.respondWith(fetch(request))
     return
   }
 
   event.respondWith(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.match(event.request).then((cachedResponse) => {
+      return cache.match(request).then((cachedResponse) => {
         // Always try to fetch from network first for fresh content
-        const fetchPromise = fetch(event.request)
+        const fetchPromise = fetch(request)
           .then((networkResponse) => {
             // Cache successful network responses
             if (networkResponse.status === 200) {
-              cache.put(event.request, networkResponse.clone())
+              cache.put(request, networkResponse.clone())
             }
             return networkResponse
           })
