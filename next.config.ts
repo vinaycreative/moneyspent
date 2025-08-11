@@ -29,7 +29,15 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Cache-Control",
-            value: "no-cache, no-store, must-revalidate",
+            value: "no-cache, no-store, must-revalidate, max-age=0",
+          },
+          {
+            key: "Pragma",
+            value: "no-cache",
+          },
+          {
+            key: "Expires",
+            value: "0",
           },
         ],
       },
@@ -42,6 +50,33 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        source: "/icon-192x192.png",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/icon-512x512.png",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/apple-touch-icon.png",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
     ]
   },
   async rewrites() {
@@ -51,6 +86,18 @@ const nextConfig: NextConfig = {
         destination: "/sw.js",
       },
     ]
+  },
+  // Ensure service worker is not bundled
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      }
+    }
+    return config
   },
 }
 

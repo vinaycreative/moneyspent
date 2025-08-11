@@ -1,0 +1,45 @@
+
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Clear SW Cache</title>
+        </head>
+        <body>
+          <h1>Clearing Service Worker Caches...</h1>
+          <p>This page will automatically reload after clearing caches.</p>
+          <script>
+            
+      if ('serviceWorker' in navigator) {
+        // Clear all caches
+        if ('caches' in window) {
+          caches.keys().then(cacheNames => {
+            return Promise.all(
+              cacheNames.map(cacheName => {
+                console.log('🗑️ Deleting cache:', cacheName);
+                return caches.delete(cacheName);
+              })
+            );
+          }).then(() => {
+            console.log('✅ All caches cleared successfully');
+          });
+        }
+        
+        // Unregister service worker
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+          return Promise.all(
+            registrations.map(registration => {
+              console.log('🔄 Unregistering service worker');
+              return registration.unregister();
+            })
+          );
+        }).then(() => {
+          console.log('✅ Service worker unregistered successfully');
+          // Reload the page to get fresh content
+          window.location.reload();
+        });
+      }
+    
+          </script>
+        </body>
+      </html>
+    
