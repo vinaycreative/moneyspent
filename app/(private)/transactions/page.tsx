@@ -449,10 +449,10 @@ export default function Transactions() {
                 <div className="flex-1">
                   <div className="font-medium text-black">{transaction.title}</div>
                   <div className="text-xs text-gray-500 flex items-center gap-1">
-                    <span className="font-medium">{moment(transaction.created_at).tz("Asia/Kolkata").format('lll')}</span> - <span className="font-medium">{transaction.accounts?.name}</span>  
+                    <span className="font-medium">{moment(transaction.created_at).tz("Asia/Kolkata").format('DD MMM')}</span> - <span className="font-medium">{transaction.accounts?.name}</span>  
                   </div>
                 </div>
-
+                <div className="flex flex-col items-end gap-1">
                 <div
                   className={`font-medium ${
                     transaction.type === "expense" ? "text-red-500" : "text-green-500"
@@ -461,7 +461,8 @@ export default function Transactions() {
                   {transaction.type === "expense" ? "-" : "+"} ₹{" "}
                   {transaction.amount.toLocaleString()}
                 </div>
-
+                <span className="text-[10px] text-gray-500"> {moment(transaction.updated_at).tz("Asia/Kolkata").format('LT')}</span>
+                </div>
                 {/* Action Buttons */}
                 <div className="flex items-center gap-1">
                   
