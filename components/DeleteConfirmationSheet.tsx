@@ -35,10 +35,15 @@ export function DeleteConfirmationSheet({
     <Drawer.Root open={isOpen} onOpenChange={onOpenChange}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/40 z-50" />
-        <Drawer.Content className="bg-white flex flex-col rounded-t-[10px] h-[96%] mt-24 fixed bottom-0 left-0 right-0 z-50">
+        <Drawer.Content 
+          className="bg-white flex flex-col rounded-t-[10px] h-[96%] mt-24 fixed bottom-0 left-0 right-0 z-50"
+          aria-labelledby="delete-drawer-title"
+          role="dialog"
+          aria-modal="true"
+        >
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
-            <h2 className="text-lg font-semibold text-gray-900">Delete Confirmation</h2>
+            <h2 className="text-lg font-semibold text-gray-900" id="delete-drawer-title">Delete Confirmation</h2>
             <button
               onClick={onCancel}
               className="p-2 rounded-lg hover:bg-gray-100 transition-colors"

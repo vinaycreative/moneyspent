@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, memo } from "react"
 import moment from "moment-timezone"
 import { Calendar, Edit, TrendingDown, TrendingUp } from "lucide-react"
 import { ReusableDrawer } from "@/components/ReusableDrawer"
@@ -58,7 +58,7 @@ interface EditTransactionDrawerProps {
   isSubmitDisabled: boolean
 }
 
-export function EditTransactionDrawer({
+export const EditTransactionDrawer = memo(function EditTransactionDrawer({
   transaction,
   children,
   isOpen,
@@ -241,4 +241,4 @@ export function EditTransactionDrawer({
       </ReusableDrawer>
     </>
   )
-} 
+})

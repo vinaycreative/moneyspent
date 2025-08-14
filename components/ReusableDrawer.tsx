@@ -2,7 +2,7 @@
 
 import { Drawer } from "vaul"
 import { X } from "lucide-react"
-import { ReactNode } from "react"
+import { ReactNode, memo, useEffect } from "react"
 
 interface ReusableDrawerProps {
   isOpen: boolean
@@ -16,7 +16,7 @@ interface ReusableDrawerProps {
   children: ReactNode
 }
 
-export function ReusableDrawer({
+export const ReusableDrawer = memo(function ReusableDrawer({
   isOpen,
   onOpenChange,
   title,
@@ -44,9 +44,7 @@ export function ReusableDrawer({
           </div>
 
           {/* Body - Scrollable */}
-          <div className="flex-1 overflow-auto">
-            {children}
-          </div>
+          <div className="flex-1 overflow-auto">{children}</div>
 
           {/* Action - Fixed */}
           {submitTitle && (
@@ -65,4 +63,4 @@ export function ReusableDrawer({
       </Drawer.Portal>
     </Drawer.Root>
   )
-} 
+})

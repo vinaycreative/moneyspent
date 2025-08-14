@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ArrowLeft, ArrowRight, Plus } from "lucide-react"
+import { ArrowLeft, ArrowRight, Plus, X } from "lucide-react"
 import { ReusableDrawer } from "@/components/ReusableDrawer"
+import { Drawer } from "vaul"
 import { AddTransactionFormContent } from "@/components/AddTransactionFormContent"
 import { useAddTransactionDrawer } from "@/lib/hooks/use-add-transaction-drawer"
 import { DashboardStats } from "@/components/DashboardStats"
@@ -11,6 +12,7 @@ import { useTransactions, useTransactionSummary } from "@/lib/hooks"
 import moment from "moment-timezone"
 import { Label } from "@/components/ui/label"
 import { CustomCalender } from "@/components/CustomCalender"
+import CustomDrawer from "@/components/CustomDrawer"
 
 export default function Dashboard() {
   const { user, profile, isLoading } = useAuth()
@@ -28,6 +30,7 @@ export default function Dashboard() {
   } = useAddTransactionDrawer()
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [currentDate] = useState("Today")
+  const [demoDrawerOpen, setDemoDrawerOpen] = useState(false)
 
   // Get user's transactions
   const { data: transactions, isLoading: transactionsLoading } = useTransactions(user?.id || "", {
@@ -137,8 +140,6 @@ export default function Dashboard() {
 
   const netSavings = totalIncome - totalExpenses
 
-
-
   return (
     <div className="max-w-md mx-auto h-full">
       {/* Date Navigation */}
@@ -183,7 +184,6 @@ export default function Dashboard() {
         />
       </div>
 
-
       {/* Add Transaction Button */}
       <div className="px-4 mb-6">
         <button
@@ -194,8 +194,6 @@ export default function Dashboard() {
           Add Transaction
         </button>
       </div>
-
-     
 
       {/* Add Transaction Drawer */}
       <ReusableDrawer
@@ -227,7 +225,10 @@ export default function Dashboard() {
         {transactionsLoading ? (
           <div className="space-y-2">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="flex items-center gap-3 p-3 rounded-lg animate-pulse border border-gray-200">
+              <div
+                key={i}
+                className="flex items-center gap-3 p-3 rounded-lg animate-pulse border border-gray-200"
+              >
                 <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
                 <div className="flex-1 space-y-2">
                   <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -255,20 +256,29 @@ export default function Dashboard() {
                 <div className="flex-1">
                   <div className="font-medium text-black">{transaction.title}</div>
                   <div className="text-xs text-gray-500 flex items-center gap-1">
-                  <span className="font-medium">{moment(transaction.updated_at).tz("Asia/Kolkata").format('DD MMM')}</span> - 
-                    <span className="font-medium">{transaction.categories?.name || "Uncategorized"}</span> - <span className="font-medium">{transaction.accounts?.name}</span>  
+                    <span className="font-medium">
+                      {moment(transaction.updated_at).tz("Asia/Kolkata").format("DD MMM")}
+                    </span>{" "}
+                    -
+                    <span className="font-medium">
+                      {transaction.categories?.name || "Uncategorized"}
+                    </span>{" "}
+                    - <span className="font-medium">{transaction.accounts?.name}</span>
                   </div>
                 </div>
-          <div className="flex flex-col items-end gap-1">
-                <div
-                  className={`font-medium ${
-                    transaction.type === "expense" ? "text-red-500" : "text-green-500"
-                  }`}
-                >
-                  {transaction.type === "expense" ? "-" : "+"} ₹{" "}
-                  {transaction.amount.toLocaleString()}
-                </div>
-                <span className="text-[10px] text-gray-500">  {moment(transaction.updated_at).tz("Asia/Kolkata").format('LT')}</span>
+                <div className="flex flex-col items-end gap-1">
+                  <div
+                    className={`font-medium ${
+                      transaction.type === "expense" ? "text-red-500" : "text-green-500"
+                    }`}
+                  >
+                    {transaction.type === "expense" ? "-" : "+"} ₹{" "}
+                    {transaction.amount.toLocaleString()}
+                  </div>
+                  <span className="text-[10px] text-gray-500">
+                    {" "}
+                    {moment(transaction.updated_at).tz("Asia/Kolkata").format("LT")}
+                  </span>
                 </div>
               </div>
             ))}

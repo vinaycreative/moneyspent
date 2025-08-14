@@ -6,8 +6,6 @@ import Header from "@/components/Header"
 import { QueryProvider } from "@/lib/query-provider"
 import { AuthProvider } from "@/lib/contexts/auth-context"
 import PrivateLayout from "./(private)/layout"
-import PWAInstallPrompt from "@/components/PWAInstallPrompt"
-import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,27 +20,8 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "MoneySpend - Your Personal Finance Manager",
   description: "Track expenses, manage budgets, and achieve your financial goals with MoneySpend",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "MoneySpend",
-  },
   formatDetection: {
     telephone: false,
-  },
-  icons: {
-    icon: [
-      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
-    ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
-  },
-  other: {
-    "mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-status-bar-style": "default",
-    "apple-mobile-web-app-title": "MoneySpend",
   },
 }
 
@@ -68,8 +47,6 @@ export default function RootLayout({
         <QueryProvider>
           <AuthProvider>
             {children}
-            <PWAInstallPrompt />
-            <ServiceWorkerRegistration />
           </AuthProvider>
         </QueryProvider>
       </body>

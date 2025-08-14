@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ArrowRight, CheckCircle, TrendingUp, Shield, Zap, Smartphone } from "lucide-react"
+import { ArrowRight, CheckCircle, TrendingUp, Shield, Zap, Smartphone, BarChart3, Target, PieChart, CreditCard } from "lucide-react"
 import Link from "next/link"
 
 export default function LandingPage() {
@@ -9,24 +9,39 @@ export default function LandingPage() {
 
   const features = [
     {
-      icon: TrendingUp,
-      title: "Track Expenses",
-      description: "Monitor your spending in real-time with smart categorization"
+      icon: BarChart3,
+      title: "Smart Analytics",
+      description: "Get insights into your spending patterns and financial trends"
     },
     {
       icon: Shield,
-      title: "Budget Management",
-      description: "Set budgets and get alerts to stay on track"
+      title: "Secure & Private",
+      description: "Your financial data is encrypted and never shared"
     },
     {
-      icon: Zap,
-      title: "Smart Insights",
-      description: "Get personalized insights about your spending patterns"
+      icon: Target,
+      title: "Goal Setting",
+      description: "Set and track your financial goals with progress monitoring"
     },
     {
       icon: Smartphone,
       title: "Mobile First",
-      description: "Works seamlessly across all your devices"
+      description: "Optimized for mobile devices with responsive design"
+    },
+    {
+      icon: PieChart,
+      title: "Smart budget management",
+      description: "Detailed spending insights"
+    },
+    {
+      icon: CreditCard,
+      title: "Account balance monitoring",
+      description: "Transaction categorization"
+    },
+    {
+      icon: TrendingUp,
+      title: "Financial analytics",
+      description: "Secure & private"
     }
   ]
 
@@ -37,7 +52,6 @@ export default function LandingPage() {
     "Account balance monitoring",
     "Transaction categorization",
     "Financial analytics",
-    "Offline support",
     "Secure & private"
   ]
 

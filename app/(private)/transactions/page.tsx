@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo, useCallback, useEffect } from "react"
 import moment from "moment-timezone"
 import {
   ArrowLeft,
@@ -20,7 +20,12 @@ import { useAddTransactionDrawer } from "@/lib/hooks/use-add-transaction-drawer"
 import { EditTransactionDrawer } from "@/components/EditTransactionDrawer"
 import { Plus } from "lucide-react"
 import { useAuth } from "@/lib/contexts/auth-context"
-import { useFilteredTransactions, useTransactionSummary, useDeleteTransaction, useEditTransactionDrawer } from "@/lib/hooks"
+import {
+  useFilteredTransactions,
+  useTransactionSummary,
+  useDeleteTransaction,
+  useEditTransactionDrawer,
+} from "@/lib/hooks"
 import { DeleteConfirmationSheet } from "@/components/DeleteConfirmationSheet"
 
 export default function Transactions() {
@@ -51,6 +56,7 @@ export default function Transactions() {
     handleSubmit: handleEditSubmit,
     isSubmitDisabled: isEditSubmitDisabled,
     isLoading: isEditLoading,
+    selectedTransaction,
   } = useEditTransactionDrawer()
 
   const [selectedDateRange, setSelectedDateRange] = useState("all")
@@ -58,6 +64,7 @@ export default function Transactions() {
   const [customStartDate, setCustomStartDate] = useState("")
   const [customEndDate, setCustomEndDate] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("")
   const [deleteTransactionId, setDeleteTransactionId] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
@@ -83,32 +90,46 @@ export default function Transactions() {
 
   const deleteTransaction = useDeleteTransaction()
 
+  // Debounce search query to prevent excessive filtering
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery)
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
   // Filter transactions by search query
-  const searchFilteredTransactions = filteredTransactions.filter((transaction: any) => {
-    if (!searchQuery) return true
-    const query = searchQuery.toLowerCase()
-    return (
-      transaction.title.toLowerCase().includes(query) ||
-      transaction.categories?.name?.toLowerCase().includes(query) ||
-      transaction.amount.toString().includes(query)
-    )
-  })
+  const searchFilteredTransactions = useMemo(() => {
+    if (!debouncedSearchQuery.trim()) return filteredTransactions
+
+    const query = debouncedSearchQuery.toLowerCase().trim()
+    return filteredTransactions.filter((transaction: any) => {
+      return (
+        transaction.title.toLowerCase().includes(query) ||
+        transaction.categories?.name?.toLowerCase().includes(query) ||
+        transaction.amount.toString().includes(query)
+      )
+    })
+  }, [filteredTransactions, debouncedSearchQuery])
 
   // Sort transactions by date (newest first) and created_at for better ordering
-  const sortedTransactions = searchFilteredTransactions.sort((a: any, b: any) => {
-    // First sort by transaction_date (newest first)
-    const dateA = new Date(a.transaction_date).getTime()
-    const dateB = new Date(b.transaction_date).getTime()
-    
-    if (dateA !== dateB) {
-      return dateB - dateA
-    }
-    
-    // If dates are the same, sort by created_at (newest first)
-    const createdA = new Date(a.created_at).getTime()
-    const createdB = new Date(b.created_at).getTime()
-    return createdB - createdA
-  })
+  const sortedTransactions = useMemo(() => {
+    return searchFilteredTransactions.sort((a: any, b: any) => {
+      // First sort by transaction_date (newest first)
+      const dateA = new Date(a.transaction_date).getTime()
+      const dateB = new Date(b.transaction_date).getTime()
+
+      if (dateA !== dateB) {
+        return dateB - dateA
+      }
+
+      // If dates are the same, sort by created_at (newest first)
+      const createdA = new Date(a.created_at).getTime()
+      const createdB = new Date(b.created_at).getTime()
+      return createdB - createdA
+    })
+  }, [searchFilteredTransactions])
 
   if (authLoading) {
     return (
@@ -175,9 +196,10 @@ export default function Transactions() {
       <div className="px-4 py-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-xl font-bold text-black">Transactions</h1>
-          <button 
+          <button
             onClick={openDrawer}
             className="p-2 rounded-lg bg-purple-100 hover:bg-purple-200 transition-colors"
+            disabled={transactionsLoading}
           >
             <Plus className="w-5 h-5 text-purple-600" />
           </button>
@@ -214,56 +236,54 @@ export default function Transactions() {
             )}
           </div>
           {/* Net Savings Card */}
-        <div className="col-span-2">
-          <div
-            className={`rounded-xl p-4 border ${
-              netSavings >= 0 ? "bg-blue-50 border-blue-300" : "bg-orange-50 border-orange-300"
-            }`}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <div
-                className={`w-4 h-4 rounded-full ${
-                  netSavings >= 0 ? "bg-blue-500" : "bg-orange-500"
-                }`}
-              ></div>
-              <div
-                className={`text-sm font-medium ${
-                  netSavings >= 0 ? "text-blue-600" : "text-orange-600"
-                }`}
-              >
-                Net Savings
-              </div>
-            </div>
-            {summaryLoading ? (
-              <div className="animate-pulse bg-gray-200 h-6 w-24 rounded"></div>
-            ) : (
-              <div
-                className={`text-xl font-bold ${
-                  netSavings >= 0 ? "text-blue-600" : "text-orange-600"
-                }`}
-              >
-                ₹ {netSavings.toLocaleString()}
-              </div>
-            )}
+          <div className="col-span-2">
             <div
-              className={`text-xs mt-1 ${netSavings >= 0 ? "text-blue-500" : "text-orange-500"}`}
+              className={`rounded-xl p-4 border ${
+                netSavings >= 0 ? "bg-blue-50 border-blue-300" : "bg-orange-50 border-orange-300"
+              }`}
             >
-              {netSavings >= 0 ? "You're saving well!" : "You're spending more than earning"}
+              <div className="flex items-center gap-2 mb-2">
+                <div
+                  className={`w-4 h-4 rounded-full ${
+                    netSavings >= 0 ? "bg-blue-500" : "bg-orange-500"
+                  }`}
+                ></div>
+                <div
+                  className={`text-sm font-medium ${
+                    netSavings >= 0 ? "text-blue-600" : "text-orange-600"
+                  }`}
+                >
+                  Net Savings
+                </div>
+              </div>
+              {summaryLoading ? (
+                <div className="animate-pulse bg-gray-200 h-6 w-24 rounded"></div>
+              ) : (
+                <div
+                  className={`text-xl font-bold ${
+                    netSavings >= 0 ? "text-blue-600" : "text-orange-600"
+                  }`}
+                >
+                  ₹ {netSavings.toLocaleString()}
+                </div>
+              )}
+              <div
+                className={`text-xs mt-1 ${netSavings >= 0 ? "text-blue-500" : "text-orange-500"}`}
+              >
+                {netSavings >= 0 ? "You're saving well!" : "You're spending more than earning"}
+              </div>
             </div>
           </div>
         </div>
-        </div>
-
-        
       </div>
 
-      
       {/* Date Filter */}
       <div className="px-4 mb-4">
         <div className="relative">
           <button
             onClick={() => setShowDateFilter(!showDateFilter)}
             className="w-full flex items-center justify-between px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors"
+            disabled={transactionsLoading}
           >
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-gray-500" />
@@ -355,6 +375,7 @@ export default function Transactions() {
                       onChange={(e) => setCustomStartDate(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                       placeholder="Start Date"
+                      disabled={transactionsLoading}
                     />
                     <input
                       type="date"
@@ -362,6 +383,7 @@ export default function Transactions() {
                       onChange={(e) => setCustomEndDate(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                       placeholder="End Date"
+                      disabled={transactionsLoading}
                     />
                     <button
                       onClick={() => {
@@ -371,6 +393,7 @@ export default function Transactions() {
                         }
                       }}
                       className="w-full px-3 py-2 bg-orange-500 text-white rounded-md text-sm hover:bg-orange-600"
+                      disabled={transactionsLoading}
                     >
                       Apply Custom Range
                     </button>
@@ -382,8 +405,8 @@ export default function Transactions() {
         </div>
       </div>
 
-{/* Search Bar */}
-<div className="px-4 mb-4">
+      {/* Search Bar */}
+      <div className="px-4 mb-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
@@ -392,23 +415,25 @@ export default function Transactions() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            disabled={transactionsLoading}
           />
         </div>
       </div>
-
-      
 
       {/* Transactions List */}
       <div className="px-4 pb-6">
         <h2 className="text-lg font-bold text-black mb-4">
           {sortedTransactions.length} Transaction{sortedTransactions.length !== 1 ? "s" : ""}
-          {searchQuery && ` matching "${searchQuery}"`}
+          {debouncedSearchQuery && ` matching "${debouncedSearchQuery}"`}
         </h2>
 
         {transactionsLoading ? (
           <div className="space-y-2">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="flex items-center gap-3 p-3 rounded-lg animate-pulse border border-gray-200">
+              <div
+                key={i}
+                className="flex items-center gap-3 p-3 rounded-lg animate-pulse border border-gray-200"
+              >
                 <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
                 <div className="flex-1 space-y-2">
                   <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -421,22 +446,10 @@ export default function Transactions() {
         ) : sortedTransactions.length > 0 ? (
           <div className="space-y-2">
             {sortedTransactions.map((transaction: any) => (
-              <EditTransactionDrawer
-              transaction={transaction}
-              isOpen={isEditOpen}
-              onOpenChange={(open) => !open && closeEditDrawer()}
-              activeTab={editActiveTab}
-              onTabChange={handleEditTabChange}
-              formData={editFormData}
-              onFormDataChange={setEditFormData}
-              onSubmit={handleEditSubmit}
-              isLoading={isEditLoading}
-              isSubmitDisabled={isEditSubmitDisabled}
-            >
               <div
                 key={transaction.id}
-                className="flex items-center bg-white gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200"
-                onClick={() => openEditDrawer(transaction)}
+                className="flex items-center bg-white gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200 cursor-pointer"
+                onClick={() => !transactionsLoading && openEditDrawer(transaction)}
               >
                 <div
                   className={`w-10 h-10 rounded-lg flex items-center justify-center ${
@@ -449,35 +462,40 @@ export default function Transactions() {
                 <div className="flex-1">
                   <div className="font-medium text-black">{transaction.title}</div>
                   <div className="text-xs text-gray-500 flex items-center gap-1">
-                    <span className="font-medium">{moment(transaction.created_at).tz("Asia/Kolkata").format('DD MMM')}</span> - <span className="font-medium">{transaction.accounts?.name}</span>  
+                    <span className="font-medium">
+                      {moment(transaction.transaction_date).tz("Asia/Kolkata").format("DD MMM")}
+                    </span>{" "}
+                    - <span className="font-medium">{transaction.accounts?.name}</span>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                <div
-                  className={`font-medium ${
-                    transaction.type === "expense" ? "text-red-500" : "text-green-500"
-                  }`}
-                >
-                  {transaction.type === "expense" ? "-" : "+"} ₹{" "}
-                  {transaction.amount.toLocaleString()}
-                </div>
-                <span className="text-[10px] text-gray-500"> {moment(transaction.updated_at).tz("Asia/Kolkata").format('LT')}</span>
+                  <div
+                    className={`font-medium ${
+                      transaction.type === "expense" ? "text-red-500" : "text-green-500"
+                    }`}
+                  >
+                    {transaction.type === "expense" ? "-" : "+"} ₹{" "}
+                    {transaction.amount.toLocaleString()}
+                  </div>
+                  <span className="text-[10px] text-gray-500">
+                    {" "}
+                    {moment(transaction.updated_at).tz("Asia/Kolkata").format("LT")}
+                  </span>
                 </div>
                 {/* Action Buttons */}
                 <div className="flex items-center gap-1">
-                  
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      handleDeleteClick(transaction.id)
+                      !transactionsLoading && handleDeleteClick(transaction.id)
                     }}
                     className="p-2 rounded-lg hover:bg-red-50 transition-colors"
+                    disabled={transactionsLoading}
                   >
                     <Trash2 className="w-4 h-4 text-red-500" />
                   </button>
                 </div>
               </div>
-                </EditTransactionDrawer>
             ))}
           </div>
         ) : (
@@ -493,6 +511,24 @@ export default function Transactions() {
           </div>
         )}
       </div>
+
+      {/* Edit Transaction Drawer - Single Instance */}
+      {selectedTransaction && (
+        <EditTransactionDrawer
+          transaction={selectedTransaction}
+          isOpen={isEditOpen}
+          onOpenChange={(open) => !open && closeEditDrawer()}
+          activeTab={editActiveTab}
+          onTabChange={handleEditTabChange}
+          formData={editFormData}
+          onFormDataChange={setEditFormData}
+          onSubmit={handleEditSubmit}
+          isLoading={isEditLoading}
+          isSubmitDisabled={isEditSubmitDisabled}
+        >
+          <div style={{ display: "none" }}></div>
+        </EditTransactionDrawer>
+      )}
 
       {/* Delete Confirmation Sheet */}
       <DeleteConfirmationSheet
@@ -510,9 +546,11 @@ export default function Transactions() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Amount:</span>
-                <span className={`font-medium ${
-                  transactionToDelete.type === "expense" ? "text-red-600" : "text-green-600"
-                }`}>
+                <span
+                  className={`font-medium ${
+                    transactionToDelete.type === "expense" ? "text-red-600" : "text-green-600"
+                  }`}
+                >
                   {transactionToDelete.type === "expense" ? "-" : "+"} ₹{" "}
                   {transactionToDelete.amount.toLocaleString()}
                 </span>
@@ -520,7 +558,7 @@ export default function Transactions() {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Date:</span>
                 <span className="font-medium text-gray-900">
-                  {moment(transactionToDelete.transaction_date).tz("Asia/Kolkata").format('lll')}
+                  {moment(transactionToDelete.transaction_date).tz("Asia/Kolkata").format("lll")}
                 </span>
               </div>
               <div className="flex items-center justify-between">

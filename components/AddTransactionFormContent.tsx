@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, memo } from "react"
 import { Calendar as CalendarIcon } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
@@ -32,7 +32,7 @@ interface AddTransactionFormContentProps {
   isLoading?: boolean
 }
 
-export function AddTransactionFormContent({
+export const AddTransactionFormContent = memo(function AddTransactionFormContent({
   formData,
   onFormDataChange,
   activeTab,
@@ -187,4 +187,4 @@ export function AddTransactionFormContent({
       </div>
     </div>
   )
-} 
+})
