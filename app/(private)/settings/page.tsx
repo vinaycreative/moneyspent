@@ -13,9 +13,9 @@ import {
   Settings,
 } from "lucide-react"
 import { useAuth } from "@/lib/contexts/auth-context"
-import { ReusableDrawer } from "@/components/ReusableDrawer"
+import CustomDrawer from "@/components/CustomDrawer"
 import { ViewCategoriesContent } from "@/components/ViewCategoriesContent"
-import { CategoryFormContent } from "@/components/CategoryFormContent"
+import { AddCategory } from "@/form/AddCategory"
 import { useViewCategoriesDrawer, useAddEditCategoryDrawer } from "@/lib/hooks"
 import { useRouter } from "next/navigation"
 
@@ -30,19 +30,19 @@ interface SettingItem {
 export default function SettingsPage() {
   const { user, profile, signOut } = useAuth()
   const [currency, setCurrency] = useState("INR")
-  const { isOpen: isViewOpen, openDrawer: openViewDrawer, closeDrawer: closeViewDrawer } = useViewCategoriesDrawer()
+  const {
+    isOpen: isViewOpen,
+    openDrawer: openViewDrawer,
+    closeDrawer: closeViewDrawer,
+  } = useViewCategoriesDrawer()
+
+  // Add category drawer state
   const {
     isOpen: isAddEditOpen,
     openDrawer: openAddEditDrawer,
     closeDrawer: closeAddEditDrawer,
-    selectedCategory,
-    isEditing,
-    formData,
-    setFormData,
-    handleSubmit,
-    isSubmitDisabled,
-    isLoading,
   } = useAddEditCategoryDrawer()
+
   const router = useRouter()
 
   const handleAction = async (item: SettingItem) => {
@@ -151,12 +151,12 @@ export default function SettingsPage() {
       <div className="max-w-md mx-auto h-full flex flex-col">
         <div className="flex-1 overflow-y-auto pb-20">
           {/* Header */}
-          <div className="px-4 pt-6 pb-4 bg-white">
-            <div className="flex items-center gap-3 mb-6">
+          <div className="px-4 mt-4">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h1 className="text-lg font-bold text-gray-900">Settings</h1>
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                 <Settings className="w-5 h-5 text-blue-600" />
               </div>
-              <h1 className="text-xl font-bold text-gray-900">Settings</h1>
             </div>
           </div>
 
@@ -241,46 +241,28 @@ export default function SettingsPage() {
           {/* App Version */}
           <div className="px-4 mt-6 text-center">
             <div className="text-xs text-gray-400">MoneySpend v1.0.0</div>
-            <div className="text-xs text-gray-400 mt-1">Built with Next.js & Supabase</div>
           </div>
         </div>
 
         {/* View Categories Drawer */}
-        <ReusableDrawer
-          isOpen={isViewOpen}
-          onOpenChange={(open) => !open && closeViewDrawer()}
+        <CustomDrawer
+          trigger={<div style={{ display: "none" }} />}
           title="Manage Categories"
-          onCancel={closeViewDrawer}
-          onSubmit={() => {}} // No submit action needed for this drawer
+          SubmitIcon={Tag}
           submitTitle=""
           submitDisabled={true}
+          open={isViewOpen}
+          onOpenChange={(open: boolean) => !open && closeViewDrawer()}
         >
           <ViewCategoriesContent
             onClose={closeViewDrawer}
             onAddCategory={handleAddCategory}
             onEditCategory={handleEditCategory}
           />
-        </ReusableDrawer>
+        </CustomDrawer>
 
-        {/* Add/Edit Category Drawer */}
-        <ReusableDrawer
-          isOpen={isAddEditOpen}
-          onOpenChange={(open) => !open && closeAddEditDrawer()}
-          title={isEditing ? "Edit Category" : "Add Category"}
-          onCancel={closeAddEditDrawer}
-          onSubmit={handleSubmit}
-          submitTitle={isLoading ? (isEditing ? "Updating..." : "Adding...") : (isEditing ? "Update" : "Add")}
-          submitDisabled={isSubmitDisabled}
-        >
-          <CategoryFormContent
-            category={selectedCategory}
-            formData={formData}
-            onFormDataChange={setFormData}
-            onSubmit={handleSubmit}
-            isLoading={isLoading}
-            isSubmitDisabled={isSubmitDisabled}
-          />
-        </ReusableDrawer>
+        {/* Add/Edit Category Component - Controlled by the hook */}
+        <AddCategory trigger={<div style={{ display: "none" }} />} />
       </div>
     </div>
   )

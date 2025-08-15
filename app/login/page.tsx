@@ -43,17 +43,12 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50/30">
       <GoogleOneTapComponent />
-      
+
       <div className="w-full max-w-sm mx-auto px-6">
         {/* Logo and Brand */}
         <div className="text-center mb-12">
-          
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back
-          </h1>
-          <p className="text-gray-600 text-sm">
-            Sign in to manage your finances
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back</h1>
+          <p className="text-gray-600 text-sm">Sign in to manage your finances</p>
         </div>
 
         {/* Login Card */}
@@ -133,11 +128,11 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center">
+        {/* <div className="mt-8 text-center">
           <p className="text-xs text-gray-400">
             Secure authentication powered by Supabase
           </p>
-        </div>
+        </div> */}
       </div>
     </div>
   )

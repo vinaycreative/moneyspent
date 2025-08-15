@@ -19,6 +19,7 @@ import { AddAccountFormContent } from "@/components/AddAccountFormContent"
 import { useAddAccountDrawer } from "@/lib/hooks/use-add-account-drawer"
 import { EditAccountDrawer } from "@/components/EditAccountDrawer"
 import { DeleteConfirmationSheet } from "@/components/DeleteConfirmationSheet"
+import { AddAccount } from "@/form/AddAccount"
 
 export default function AccountsPage() {
   const { user, isLoading } = useAuth()
@@ -131,22 +132,23 @@ export default function AccountsPage() {
   const accountToDelete = accounts.find((account: any) => account.id === deleteAccountId)
 
   return (
-    <div className="max-w-md mx-auto h-full">
+    <div className="max-w-md mx-auto h-full flex flex-col gap-4">
       {/* Header */}
-      <div className="px-4 py-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl font-bold text-black">My Accounts</h1>
-          <button
-            onClick={openDrawer}
-            className="p-2 rounded-lg bg-purple-100 hover:bg-purple-200 transition-colors"
-          >
-            <Plus className="w-5 h-5 text-purple-600" />
-          </button>
+      <div className="px-4 mt-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-lg font-bold text-gray-900">Accounts</h1>
+          <AddAccount
+            trigger={
+              <button className="p-2 rounded-sm cursor-pointer bg-purple-100 hover:bg-purple-200 transition-colors">
+                <Plus className="w-5 h-5 text-purple-600" />
+              </button>
+            }
+          />
         </div>
       </div>
 
       {/* Total Balance */}
-      <div className="px-4 mb-6">
+      <div className="px-4">
         <div className="bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl p-6 text-white">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm opacity-90">Total Balance</span>
@@ -166,7 +168,7 @@ export default function AccountsPage() {
 
       {/* Accounts List */}
       <div className="px-4">
-        <h2 className="text-lg font-bold text-black mb-4">All Accounts</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">All Accounts</h2>
 
         {accountsLoading ? (
           <div className="space-y-4">
@@ -236,7 +238,7 @@ export default function AccountsPage() {
                       isLoading={isEditLoading}
                       isSubmitDisabled={isEditSubmitDisabled}
                     >
-                      <button 
+                      <button
                         className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
                         onClick={() => openEditDrawer(account)}
                       >
@@ -263,23 +265,17 @@ export default function AccountsPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="px-4 mt-6 pb-6">
-        <h2 className="text-lg font-bold text-black mb-4">Quick Actions</h2>
+      <div className="px-4">
+        <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={openDrawer}
-            className="p-4 rounded-xl border border-gray-200 text-center hover:bg-gray-50 transition-colors"
-          >
-            <div className="text-2xl mb-2">💳</div>
-            <div className="text-sm font-medium text-black">Add Card</div>
-          </button>
-          <button
-            onClick={openDrawer}
-            className="p-4 rounded-xl border border-gray-200 text-center hover:bg-gray-50 transition-colors"
-          >
-            <div className="text-2xl mb-2">🏦</div>
-            <div className="text-sm font-medium text-black">Add Account</div>
-          </button>
+          <AddAccount
+            trigger={
+              <button className="p-4 cursor-pointer rounded-xl border border-gray-200 text-center hover:bg-gray-50 transition-colors">
+                <div className="text-2xl mb-2">🏦</div>
+                <div className="text-sm font-medium text-black">Add Account</div>
+              </button>
+            }
+          />
         </div>
       </div>
 
@@ -305,17 +301,21 @@ export default function AccountsPage() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Balance:</span>
-                <span className={`font-medium ${
-                  accountToDelete.balance >= 0 ? "text-green-600" : "text-red-600"
-                }`}>
+                <span
+                  className={`font-medium ${
+                    accountToDelete.balance >= 0 ? "text-green-600" : "text-red-600"
+                  }`}
+                >
                   ₹ {accountToDelete.balance.toLocaleString()}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Status:</span>
-                <span className={`font-medium ${
-                  accountToDelete.balance >= 0 ? "text-green-600" : "text-red-600"
-                }`}>
+                <span
+                  className={`font-medium ${
+                    accountToDelete.balance >= 0 ? "text-green-600" : "text-red-600"
+                  }`}
+                >
                   {accountToDelete.balance >= 0 ? "Available" : "Due"}
                 </span>
               </div>

@@ -51,7 +51,7 @@ export function ViewCategoriesContent({
   }
 
   return (
-    <div className="p-6">
+    <div className="h-full overflow-y-auto">
       {/* Header */}
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">All Categories</h3>
@@ -84,7 +84,7 @@ export function ViewCategoriesContent({
             ))}
           </div>
         ) : categories && categories.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-3 overflow-y-auto">
             {categories.map((category: any) => (
               <div
                 key={category.id}
@@ -164,9 +164,7 @@ export function ViewCategoriesContent({
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Icon:</span>
-                <span className="font-medium text-gray-900">
-                  {categoryToDelete.icon}
-                </span>
+                <div className="font-medium text-gray-900">{categoryToDelete.icon}</div>
               </div>
             </div>
           )
@@ -174,4 +172,4 @@ export function ViewCategoriesContent({
       />
     </div>
   )
-} 
+}

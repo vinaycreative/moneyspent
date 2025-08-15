@@ -27,6 +27,7 @@ import {
   useEditTransactionDrawer,
 } from "@/lib/hooks"
 import { DeleteConfirmationSheet } from "@/components/DeleteConfirmationSheet"
+import { AddTransaction } from "@/form/AddTransaction"
 
 export default function Transactions() {
   const { user, isLoading: authLoading } = useAuth()
@@ -191,24 +192,28 @@ export default function Transactions() {
   )
 
   return (
-    <div className="max-w-md mx-auto h-full">
+    <div className="max-w-md mx-auto h-full flex flex-col gap-4">
       {/* Header */}
-      <div className="px-4 py-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl font-bold text-black">Transactions</h1>
-          <button
-            onClick={openDrawer}
-            className="p-2 rounded-lg bg-purple-100 hover:bg-purple-200 transition-colors"
-            disabled={transactionsLoading}
-          >
-            <Plus className="w-5 h-5 text-purple-600" />
-          </button>
+      <div className="px-4 mt-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-lg font-bold text-gray-900">Transactions</h1>
+          <AddTransaction
+            trigger={
+              <button
+                onClick={openDrawer}
+                className="p-2 rounded-lg bg-purple-100 hover:bg-purple-200 transition-colors"
+                disabled={transactionsLoading}
+              >
+                <Plus className="w-5 h-5 text-purple-600" />
+              </button>
+            }
+          />
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="px-4 mb-6">
-        <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="px-4">
+        <div className="grid grid-cols-2 gap-4">
           <div className="bg-red-50 rounded-xl p-4 border border-red-300">
             <div className="flex items-center gap-2 mb-2">
               <TrendingDown className="w-4 h-4 text-red-500" />
@@ -278,7 +283,7 @@ export default function Transactions() {
       </div>
 
       {/* Date Filter */}
-      <div className="px-4 mb-4">
+      <div className="px-4">
         <div className="relative">
           <button
             onClick={() => setShowDateFilter(!showDateFilter)}
@@ -406,7 +411,7 @@ export default function Transactions() {
       </div>
 
       {/* Search Bar */}
-      <div className="px-4 mb-4">
+      <div className="px-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
@@ -421,8 +426,8 @@ export default function Transactions() {
       </div>
 
       {/* Transactions List */}
-      <div className="px-4 pb-6">
-        <h2 className="text-lg font-bold text-black mb-4">
+      <div className="px-4">
+        <h2 className="text-lg font-bold text-gray-900 mb-4">
           {sortedTransactions.length} Transaction{sortedTransactions.length !== 1 ? "s" : ""}
           {debouncedSearchQuery && ` matching "${debouncedSearchQuery}"`}
         </h2>
@@ -577,26 +582,6 @@ export default function Transactions() {
           )
         }
       />
-
-      {/* Add Transaction Drawer */}
-      <ReusableDrawer
-        isOpen={isOpen}
-        onOpenChange={(open) => !open && closeDrawer()}
-        title="Add Transaction"
-        onCancel={closeDrawer}
-        onSubmit={handleSubmit}
-        submitTitle={isSubmitting ? "Adding..." : "Add"}
-        submitIcon={<Plus className="w-4 h-4" />}
-        submitDisabled={isSubmitDisabled}
-      >
-        <AddTransactionFormContent
-          formData={formData}
-          onFormDataChange={setFormData}
-          activeTab={activeTab}
-          onActiveTabChange={setActiveTab}
-          isLoading={isSubmitting}
-        />
-      </ReusableDrawer>
     </div>
   )
 }

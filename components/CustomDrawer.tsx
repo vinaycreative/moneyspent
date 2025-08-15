@@ -58,7 +58,7 @@ const CustomDrawer = ({
                 </Drawer.Description>
               )}
             </div>
-            <div className="body bg-[#fbfbfb] p-4">{children}</div>
+            <div className="body bg-[#fbfbfb] p-4 overflow-y-auto">{children}</div>
             <div className="footer bg-white border-t border-gray-200 flex items-center justify-center py-3 px-3">
               <button
                 className="bg-black text-white flex items-center justify-center gap-2 font-medium hover:bg-gray-800 transition-colors w-full py-2.5 rounded-md"

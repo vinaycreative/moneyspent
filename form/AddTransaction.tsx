@@ -19,6 +19,9 @@ import { AiTwotoneBank } from "react-icons/ai"
 import { BsCreditCard2Front } from "react-icons/bs"
 import { HiOutlineCash } from "react-icons/hi"
 import { useAddTransactionDrawer } from "@/lib/hooks/use-add-transaction-drawer"
+import { AddCategory } from "./AddCategory"
+import { Button } from "@/components/ui/button"
+import { AddAccount } from "./AddAccount"
 
 export interface TransactionFormData {
   type: string
@@ -163,9 +166,18 @@ export const AddTransaction = ({ trigger }: { trigger: React.ReactNode }) => {
 
         {/* Category Field */}
         <div className="flex flex-col gap-1.5 col-span-2">
-          <Label className="text-sm text-gray-800 font-medium">
-            Category <span className="text-red-500">*</span>
-          </Label>
+          <div className="flex items-center justify-between">
+            <Label className="text-sm text-gray-800 font-medium">
+              Category <span className="text-red-500">*</span>
+            </Label>
+            <AddCategory
+              trigger={
+                <button className="text-gray-500 cursor-pointer text-xs flex items-center gap-1">
+                  <Plus size={14} /> add Category
+                </button>
+              }
+            />
+          </div>
           <Select
             value={formData.category}
             onValueChange={(value) => setFormData({ ...formData, category: value })}
@@ -200,9 +212,18 @@ export const AddTransaction = ({ trigger }: { trigger: React.ReactNode }) => {
           </Select>
         </div>
         <div className="flex flex-col gap-1.5 col-span-2">
-          <Label className="text-sm text-gray-800 font-medium">
-            Account <span className="text-red-500">*</span>
-          </Label>
+          <div className="flex items-center justify-between">
+            <Label className="text-sm text-gray-800 font-medium">
+              Account <span className="text-red-500">*</span>
+            </Label>
+            <AddAccount
+              trigger={
+                <button className="text-gray-500 cursor-pointer text-xs flex items-center gap-1">
+                  <Plus size={14} /> add Account
+                </button>
+              }
+            />
+          </div>
           <div className="grid grid-cols-2 gap-2">
             {accountsLoading ? (
               <div className="col-span-2 flex items-center justify-center py-4">
