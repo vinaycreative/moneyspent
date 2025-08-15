@@ -136,6 +136,7 @@ export const AddTransaction = ({ trigger }: { trigger: React.ReactNode }) => {
           placeholder="Enter amount"
           type="number"
           value={formData.amount}
+          inputMode="numeric"
           onChange={handleInputChange}
           required
         />

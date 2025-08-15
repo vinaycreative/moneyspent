@@ -120,3 +120,48 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Mobile keyboard handling improvements */
+@layer utilities {
+  /* Prevent zoom on input focus on iOS */
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  select,
+  textarea {
+    font-size: 16px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+
+  /* Improve mobile scrolling */
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Ensure proper viewport height on mobile */
+  .mobile-viewport {
+    min-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height for mobile */
+  }
+
+  /* Prevent body scroll when keyboard is visible */
+  .keyboard-visible {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+/* iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+  .mobile-viewport {
+    min-height: -webkit-fill-available;
+  }
+}

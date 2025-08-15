@@ -97,7 +97,11 @@ export const AddAccount = ({ trigger }: { trigger: React.ReactNode }) => {
               placeholder="Enter account name"
               value={formData.name}
               onChange={(e) => handleInputChange("name", e.target.value)}
-              className="w-full text-sm border border-gray-300 bg-white rounded-sm py-2.5 px-4 focus:outline-none focus:ring-1 focus:ring-black"
+              className="w-full text-sm border border-gray-300 bg-white rounded-sm py-2.5 px-4 focus:outline-none focus:ring-1 focus:ring-black mobile-scroll"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
             />
           </div>
 
@@ -148,7 +152,12 @@ export const AddAccount = ({ trigger }: { trigger: React.ReactNode }) => {
               placeholder="Enter initial balance"
               value={formData.balance}
               onChange={(e) => handleInputChange("balance", e.target.value)}
-              className="w-full text-sm border border-gray-300 bg-white rounded-sm py-2.5 px-4 focus:outline-none focus:ring-1 focus:ring-black"
+              className="w-full text-sm border border-gray-300 bg-white rounded-sm py-2.5 px-4 focus:outline-none focus:ring-1 focus:ring-black mobile-scroll"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
+              inputMode="numeric"
             />
           </div>
 

@@ -143,7 +143,7 @@ export default function Dashboard() {
   const netSavings = totalIncome - totalExpenses
 
   return (
-    <div className="max-w-md mx-auto h-full flex flex-col gap-4">
+    <div className="max-w-md mx-auto h-full flex flex-col gap-4 mobile-viewport">
       {/* Date Navigation */}
       <section className="px-4 mt-4">
         <div className="flex items-center justify-between">
@@ -173,7 +173,6 @@ export default function Dashboard() {
             <ArrowRight className="text-gray-600" size={20} />
           </button>
         </div>
-        <DateTimePickerDemo />
       </section>
 
       {/* Analytics Cards */}
@@ -185,13 +184,6 @@ export default function Dashboard() {
           transactionCount={transactionCount}
           isLoading={summaryLoading}
         />
-        {/* <button
-          onClick={openDrawer}
-          className="w-full bg-black text-white rounded-md py-3 flex items-center justify-center gap-2 font-medium hover:bg-gray-800 transition-colors"
-        >
-          <Plus className="w-5 h-5" />
-          Add Transaction
-        </button> */}
         <AddTransaction
           trigger={
             <button className="w-full bg-black text-white rounded-md py-3 flex items-center justify-center gap-2 font-medium hover:bg-gray-800 transition-colors">
