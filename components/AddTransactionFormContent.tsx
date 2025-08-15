@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select"
 import { useAuth } from "@/lib/contexts/auth-context"
 import { useCategories, useAccounts } from "@/lib/hooks"
-import { CustomCalender } from "@/components/CustomCalender"
+import { DateTimePicker } from "@/components/DateTimePicker"
 
 export interface TransactionFormData {
   date: Date | undefined
@@ -49,7 +49,10 @@ export const AddTransactionFormContent = memo(function AddTransactionFormContent
     enabled: !!user?.id,
   })
 
-  const handleInputChange = (field: keyof TransactionFormData, value: string | Date | undefined) => {
+  const handleInputChange = (
+    field: keyof TransactionFormData,
+    value: string | Date | undefined
+  ) => {
     onFormDataChange({
       ...formData,
       [field]: value,
@@ -78,13 +81,14 @@ export const AddTransactionFormContent = memo(function AddTransactionFormContent
       </Tabs>
 
       <div className="grid grid-cols-2 gap-4">
-        {/* Date Picker */}
+        {/* Date & Time Picker */}
         <div className="space-y-2">
-          <Label className="text-gray-800 font-medium">Date</Label>
-          <CustomCalender 
-            selected={formData.date}
-            onSelect={handleDateChange}
+          <Label className="text-gray-800 font-medium">Date & Time</Label>
+          <DateTimePicker
+            date={formData.date}
+            onDateChange={handleDateChange}
             disabled={isLoading}
+            placeholder="Select date and time..."
           />
         </div>
 
@@ -95,7 +99,7 @@ export const AddTransactionFormContent = memo(function AddTransactionFormContent
             type="text"
             typeof="currency"
             placeholder="Enter amount"
-            prefix="₹" 
+            prefix="₹"
             value={formData.amount}
             onChange={(e) => handleInputChange("amount", e.target.value)}
             className="w-full border-gray-300 bg-white"

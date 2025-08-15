@@ -1,7 +1,7 @@
 "use client"
 import React from "react"
 import { Drawer } from "vaul"
-import { LucideIcon, Icon } from "lucide-react"
+import { LucideIcon, Icon, Loader2 } from "lucide-react"
 
 interface CustomDrawerProps {
   trigger: React.ReactNode
@@ -12,6 +12,10 @@ interface CustomDrawerProps {
   SubmitIcon: LucideIcon
   submitTitle?: string
   submitDisabled?: boolean
+  submitLoading?: boolean
+  onSubmit?: () => void
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 const CustomDrawer = ({
@@ -23,33 +27,49 @@ const CustomDrawer = ({
   SubmitIcon,
   submitTitle,
   submitDisabled,
+  submitLoading,
+  onSubmit,
+  open,
+  onOpenChange,
 }: CustomDrawerProps) => {
-  const [open, setOpen] = React.useState(false)
+  const [internalOpen, setInternalOpen] = React.useState(false)
+
+  // Use controlled state if provided, otherwise use internal state
+  const isControlled = open !== undefined
+  const isOpen = isControlled ? open : internalOpen
+  const setIsOpen = isControlled ? onOpenChange || (() => {}) : setInternalOpen
 
   return (
-    <Drawer.Root open={open} onOpenChange={setOpen}>
+    <Drawer.Root open={isOpen} onOpenChange={setIsOpen}>
       <Drawer.Trigger className={`relative ${triggerClassName}`} asChild>
         {trigger}
       </Drawer.Trigger>
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 bg-black/40" />
-        <Drawer.Content className="bg-gray-100 flex flex-col z-[9999] rounded-t-[10px] mt-24 max-h-[96%] min-h-[80%] fixed bottom-0 left-0 right-0 outline-none">
+        <Drawer.Overlay className="fixed min-w-[320px] max-w-[400px] mx-auto inset-0 bg-black/40" />
+        <Drawer.Content className="bg-white min-w-[320px] max-w-[400px] mx-auto flex flex-col z-[9999] rounded-t-[10px] mt-24 max-h-[96%] min-h-[80%] fixed bottom-0 left-0 right-0 outline-none">
           <div className="h-full flex-1 grid grid-rows-[auto_1fr_auto]">
-            <div className="header bg-white border-b border-gray-200 px-4 py-4">
-              <Drawer.Title className="text-lg font-bold text-black">{title}</Drawer.Title>
+            <div className="header bg-white border-b border-gray-200 px-4 py-3 rounded-t-[10px]">
+              <Drawer.Title className="text-base font-semibold text-gray-800">
+                {title}
+              </Drawer.Title>
               {description && (
                 <Drawer.Description className="text-sm text-gray-500">
                   {description}
                 </Drawer.Description>
               )}
             </div>
-            <div className="body bg-gray-100 p-4">{children}</div>
-            <div className="footer bg-white border-t border-gray-200 flex items-center justify-center py-4 px-4">
+            <div className="body bg-[#fbfbfb] p-4">{children}</div>
+            <div className="footer bg-white border-t border-gray-200 flex items-center justify-center py-3 px-3">
               <button
-                className="bg-blue-600 text-white flex items-center justify-center gap-2 font-medium hover:bg-blue-700 transition-colors w-full py-4 rounded-lg"
+                className="bg-black text-white flex items-center justify-center gap-2 font-medium hover:bg-gray-800 transition-colors w-full py-2.5 rounded-md"
                 disabled={submitDisabled}
+                onClick={onSubmit}
               >
-                <SubmitIcon size={20} className="w-4 h-4" />
+                {submitLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <SubmitIcon size={20} className="w-4 h-4" />
+                )}
                 {submitTitle}
               </button>
             </div>

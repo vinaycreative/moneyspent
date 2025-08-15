@@ -34,16 +34,21 @@ export function DashboardStats({
   return (
     <div className="grid grid-cols-2 gap-4">
       {/* Total Spent Card */}
-      <div className="bg-red-50 rounded-xl p-4 border border-red-300">
+      <div className="bg-red-50 rounded-md p-4 border border-red-300">
         <div className="flex justify-between items-start mb-2">
           <div className="flex items-center gap-2">
             <TrendingDown className="w-5 h-5 text-red-500" />
             <div className="text-sm text-red-600 font-medium">Total Spent</div>
           </div>
-          
-          
         </div>
-        <div className="text-2xl font-bold text-red-600 flex items-center gap-2">₹ {isLoading? <div className="animate-pulse bg-red-200 h-6 w-16 rounded"></div> : totalExpenses.toLocaleString()}</div>
+        <div className="text-2xl font-bold text-red-600 flex items-center gap-2">
+          ₹{" "}
+          {isLoading ? (
+            <div className="animate-pulse bg-red-200 h-6 w-16 rounded"></div>
+          ) : (
+            totalExpenses.toLocaleString()
+          )}
+        </div>
         <div className="text-xs text-red-500 mt-1">
           {transactionCount > 0
             ? `${transactionCount} transaction${transactionCount !== 1 ? "s" : ""}`
@@ -52,16 +57,22 @@ export function DashboardStats({
       </div>
 
       {/* Income Card */}
-      <div className="bg-green-50 rounded-xl p-4 border border-green-300">
+      <div className="bg-green-50 rounded-md p-4 border border-green-300">
         <div className="flex justify-between items-start mb-2">
           <div className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-green-500" />
             <div className="text-sm text-green-600 font-medium">Total Income</div>
           </div>
-          
         </div>
-        <div className="text-2xl font-bold text-green-600 flex items-center gap-2">₹ {isLoading ? <div className="animate-pulse bg-green-200 h-6 w-16 rounded"></div> : totalIncome.toLocaleString()}</div>
-        
+        <div className="text-2xl font-bold text-green-600 flex items-center gap-2">
+          ₹{" "}
+          {isLoading ? (
+            <div className="animate-pulse bg-green-200 h-6 w-16 rounded"></div>
+          ) : (
+            totalIncome.toLocaleString()
+          )}
+        </div>
+
         <div className="text-xs text-green-500 mt-1">
           {totalIncome > 0 ? "Income received" : "No income yet"}
         </div>

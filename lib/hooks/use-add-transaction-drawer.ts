@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useAuth } from "@/lib/contexts/auth-context"
 import { useCreateTransaction } from "@/lib/hooks"
 import { TablesInsert } from "@/types/supabase"
-import { TransactionFormData } from "@/components/AddTransactionFormContent"
+import { TransactionFormData } from "@/form/AddTransaction"
 
 type TransactionInsert = TablesInsert<"transactions">
 
@@ -11,6 +11,7 @@ export function useAddTransactionDrawer() {
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("expense")
   const [formData, setFormData] = useState<TransactionFormData>({
+    type: "expense",
     date: new Date(),
     amount: "",
     description: "",
@@ -28,6 +29,7 @@ export function useAddTransactionDrawer() {
     setIsOpen(false)
     // Reset form data when closing
     setFormData({
+      type: "expense",
       date: new Date(),
       amount: "",
       description: "",
@@ -50,7 +52,12 @@ export function useAddTransactionDrawer() {
         // If user selected a specific date, combine it with current time
         const selectedDate = new Date(formData.date)
         const now = new Date()
-        selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds())
+        selectedDate.setHours(
+          now.getHours(),
+          now.getMinutes(),
+          now.getSeconds(),
+          now.getMilliseconds()
+        )
         transactionDate = selectedDate.toISOString()
       } else {
         // If no date selected, use current date and time
@@ -72,10 +79,16 @@ export function useAddTransactionDrawer() {
       closeDrawer()
     } catch (error) {
       console.error("Failed to create transaction:", error)
+      throw error // Re-throw to let the component handle the error
     }
   }
 
-  const isSubmitDisabled = !formData.amount || createTransaction.isPending
+  const isSubmitDisabled =
+    !formData.amount ||
+    !formData.date ||
+    !formData.category ||
+    !formData.account ||
+    createTransaction.isPending
 
   return {
     isOpen,
@@ -89,4 +102,4 @@ export function useAddTransactionDrawer() {
     isSubmitDisabled,
     isLoading: createTransaction.isPending,
   }
-} 
+}

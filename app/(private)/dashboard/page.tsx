@@ -13,6 +13,8 @@ import moment from "moment-timezone"
 import { Label } from "@/components/ui/label"
 import { CustomCalender } from "@/components/CustomCalender"
 import CustomDrawer from "@/components/CustomDrawer"
+import { AddTransaction } from "@/form/AddTransaction"
+import { DateTimePickerDemo } from "@/components/DateTimePickerDemo"
 
 export default function Dashboard() {
   const { user, profile, isLoading } = useAuth()
@@ -141,19 +143,19 @@ export default function Dashboard() {
   const netSavings = totalIncome - totalExpenses
 
   return (
-    <div className="max-w-md mx-auto h-full">
+    <div className="max-w-md mx-auto h-full flex flex-col gap-4">
       {/* Date Navigation */}
-      <div className="px-4 py-6">
-        <div className="flex items-center justify-between mb-6">
+      <section className="px-4 mt-4">
+        <div className="flex items-center justify-between">
           <button
             onClick={goToPreviousDate}
-            className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+            className="p-2 rounded-md bg-gray-100 border border-gray-200 hover:bg-gray-200 transition-colors cursor-pointer"
           >
-            <ArrowLeft className="w-4 h-4 text-gray-600" />
+            <ArrowLeft className="text-gray-600" size={20} />
           </button>
 
           <div className="text-center">
-            <div className="text-black font-medium">{formatDateDisplay(selectedDate)}</div>
+            <div className="text-black font-semibold">{formatDateDisplay(selectedDate)}</div>
             <div className="text-sm text-gray-500">
               {transactionCount} transaction{transactionCount !== 1 ? "s" : ""}
             </div>
@@ -162,19 +164,20 @@ export default function Dashboard() {
           <button
             onClick={goToNextDate}
             disabled={isToday()}
-            className={`p-2 rounded-lg transition-colors ${
+            className={`p-2 rounded-md border border-gray-200 transition-colors cursor-pointer ${
               isToday()
                 ? "bg-gray-50 text-gray-300 cursor-not-allowed"
                 : "bg-gray-100 hover:bg-gray-200 text-gray-600"
             }`}
           >
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="text-gray-600" size={20} />
           </button>
         </div>
-      </div>
+        <DateTimePickerDemo />
+      </section>
 
       {/* Analytics Cards */}
-      <div className="px-4 mb-6">
+      <section className="px-4 flex flex-col gap-4">
         <DashboardStats
           totalExpenses={totalExpenses}
           totalIncome={totalIncome}
@@ -182,41 +185,25 @@ export default function Dashboard() {
           transactionCount={transactionCount}
           isLoading={summaryLoading}
         />
-      </div>
-
-      {/* Add Transaction Button */}
-      <div className="px-4 mb-6">
-        <button
+        {/* <button
           onClick={openDrawer}
-          className="w-full bg-black text-white rounded-xl py-4 flex items-center justify-center gap-2 font-medium hover:bg-gray-800 transition-colors"
+          className="w-full bg-black text-white rounded-md py-3 flex items-center justify-center gap-2 font-medium hover:bg-gray-800 transition-colors"
         >
           <Plus className="w-5 h-5" />
           Add Transaction
-        </button>
-      </div>
-
-      {/* Add Transaction Drawer */}
-      <ReusableDrawer
-        isOpen={isOpen}
-        onOpenChange={(open) => !open && closeDrawer()}
-        title="Add Transaction"
-        onCancel={closeDrawer}
-        onSubmit={handleSubmit}
-        submitTitle={isSubmitting ? "Adding..." : "Add"}
-        submitIcon={<Plus className="w-4 h-4" />}
-        submitDisabled={isSubmitDisabled}
-      >
-        <AddTransactionFormContent
-          formData={formData}
-          onFormDataChange={setFormData}
-          activeTab={activeTab}
-          onActiveTabChange={setActiveTab}
-          isLoading={isSubmitting}
+        </button> */}
+        <AddTransaction
+          trigger={
+            <button className="w-full bg-black text-white rounded-md py-3 flex items-center justify-center gap-2 font-medium hover:bg-gray-800 transition-colors">
+              <Plus className="w-5 h-5" />
+              Add Transaction
+            </button>
+          }
         />
-      </ReusableDrawer>
+      </section>
 
       {/* Recent Transactions */}
-      <div className="px-4 pb-6">
+      <section className="px-4 pb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-black">Recent Transactions</h2>
           <button className="text-sm text-gray-500 hover:text-gray-700">View All</button>
@@ -289,7 +276,7 @@ export default function Dashboard() {
             <div className="text-sm">Add a transaction to get started</div>
           </div>
         )}
-      </div>
+      </section>
     </div>
   )
 }
