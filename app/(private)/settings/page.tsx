@@ -56,12 +56,12 @@ export default function SettingsPage() {
       case "logout":
         try {
           await signOut()
-          // Redirect to login page after successful logout
-          router.push("/login")
+          // Redirect to onboarding page after successful logout
+          router.push("/")
         } catch (error) {
           console.error("Logout failed:", error)
-          // Still redirect to login page even if there's an error
-          router.push("/login")
+          // Still redirect to onboarding page even if there's an error
+          router.push("/")
         }
         break
       case "navigate":

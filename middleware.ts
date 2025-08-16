@@ -36,15 +36,15 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // If user is not signed in and the current path is not /login or /auth/callback,
-  // redirect the user to /login
-  if (!user && pathname !== "/login" && !pathname.startsWith("/auth/")) {
-    const redirectUrl = new URL("/login", request.url)
-    return NextResponse.redirect(redirectUrl)
-  }
+  // If user is not signed in and the current path is not /auth/callback,
+  // redirect the user to onboarding (root page)
+  // if (!user && pathname !== "/" && !pathname.startsWith("/auth/")) {
+  //   const redirectUrl = new URL("/", request.url)
+  //   return NextResponse.redirect(redirectUrl)
+  // }
 
-  // If user is signed in and the current path is /login, redirect the user to /dashboard
-  if (user && pathname === "/login") {
+  // If user is signed in and the current path is root, redirect the user to /dashboard
+  if (user && pathname === "/") {
     const redirectUrl = new URL("/dashboard", request.url)
     return NextResponse.redirect(redirectUrl)
   }
