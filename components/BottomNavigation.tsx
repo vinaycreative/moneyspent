@@ -1,6 +1,6 @@
 "use client"
 
-import { Home, Receipt, BarChart3, Building2, Settings } from "lucide-react"
+import { Home, Receipt, BarChart3, Building2, Settings, ArrowRightLeft } from "lucide-react"
 import { useRouter, usePathname } from "next/navigation"
 
 export default function BottomNavigation() {
@@ -9,7 +9,7 @@ export default function BottomNavigation() {
 
   const navigationItems = [
     { name: "Home", icon: Home, path: "/dashboard" },
-    { name: "Transactions", icon: Receipt, path: "/transactions" },
+    { name: "Transactions", icon: ArrowRightLeft, path: "/transactions" },
     { name: "Analytics", icon: BarChart3, path: "/analytics" },
     { name: "Accounts", icon: Building2, path: "/accounts" },
     { name: "Settings", icon: Settings, path: "/settings" },
@@ -26,11 +26,13 @@ export default function BottomNavigation() {
             <button
               key={item.name}
               onClick={() => router.push(item.path)}
-              className="flex flex-col items-center gap-1 p-2"
+              className="flex flex-col items-center gap-1 p-2 cursor-pointer transition-all duration-200"
             >
               <Icon className={`w-6 h-6 ${isActive ? "text-purple-600" : "text-gray-400"}`} />
               <span
-                className={`text-xs font-medium ${isActive ? "text-purple-600" : "text-gray-400"}`}
+                className={`text-xs font-medium transition-all duration-200 ${
+                  isActive ? "text-purple-600 font-semibold" : "text-gray-400"
+                }`}
               >
                 {item.name}
               </span>

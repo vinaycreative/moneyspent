@@ -745,48 +745,43 @@ export const AddCategory = ({ trigger }: { trigger: React.ReactNode }) => {
         }
       }}
     >
-      <div className="space-y-6">
-        <div className="grid grid-cols-2 gap-4">
-          {/* Category Name */}
-          <div className="space-y-2">
-            <Label className="text-gray-800 font-medium">
-              Category Name <span className="text-red-500">*</span>
-            </Label>
-            <input
-              type="text"
-              placeholder="Enter category name"
-              value={formData.name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-              className="w-full text-sm border border-gray-300 bg-white rounded-sm py-2.5 px-4 focus:outline-none focus:ring-1 focus:ring-black"
-            />
-          </div>
+      <div className="grid grid-cols-2 gap-4">
+        {/* Category Name */}
+        <CustomInput
+          id="name"
+          label="Category Name"
+          name="name"
+          placeholder="Enter category name"
+          value={formData.name}
+          onChange={(e) => handleInputChange("name", e.target.value)}
+          required
+        />
 
-          {/* Category Type */}
-          <div className="space-y-2">
-            <Label className="text-gray-800 font-medium">
-              Type <span className="text-red-500">*</span>
-            </Label>
-            <Select
-              value={formData.type}
-              onValueChange={(value) => handleInputChange("type", value as "expense" | "income")}
-            >
-              <SelectTrigger className="w-full border-gray-300 bg-white">
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="expense">Expense</SelectItem>
-                <SelectItem value="income">Income</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        {/* Category Type */}
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="type" className="text-sm text-gray-800 font-medium">
+            Type
+          </label>
+          <Select
+            value={formData.type}
+            onValueChange={(value) => handleInputChange("type", value as "expense" | "income")}
+          >
+            <SelectTrigger className="w-full border-gray-300 bg-white">
+              <SelectValue placeholder="Select type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="expense">Expense</SelectItem>
+              <SelectItem value="income">Income</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Icon Selection */}
-        <div className="space-y-2">
-          <Label className="text-gray-800 font-medium">
-            Icon <span className="text-red-500">*</span>
-          </Label>
-          <div className="grid grid-cols-8 gap-2 max-h-32 overflow-y-auto border border-gray-200 rounded-lg p-3">
+        <div className="flex flex-col gap-1.5 col-span-2">
+          <label htmlFor="icon" className="text-sm text-gray-800 font-medium">
+            Icon
+          </label>
+          <div className="grid grid-cols-8 gap-2 max-h-32 overflow-y-auto border border-gray-200 rounded-md p-3">
             {iconOptions.map((icon, index) => (
               <button
                 key={index}
@@ -804,18 +799,18 @@ export const AddCategory = ({ trigger }: { trigger: React.ReactNode }) => {
         </div>
 
         {/* Color Selection */}
-        <div className="space-y-2">
-          <Label className="text-gray-800 font-medium">
-            Color <span className="text-red-500">*</span>
-          </Label>
-          <div className="grid grid-cols-5 gap-2">
+        <div className="flex flex-col gap-1.5 col-span-2">
+          <label htmlFor="color" className="text-sm text-gray-800 font-medium">
+            Color
+          </label>
+          <div className="grid grid-cols-8 gap-2">
             {colorOptions.map((color) => (
               <button
                 key={color.value}
                 type="button"
                 onClick={() => handleInputChange("color", color.value)}
                 className={cn(
-                  "w-12 h-12 rounded-lg flex items-center justify-center transition-all",
+                  "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
                   color.value,
                   formData.color === color.value
                     ? "ring-2 ring-purple-500 ring-offset-2"
@@ -831,13 +826,13 @@ export const AddCategory = ({ trigger }: { trigger: React.ReactNode }) => {
         </div>
 
         {/* Preview */}
-        <div className="space-y-2">
+        <div className="space-y-2 col-span-2">
           <Label className="text-gray-800 font-medium">Preview</Label>
-          <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+          <div className="bg-gray-50 rounded-md p-4 border border-gray-200">
             <div className="flex items-center gap-3">
               <div
                 className={cn(
-                  "w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg",
+                  "w-10 h-10 rounded-md flex items-center justify-center text-white text-lg",
                   formData.color
                 )}
               >

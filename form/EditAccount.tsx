@@ -1,6 +1,6 @@
 import React from "react"
 import CustomDrawer from "@/components/CustomDrawer"
-import { Plus, Building2, CreditCard, Wallet, PiggyBank } from "lucide-react"
+import { Edit, Building2, CreditCard, Wallet, PiggyBank } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
 import {
@@ -10,29 +10,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useAddAccountDrawer } from "@/lib/hooks/use-add-account-drawer"
+import { useEditAccountDrawer } from "@/lib/hooks/use-edit-account-drawer"
+import { useUpdateAccount } from "@/lib/hooks/use-accounts"
+import { useAuth } from "@/lib/contexts/auth-context"
 import { CustomInput } from "@/components/CustomInput"
 
-export interface AccountFormData {
+export interface EditAccountFormData {
   name: string
   type: string
   balance: string
   currency: string
+  account_number: string
 }
 
-export const AddAccount = ({ trigger }: { trigger: React.ReactNode }) => {
-  const {
-    isOpen,
-    openDrawer,
-    closeDrawer,
-    formData,
-    setFormData,
-    handleSubmit,
-    isSubmitDisabled,
-    isLoading,
-  } = useAddAccountDrawer()
+export const EditAccount = ({
+  trigger,
+  account,
+  onClose,
+  isOpen,
+  onOpenChange,
+}: {
+  trigger: React.ReactNode
+  account: any
+  onClose?: () => void
+  isOpen: boolean
+  onOpenChange: (open: boolean) => void
+}) => {
+  const { user } = useAuth()
+  const { formData, setFormData, isLoading } = useEditAccountDrawer()
 
-  const handleInputChange = (field: keyof AccountFormData, value: string) => {
+  const updateAccount = useUpdateAccount()
+
+  const handleInputChange = (field: keyof EditAccountFormData, value: string) => {
     setFormData({
       ...formData,
       [field]: value,
@@ -57,12 +66,39 @@ export const AddAccount = ({ trigger }: { trigger: React.ReactNode }) => {
     { value: "CHF", label: "Swiss Franc (CHF)" },
   ]
 
+  // Initialize form data when account changes
+  React.useEffect(() => {
+    if (account) {
+      setFormData({
+        name: account.name || "",
+        type: account.type || "bank",
+        balance: account.balance?.toString() || "0",
+        currency: account.currency || "INR",
+        account_number: account.account_number || "",
+      })
+    }
+  }, [account, setFormData])
+
   const handleFormSubmit = async () => {
     try {
-      await handleSubmit()
-      // The drawer will be closed automatically by the hook after successful submission
+      // Create the account update data
+      const accountData = {
+        name: formData.name,
+        type: formData.type as "bank" | "credit" | "cash" | "savings",
+        balance: parseFloat(formData.balance) || 0,
+        currency: formData.currency,
+        account_number: formData.account_number || null,
+        updated_at: new Date().toISOString(),
+        user_id: user?.id, // Include user_id for cache invalidation
+      }
+
+      // Call the update mutation directly
+      await updateAccount.mutateAsync({ id: account.id, data: accountData })
+
+      // Close the drawer and call onClose
+      onClose?.()
     } catch (error) {
-      console.error("Failed to create account:", error)
+      console.error("Failed to update account:", error)
     }
   }
 
@@ -71,18 +107,17 @@ export const AddAccount = ({ trigger }: { trigger: React.ReactNode }) => {
   return (
     <CustomDrawer
       trigger={trigger}
-      title="Add Account"
-      SubmitIcon={Plus}
-      submitTitle="Add Account"
-      submitDisabled={isSubmitDisabled}
-      submitLoading={isLoading}
+      title="Edit Account"
+      SubmitIcon={Edit}
+      submitTitle="Update Account"
+      submitDisabled={!formData.name.trim() || !formData.balance.trim() || updateAccount.isPending}
+      submitLoading={updateAccount.isPending}
       onSubmit={handleFormSubmit}
       open={isOpen}
       onOpenChange={(open) => {
-        if (open) {
-          openDrawer()
-        } else {
-          closeDrawer()
+        onOpenChange(open)
+        if (!open) {
+          onClose?.()
         }
       }}
     >
@@ -95,6 +130,7 @@ export const AddAccount = ({ trigger }: { trigger: React.ReactNode }) => {
           placeholder="Enter account name"
           value={formData.name}
           onChange={(e) => handleInputChange("name", e.target.value)}
+          required
         />
 
         {/* Account Type */}
@@ -130,13 +166,13 @@ export const AddAccount = ({ trigger }: { trigger: React.ReactNode }) => {
           </Select>
         </div>
 
-        {/* Initial Balance */}
+        {/* Balance */}
         <CustomInput
           id="balance"
-          label="Initial Balance"
+          label="Balance"
           name="balance"
           type="number"
-          placeholder="Enter initial balance"
+          placeholder="Enter balance"
           value={formData.balance}
           onChange={(e) => handleInputChange("balance", e.target.value)}
           inputMode="numeric"
@@ -163,43 +199,16 @@ export const AddAccount = ({ trigger }: { trigger: React.ReactNode }) => {
           </Select>
         </div>
 
-        {/* Account Type Selection Cards */}
-        <div className="flex flex-col gap-1.5 col-span-2">
-          <Label className="text-gray-800 font-medium inline-block mb-1.5">
-            Quick Select Account Type
-          </Label>
-          <div className="grid grid-cols-2 gap-3">
-            {accountTypes.map((type) => {
-              const Icon = type.icon
-              const isSelected = formData.type === type.value
-              return (
-                <button
-                  key={type.value}
-                  type="button"
-                  onClick={() => handleInputChange("type", type.value)}
-                  className={cn(
-                    "p-3 border-2 rounded-md transition-all duration-200 hover:scale-105",
-                    isSelected
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  )}
-                >
-                  <div className="flex flex-col items-center gap-2">
-                    <div
-                      className={cn(
-                        "w-10 h-10 rounded-lg flex items-center justify-center text-white",
-                        type.color
-                      )}
-                    >
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <span className="text-sm font-medium text-gray-700">{type.label}</span>
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-        </div>
+        {/* Account Number */}
+        <CustomInput
+          id="account_number"
+          label="Account Number (Optional)"
+          name="account_number"
+          placeholder="Enter account number"
+          value={formData.account_number}
+          onChange={(e) => handleInputChange("account_number", e.target.value)}
+          className="col-span-2"
+        />
 
         {/* Preview */}
         {selectedType && (
@@ -224,6 +233,9 @@ export const AddAccount = ({ trigger }: { trigger: React.ReactNode }) => {
                     <div className="text-sm font-medium text-gray-700">
                       {formData.currency} {parseFloat(formData.balance).toLocaleString()}
                     </div>
+                  )}
+                  {formData.account_number && (
+                    <div className="text-sm text-gray-500">Account: {formData.account_number}</div>
                   )}
                 </div>
               </div>

@@ -13,13 +13,13 @@ import {
   Trash2,
 } from "lucide-react"
 import { useAuth } from "@/lib/contexts/auth-context"
-import { useAccounts, useDeleteAccount, useEditAccountDrawer } from "@/lib/hooks"
+import { useAccounts, useDeleteAccount } from "@/lib/hooks"
 import { ReusableDrawer } from "@/components/ReusableDrawer"
 import { AddAccountFormContent } from "@/components/AddAccountFormContent"
 import { useAddAccountDrawer } from "@/lib/hooks/use-add-account-drawer"
-import { EditAccountDrawer } from "@/components/EditAccountDrawer"
 import { DeleteConfirmationSheet } from "@/components/DeleteConfirmationSheet"
 import { AddAccount } from "@/form/AddAccount"
+import { EditAccount } from "@/form/EditAccount"
 
 export default function AccountsPage() {
   const { user, isLoading } = useAuth()
@@ -37,17 +37,19 @@ export default function AccountsPage() {
     isLoading: isSubmitting,
   } = useAddAccountDrawer()
 
-  // Edit account drawer
-  const {
-    isOpen: isEditOpen,
-    openDrawer: openEditDrawer,
-    closeDrawer: closeEditDrawer,
-    formData: editFormData,
-    setFormData: setEditFormData,
-    handleSubmit: handleEditSubmit,
-    isSubmitDisabled: isEditSubmitDisabled,
-    isLoading: isEditLoading,
-  } = useEditAccountDrawer()
+  // Edit account state
+  const [selectedAccount, setSelectedAccount] = useState<any>(null)
+  const [isEditOpen, setIsEditOpen] = useState(false)
+
+  const handleCloseEdit = () => {
+    setSelectedAccount(null)
+    setIsEditOpen(false)
+  }
+
+  const handleOpenEdit = (account: any) => {
+    setSelectedAccount(account)
+    setIsEditOpen(true)
+  }
 
   // Get user's accounts
   const { data: accounts = [], isLoading: accountsLoading } = useAccounts(user?.id || "", {
@@ -149,7 +151,7 @@ export default function AccountsPage() {
 
       {/* Total Balance */}
       <div className="px-4">
-        <div className="bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl p-6 text-white">
+        <div className="bg-gradient-to-r from-purple-500 to-blue-500 rounded-md p-6 text-white">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm opacity-90">Total Balance</span>
             <button
@@ -195,7 +197,7 @@ export default function AccountsPage() {
               return (
                 <div
                   key={account.id}
-                  className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors"
+                  className="flex items-center gap-4 p-4 rounded-md border border-gray-200 hover:border-gray-300 transition-colors"
                 >
                   <div
                     className={`w-12 h-12 rounded-lg flex items-center justify-center ${color} text-white`}
@@ -228,23 +230,12 @@ export default function AccountsPage() {
 
                   {/* Action Buttons */}
                   <div className="flex items-center gap-1">
-                    <EditAccountDrawer
-                      account={account}
-                      isOpen={isEditOpen}
-                      onOpenChange={(open) => !open && closeEditDrawer()}
-                      formData={editFormData}
-                      onFormDataChange={setEditFormData}
-                      onSubmit={handleEditSubmit}
-                      isLoading={isEditLoading}
-                      isSubmitDisabled={isEditSubmitDisabled}
+                    <button
+                      className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                      onClick={() => handleOpenEdit(account)}
                     >
-                      <button
-                        className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                        onClick={() => openEditDrawer(account)}
-                      >
-                        <MoreVertical className="w-4 h-4 text-gray-500" />
-                      </button>
-                    </EditAccountDrawer>
+                      <MoreVertical className="w-4 h-4 text-gray-500" />
+                    </button>
                     <button
                       onClick={() => handleDeleteClick(account.id)}
                       className="p-2 rounded-lg hover:bg-red-50 transition-colors"
@@ -270,7 +261,7 @@ export default function AccountsPage() {
         <div className="grid grid-cols-2 gap-3">
           <AddAccount
             trigger={
-              <button className="p-4 cursor-pointer rounded-xl border border-gray-200 text-center hover:bg-gray-50 transition-colors">
+              <button className="p-4 cursor-pointer rounded-md border border-gray-200 text-center hover:bg-gray-50 transition-colors">
                 <div className="text-2xl mb-2">🏦</div>
                 <div className="text-sm font-medium text-black">Add Account</div>
               </button>
@@ -323,6 +314,17 @@ export default function AccountsPage() {
           )
         }
       />
+
+      {/* Edit Account Form */}
+      {selectedAccount && (
+        <EditAccount
+          trigger={<div style={{ display: "none" }}></div>}
+          account={selectedAccount}
+          onClose={handleCloseEdit}
+          isOpen={isEditOpen}
+          onOpenChange={setIsEditOpen}
+        />
+      )}
 
       {/* Add Account Drawer */}
       <ReusableDrawer

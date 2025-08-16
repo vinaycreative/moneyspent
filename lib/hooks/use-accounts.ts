@@ -61,7 +61,10 @@ export function useCreateAccount() {
       // Optimistically update accounts
       queryClient.setQueryData(["accounts", variables.user_id], (oldData: any) => {
         if (oldData) {
-          return [...oldData, { ...variables, id: "temp-id", created_at: new Date().toISOString() }]
+          return [
+            ...oldData,
+            { ...variables, id: "temp-id", created_at: new Date().toISOString() },
+          ]
         }
         return [{ ...variables, id: "temp-id", created_at: new Date().toISOString() }]
       })
@@ -122,9 +125,7 @@ export function useUpdateAccount() {
     },
     onError: (err, variables, context) => {
       // Rollback on error
-      if (context?.previousAccounts) {
-        queryClient.setQueryData(["accounts", variables.data.user_id], context.previousAccounts)
-      }
+      queryClient.invalidateQueries({ queryKey: ["accounts", variables.data.user_id] })
     },
     onSettled: (data, error, variables) => {
       // Always refetch after error or success

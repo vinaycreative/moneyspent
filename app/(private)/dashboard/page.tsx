@@ -15,6 +15,7 @@ import { CustomCalender } from "@/components/CustomCalender"
 import CustomDrawer from "@/components/CustomDrawer"
 import { AddTransaction } from "@/form/AddTransaction"
 import { DateTimePickerDemo } from "@/components/DateTimePickerDemo"
+import Link from "next/link"
 
 export default function Dashboard() {
   const { user, profile, isLoading } = useAuth()
@@ -198,7 +199,9 @@ export default function Dashboard() {
       <section className="px-4 pb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-black">Recent Transactions</h2>
-          <button className="text-sm text-gray-500 hover:text-gray-700">View All</button>
+          <Link href={"/transactions"} className="text-sm text-gray-500 hover:text-gray-700">
+            View All
+          </Link>
         </div>
 
         {transactionsLoading ? (

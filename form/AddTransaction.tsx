@@ -142,7 +142,7 @@ export const AddTransaction = ({ trigger }: { trigger: React.ReactNode }) => {
         />
         <div className="flex flex-col gap-1.5">
           <label htmlFor="date" className="text-sm text-gray-800 font-medium">
-            Date <span className="text-red-500">*</span>
+            Date
           </label>
           <DateTimePicker
             id="date"

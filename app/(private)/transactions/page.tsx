@@ -207,7 +207,7 @@ export default function Transactions() {
       {/* Summary Cards */}
       <div className="px-4">
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-red-50 rounded-xl p-4 border border-red-300">
+          <div className="bg-red-50 rounded-md p-4 border border-red-300">
             <div className="flex items-center gap-2 mb-2">
               <TrendingDown className="w-4 h-4 text-red-500" />
               <div className="text-sm text-red-600 font-medium">Total Expenses</div>
@@ -220,7 +220,7 @@ export default function Transactions() {
               </div>
             )}
           </div>
-          <div className="bg-green-50 rounded-xl p-4 border border-green-300">
+          <div className="bg-green-50 rounded-md p-4 border border-green-300">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="w-4 h-4 text-green-500" />
               <div className="text-sm text-green-600 font-medium">Total Income</div>
@@ -234,9 +234,9 @@ export default function Transactions() {
             )}
           </div>
           {/* Net Savings Card */}
-          <div className="col-span-2">
+          <div className="col-span-2 bg-white">
             <div
-              className={`rounded-xl p-4 border ${
+              className={`rounded-md p-4 border ${
                 netSavings >= 0 ? "bg-blue-50 border-blue-300" : "bg-orange-50 border-orange-300"
               }`}
             >

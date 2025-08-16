@@ -127,7 +127,7 @@ export function DateTimePicker({
         onClick={() => setIsOpen(true)}
         disabled={disabled}
         className={cn(
-          "w-full flex items-center justify-start text-left text-sm bg-white border border-gray-300 rounded-sm py-2.5 px-4 focus:outline-none focus:ring-1 focus:ring-black",
+          "w-full flex items-center justify-start text-left text-sm bg-white border border-gray-300 rounded-sm py-3 px-4 focus:outline-none focus:ring-1 focus:ring-black",
           !date && "text-muted-foreground",
           required && !date && "border-red-300 focus:ring-red-500",
           className
