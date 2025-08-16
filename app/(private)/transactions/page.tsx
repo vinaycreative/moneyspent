@@ -13,16 +13,32 @@ import {
   Search,
   MoreVertical,
   Trash2,
+  Wallet,
 } from "lucide-react"
 import { ReusableDrawer } from "@/components/ReusableDrawer"
 import { AddTransactionFormContent } from "@/components/AddTransactionFormContent"
 import { useAddTransactionDrawer } from "@/lib/hooks/use-add-transaction-drawer"
 import { Plus } from "lucide-react"
 import { useAuth } from "@/lib/contexts/auth-context"
-import { useFilteredTransactions, useTransactionSummary, useDeleteTransaction } from "@/lib/hooks"
+import {
+  useFilteredTransactions,
+  useTransactionSummary,
+  useDeleteTransaction,
+  useAccounts,
+} from "@/lib/hooks"
 import { DeleteConfirmationSheet } from "@/components/DeleteConfirmationSheet"
 import { AddTransaction } from "@/form/AddTransaction"
 import { EditTransaction } from "@/form/EditTransaction"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { cn } from "@/lib/utils"
 
 export default function Transactions() {
   const { user, isLoading: authLoading } = useAuth()
@@ -61,8 +77,17 @@ export default function Transactions() {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("")
   const [deleteTransactionId, setDeleteTransactionId] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [selectedAccountId, setSelectedAccountId] = useState<string>("all")
+  const [selectedTransactionType, setSelectedTransactionType] = useState<
+    "expense" | "income" | "all"
+  >("all")
 
-  // Get filtered transactions based on date range
+  // Get accounts for the filter
+  const { data: accounts, isLoading: accountsLoading } = useAccounts(user?.id || "", {
+    enabled: !!user?.id,
+  })
+
+  // Get filtered transactions based on date range, account, and transaction type
   const {
     transactions: filteredTransactions,
     totalExpenses,
@@ -74,6 +99,8 @@ export default function Transactions() {
     dateRange: selectedDateRange as any,
     customStartDate: customStartDate || undefined,
     customEndDate: customEndDate || undefined,
+    accountId: selectedAccountId || undefined,
+    transactionType: selectedTransactionType,
     enabled: !!user?.id,
   })
 
@@ -234,7 +261,7 @@ export default function Transactions() {
             )}
           </div>
           {/* Net Savings Card */}
-          <div className="col-span-2 bg-white">
+          {/* <div className="col-span-2 bg-white">
             <div
               className={`rounded-md p-4 border ${
                 netSavings >= 0 ? "bg-blue-50 border-blue-300" : "bg-orange-50 border-orange-300"
@@ -246,8 +273,7 @@ export default function Transactions() {
                     netSavings >= 0 ? "bg-blue-500" : "bg-orange-500"
                   }`}
                 ></div>
-                <div
-                  className={`text-sm font-medium ${
+                <div className="text-sm font-medium ${
                     netSavings >= 0 ? "text-blue-600" : "text-orange-600"
                   }`}
                 >
@@ -271,7 +297,103 @@ export default function Transactions() {
                 {netSavings >= 0 ? "You're saving well!" : "You're spending more than earning"}
               </div>
             </div>
+          </div> */}
+        </div>
+      </div>
+
+      {/* Account Filter */}
+      <div className="px-4">
+        {/* <div className="relative">
+          <select
+            value={selectedAccountId}
+            onChange={(e) => setSelectedAccountId(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none"
+            disabled={accountsLoading || transactionsLoading}
+          >
+            <option value="">All Accounts</option>
+            {accounts?.map((account: any) => (
+              <option key={account.id} value={account.id}>
+                {account.name}
+              </option>
+            ))}
+          </select>
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <Wallet className="w-4 h-4 text-gray-400" />
           </div>
+        </div> */}
+        <Select value={selectedAccountId} onValueChange={(value) => setSelectedAccountId(value)}>
+          <SelectTrigger className="w-full border-gray-300 bg-white">
+            <SelectValue placeholder="All Accounts" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Accounts</SelectLabel>
+              <SelectItem value="all">
+                <div className="flex items-center gap-2">
+                  <span>All Accounts</span>
+                </div>
+              </SelectItem>
+              {accounts?.map((account: any) => {
+                return (
+                  <SelectItem key={account.id} value={account.id}>
+                    <div className="flex items-center gap-2">
+                      {/* <div
+                    className={cn(
+                      "w-6 h-6 rounded-lg flex items-center justify-center text-white text-xs",
+                      account.type === "bank" && "bg-blue-500",
+                      account.type === "credit" && "bg-red-500",
+                      account.type === "cash" && "bg-green-500"
+                    )}
+                  ></div> */}
+                      <span>{account.name}</span>
+                    </div>
+                  </SelectItem>
+                )
+              })}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
+      {/* Account Filter */}
+
+      {/* Transaction Type Filter */}
+      <div className="px-4">
+        <div className="flex gap-2">
+          <button
+            onClick={() => setSelectedTransactionType("all")}
+            className={`flex-1 px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+              selectedTransactionType === "all"
+                ? "bg-purple-100 border-purple-300 text-purple-700"
+                : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+            }`}
+            disabled={transactionsLoading}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setSelectedTransactionType("expense")}
+            className={`flex-1 px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+              selectedTransactionType === "expense"
+                ? "bg-red-100 border-red-300 text-red-700"
+                : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+            }`}
+            disabled={transactionsLoading}
+          >
+            <TrendingDown className="w-4 h-4 inline mr-1" />
+            Expenses
+          </button>
+          <button
+            onClick={() => setSelectedTransactionType("income")}
+            className={`flex-1 px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+              selectedTransactionType === "income"
+                ? "bg-green-100 border-green-300 text-green-700"
+                : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+            }`}
+            disabled={transactionsLoading}
+          >
+            <TrendingUp className="w-4 h-4 inline mr-1" />
+            Income
+          </button>
         </div>
       </div>
 
@@ -419,9 +541,21 @@ export default function Transactions() {
       </div>
 
       {/* Transactions List */}
-      <div className="px-4">
+      <div className="px-4 pb-6">
         <h2 className="text-lg font-bold text-gray-900 mb-4">
           {sortedTransactions.length} Transaction{sortedTransactions.length !== 1 ? "s" : ""}
+          {selectedAccountId && accounts && (
+            <span className="text-sm font-normal text-gray-600">
+              {" "}
+              from {accounts.find((a: any) => a.id === selectedAccountId)?.name}
+            </span>
+          )}
+          {selectedTransactionType !== "all" && (
+            <span className="text-sm font-normal text-gray-600">
+              {" "}
+              ({selectedTransactionType === "expense" ? "expenses" : "income"})
+            </span>
+          )}
           {debouncedSearchQuery && ` matching "${debouncedSearchQuery}"`}
         </h2>
 
@@ -504,6 +638,8 @@ export default function Transactions() {
             <div className="text-sm">
               {searchQuery
                 ? "Try adjusting your search terms or date range"
+                : selectedAccountId || selectedTransactionType !== "all"
+                ? "Try adjusting your date range, filters, or add a new transaction"
                 : "Try adjusting your date range or add a new transaction"}
             </div>
           </div>

@@ -6,6 +6,8 @@ interface UseFilteredTransactionsOptions {
   dateRange: "all" | "today" | "week" | "month" | "year" | "custom"
   customStartDate?: string
   customEndDate?: string
+  accountId?: string
+  transactionType?: "expense" | "income" | "all"
   enabled?: boolean
 }
 
@@ -14,12 +16,26 @@ export function useFilteredTransactions({
   dateRange,
   customStartDate,
   customEndDate,
+  accountId,
+  transactionType = "all",
   enabled = true,
 }: UseFilteredTransactionsOptions) {
   const { data: transactions, isLoading, error } = useTransactions(userId, { enabled })
 
   const filteredTransactions = useMemo(() => {
     if (!transactions) return []
+
+    let filtered = transactions
+
+    // Filter by account if specified and not "all"
+    if (accountId && accountId !== "all") {
+      filtered = filtered.filter((transaction: any) => transaction.account_id === accountId)
+    }
+
+    // Filter by transaction type if specified
+    if (transactionType && transactionType !== "all") {
+      filtered = filtered.filter((transaction: any) => transaction.type === transactionType)
+    }
 
     const today = new Date()
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate())
@@ -28,7 +44,7 @@ export function useFilteredTransactions({
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
     const startOfYear = new Date(today.getFullYear(), 0, 1)
 
-    return transactions.filter((transaction: any) => {
+    return filtered.filter((transaction: any) => {
       const transactionDate = new Date(transaction.transaction_date)
 
       switch (dateRange) {
@@ -52,7 +68,7 @@ export function useFilteredTransactions({
           return true
       }
     })
-  }, [transactions, dateRange, customStartDate, customEndDate])
+  }, [transactions, dateRange, customStartDate, customEndDate, accountId, transactionType])
 
   const totalExpenses = useMemo(() => {
     return filteredTransactions
@@ -78,4 +94,4 @@ export function useFilteredTransactions({
     isLoading,
     error,
   }
-} 
+}

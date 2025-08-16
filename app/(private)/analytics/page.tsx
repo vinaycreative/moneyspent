@@ -258,7 +258,7 @@ export default function Analytics() {
       </div>
 
       {/* Analytics Content */}
-      <div className="px-4 space-y-6">
+      <div className="px-4 space-y-6 pb-6">
         {/* Category Breakdown */}
         <div className="bg-white rounded-lg p-5 border border-gray-200">
           <div className="flex items-center gap-3 mb-5">
