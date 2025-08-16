@@ -17,17 +17,12 @@ import {
 import { ReusableDrawer } from "@/components/ReusableDrawer"
 import { AddTransactionFormContent } from "@/components/AddTransactionFormContent"
 import { useAddTransactionDrawer } from "@/lib/hooks/use-add-transaction-drawer"
-import { EditTransactionDrawer } from "@/components/EditTransactionDrawer"
 import { Plus } from "lucide-react"
 import { useAuth } from "@/lib/contexts/auth-context"
-import {
-  useFilteredTransactions,
-  useTransactionSummary,
-  useDeleteTransaction,
-  useEditTransactionDrawer,
-} from "@/lib/hooks"
+import { useFilteredTransactions, useTransactionSummary, useDeleteTransaction } from "@/lib/hooks"
 import { DeleteConfirmationSheet } from "@/components/DeleteConfirmationSheet"
 import { AddTransaction } from "@/form/AddTransaction"
+import { EditTransaction } from "@/form/EditTransaction"
 
 export default function Transactions() {
   const { user, isLoading: authLoading } = useAuth()
@@ -44,21 +39,19 @@ export default function Transactions() {
     isLoading: isSubmitting,
   } = useAddTransactionDrawer()
 
-  // Edit transaction drawer
-  const {
-    isOpen: isEditOpen,
-    openDrawer: openEditDrawer,
-    closeDrawer: closeEditDrawer,
-    activeTab: editActiveTab,
-    setActiveTab: setEditActiveTab,
-    formData: editFormData,
-    setFormData: setEditFormData,
-    handleTabChange: handleEditTabChange,
-    handleSubmit: handleEditSubmit,
-    isSubmitDisabled: isEditSubmitDisabled,
-    isLoading: isEditLoading,
-    selectedTransaction,
-  } = useEditTransactionDrawer()
+  // Edit transaction state
+  const [selectedTransaction, setSelectedTransaction] = useState<any>(null)
+  const [isEditOpen, setIsEditOpen] = useState(false)
+
+  const handleCloseEdit = () => {
+    setSelectedTransaction(null)
+    setIsEditOpen(false)
+  }
+
+  const handleOpenEdit = (transaction: any) => {
+    setSelectedTransaction(transaction)
+    setIsEditOpen(true)
+  }
 
   const [selectedDateRange, setSelectedDateRange] = useState("all")
   const [showDateFilter, setShowDateFilter] = useState(false)
@@ -454,7 +447,7 @@ export default function Transactions() {
               <div
                 key={transaction.id}
                 className="flex items-center bg-white gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200 cursor-pointer"
-                onClick={() => !transactionsLoading && openEditDrawer(transaction)}
+                onClick={() => !transactionsLoading && handleOpenEdit(transaction)}
               >
                 <div
                   className={`w-10 h-10 rounded-lg flex items-center justify-center ${
@@ -484,7 +477,7 @@ export default function Transactions() {
                   </div>
                   <span className="text-[10px] text-gray-500">
                     {" "}
-                    {moment(transaction.updated_at).tz("Asia/Kolkata").format("LT")}
+                    {moment(transaction.transaction_date).tz("Asia/Kolkata").format("LT")}
                   </span>
                 </div>
                 {/* Action Buttons */}
@@ -517,22 +510,15 @@ export default function Transactions() {
         )}
       </div>
 
-      {/* Edit Transaction Drawer - Single Instance */}
+      {/* Edit Transaction Form */}
       {selectedTransaction && (
-        <EditTransactionDrawer
+        <EditTransaction
+          trigger={<div style={{ display: "none" }}></div>}
           transaction={selectedTransaction}
+          onClose={handleCloseEdit}
           isOpen={isEditOpen}
-          onOpenChange={(open) => !open && closeEditDrawer()}
-          activeTab={editActiveTab}
-          onTabChange={handleEditTabChange}
-          formData={editFormData}
-          onFormDataChange={setEditFormData}
-          onSubmit={handleEditSubmit}
-          isLoading={isEditLoading}
-          isSubmitDisabled={isEditSubmitDisabled}
-        >
-          <div style={{ display: "none" }}></div>
-        </EditTransactionDrawer>
+          onOpenChange={setIsEditOpen}
+        />
       )}
 
       {/* Delete Confirmation Sheet */}

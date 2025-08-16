@@ -46,23 +46,10 @@ export function useAddTransactionDrawer() {
     }
 
     try {
-      // Create a proper date with time for the transaction
-      let transactionDate: string
-      if (formData.date) {
-        // If user selected a specific date, combine it with current time
-        const selectedDate = new Date(formData.date)
-        const now = new Date()
-        selectedDate.setHours(
-          now.getHours(),
-          now.getMinutes(),
-          now.getSeconds(),
-          now.getMilliseconds()
-        )
-        transactionDate = selectedDate.toISOString()
-      } else {
-        // If no date selected, use current date and time
-        transactionDate = new Date().toISOString()
-      }
+      // Use the date from the form (which includes any time changes made by the user)
+      const transactionDate = formData.date
+        ? formData.date.toISOString()
+        : new Date().toISOString()
 
       const transactionData: TransactionInsert = {
         user_id: user.id,

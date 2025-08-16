@@ -10,7 +10,7 @@ import {
   DollarSign,
   Tag,
   Info,
-  Settings,
+  Plus,
 } from "lucide-react"
 import { useAuth } from "@/lib/contexts/auth-context"
 import CustomDrawer from "@/components/CustomDrawer"
@@ -18,6 +18,7 @@ import { ViewCategoriesContent } from "@/components/ViewCategoriesContent"
 import { AddCategory } from "@/form/AddCategory"
 import { useViewCategoriesDrawer, useAddEditCategoryDrawer } from "@/lib/hooks"
 import { useRouter } from "next/navigation"
+import ViewAllCategories from "@/components/ViewAllCategories"
 
 interface SettingItem {
   id: string
@@ -147,123 +148,121 @@ export default function SettingsPage() {
   ]
 
   return (
-    <div className="h-screen bg-gray-50 overflow-hidden">
-      <div className="max-w-md mx-auto h-full flex flex-col">
-        <div className="flex-1 overflow-y-auto pb-20">
-          {/* Header */}
-          <div className="px-4 mt-4">
-            <div className="flex items-center justify-between gap-3 mb-4">
-              <h1 className="text-lg font-bold text-gray-900">Settings</h1>
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Settings className="w-5 h-5 text-blue-600" />
+    <div className="max-w-md mx-auto h-full flex flex-col gap-4 mobile-viewport">
+      {/* Header */}
+      <header className="px-4 mt-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-lg font-bold text-gray-900">Settings</h1>
+        </div>
+      </header>
+      {/* Profile Section */}
+      <section className="px-4">
+        <div className="bg-white rounded-md p-4 border border-gray-200">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
+              {profile?.full_name
+                ? profile.full_name.charAt(0).toUpperCase()
+                : user?.email?.charAt(0).toUpperCase() || "U"}
+            </div>
+            <div className="flex-1">
+              <div className="font-bold text-gray-900">{profile?.full_name || "User"}</div>
+              <div className="text-sm text-gray-500">{user?.email}</div>
+              <div className="text-xs text-gray-400">
+                {profile?.created_at
+                  ? "Member since " + new Date(profile.created_at).toLocaleDateString()
+                  : "New member"}
               </div>
             </div>
-          </div>
-
-          {/* Profile Section */}
-          <div className="px-4 mb-6">
-            <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                  {profile?.full_name
-                    ? profile.full_name.charAt(0).toUpperCase()
-                    : user?.email?.charAt(0).toUpperCase() || "U"}
-                </div>
-                <div className="flex-1">
-                  <div className="font-bold text-gray-900">{profile?.full_name || "User"}</div>
-                  <div className="text-sm text-gray-500">{user?.email}</div>
-                  <div className="text-xs text-gray-400">
-                    {profile?.created_at
-                      ? "Member since " + new Date(profile.created_at).toLocaleDateString()
-                      : "New member"}
-                  </div>
-                </div>
-                <ChevronRight className="w-5 h-5 text-gray-400" />
-              </div>
-            </div>
-          </div>
-
-          {/* Settings List */}
-          <div className="px-4">
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="space-y-1">
-                {settingsItems.map((item, index) => {
-                  const Icon = item.icon
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => handleAction(item)}
-                      className={`w-full flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors ${
-                        index !== settingsItems.length - 1 ? "border-b border-gray-100" : ""
-                      }`}
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                        <Icon className="w-5 h-5 text-gray-600" />
-                      </div>
-
-                      <div className="flex-1 text-left">
-                        <div className="font-medium text-gray-900">{item.title}</div>
-                        <div className="text-sm text-gray-500">{item.subtitle}</div>
-                      </div>
-
-                      <ChevronRight className="w-5 h-5 text-gray-400" />
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Logout Section */}
-          <div className="px-4 mt-6">
-            <button
-              onClick={() =>
-                handleAction({
-                  id: "logout",
-                  title: "",
-                  subtitle: "",
-                  icon: LogOut,
-                  action: "logout",
-                })
-              }
-              className="w-full flex items-center gap-4 p-4 rounded-xl text-red-500 hover:bg-red-50 transition-colors border border-red-200 bg-white"
-            >
-              <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
-                <LogOut className="w-5 h-5 text-red-500" />
-              </div>
-              <div className="flex-1 text-left">
-                <div className="font-medium">Logout</div>
-                <div className="text-sm text-red-400">Sign out of your account</div>
-              </div>
-            </button>
-          </div>
-
-          {/* App Version */}
-          <div className="px-4 mt-6 text-center">
-            <div className="text-xs text-gray-400">MoneySpend v1.0.0</div>
+            <ChevronRight className="w-5 h-5 text-gray-400" />
           </div>
         </div>
+      </section>
 
-        {/* View Categories Drawer */}
-        <CustomDrawer
-          trigger={<div style={{ display: "none" }} />}
-          title="Manage Categories"
-          SubmitIcon={Tag}
-          submitTitle=""
-          submitDisabled={true}
-          open={isViewOpen}
-          onOpenChange={(open: boolean) => !open && closeViewDrawer()}
+      {/* Settings List */}
+      <section className="px-4">
+        <div className="bg-white rounded-md border border-gray-200 overflow-hidden">
+          <div className="">
+            {settingsItems.map((item, index) => {
+              const Icon = item.icon
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleAction(item)}
+                  className={`w-full cursor-pointer flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors ${
+                    index !== settingsItems.length - 1 ? "border-b border-gray-100" : ""
+                  }`}
+                >
+                  <div className="w-10 h-10 rounded-md border border-gray-200 bg-gray-100 flex items-center justify-center">
+                    <Icon className="w-5 h-5 text-gray-600" />
+                  </div>
+
+                  <div className="flex-1 text-left">
+                    <div className="font-medium text-gray-900">{item.title}</div>
+                    <div className="text-sm text-gray-500">{item.subtitle}</div>
+                  </div>
+
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Logout Section */}
+      <section className="px-4">
+        <button
+          onClick={() =>
+            handleAction({
+              id: "logout",
+              title: "",
+              subtitle: "",
+              icon: LogOut,
+              action: "logout",
+            })
+          }
+          className="w-full flex items-center gap-4 p-4 rounded-md text-red-500 hover:bg-red-50 transition-colors border border-red-200 bg-white"
         >
-          <ViewCategoriesContent
-            onClose={closeViewDrawer}
-            onAddCategory={handleAddCategory}
-            onEditCategory={handleEditCategory}
-          />
-        </CustomDrawer>
+          <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+            <LogOut className="w-5 h-5 text-red-500" />
+          </div>
+          <div className="flex-1 text-left">
+            <div className="font-medium">Logout</div>
+            <div className="text-sm text-red-400">Sign out of your account</div>
+          </div>
+        </button>
+      </section>
 
-        {/* Add/Edit Category Component - Controlled by the hook */}
-        <AddCategory trigger={<div style={{ display: "none" }} />} />
-      </div>
+      {/* App Version */}
+      <section className="px-4 pb-6 text-center">
+        <div className="text-xs text-gray-400">MoneySpend v1.0.0</div>
+      </section>
+
+      {/* View Categories Drawer */}
+      <CustomDrawer
+        trigger={<div style={{ display: "none" }} />}
+        title="Manage Categories"
+        SubmitIcon={Tag}
+        submitTitle="Add Category"
+        submitDisabled={true}
+        open={isViewOpen}
+        onOpenChange={(open: boolean) => !open && closeViewDrawer()}
+        customSubmitButton={
+          <AddCategory
+            trigger={
+              <button className="w-full cursor-pointer bg-black text-white rounded-md py-2.5 flex items-center justify-center gap-2 font-medium hover:bg-gray-800 transition-colors">
+                <Plus className="w-5 h-5" />
+                Add New Category
+              </button>
+            }
+          />
+        }
+      >
+        <ViewAllCategories />
+      </CustomDrawer>
+
+      {/* Add/Edit Category Component - Controlled by the hook */}
+      <AddCategory trigger={<div style={{ display: "none" }} />} />
     </div>
   )
 }

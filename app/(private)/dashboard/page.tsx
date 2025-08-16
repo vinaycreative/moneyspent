@@ -256,7 +256,7 @@ export default function Dashboard() {
                   </div>
                   <span className="text-[10px] text-gray-500">
                     {" "}
-                    {moment(transaction.updated_at).tz("Asia/Kolkata").format("LT")}
+                    {moment(transaction.transaction_date).tz("Asia/Kolkata").format("LT")}
                   </span>
                 </div>
               </div>

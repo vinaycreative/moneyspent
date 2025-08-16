@@ -32,7 +32,7 @@ export function DateTimePicker({
   const [isOpen, setIsOpen] = React.useState(false)
   const [isAM, setIsAM] = React.useState(true)
 
-  const hours = Array.from({ length: 12 }, (_, i) => i + 1).reverse()
+  const hours = Array.from({ length: 12 }, (_, i) => i + 1)
   const minutes = Array.from({ length: 60 }, (_, i) => i + 1)
 
   // Set default AM/PM based on current time or existing date

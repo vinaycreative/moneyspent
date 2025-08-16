@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -218,7 +218,7 @@ export type Database = {
           description: string | null
           id: string
           title: string
-          transaction_date: string
+          transaction_date: string | null
           type: string
           updated_at: string | null
           user_id: string | null
@@ -231,7 +231,7 @@ export type Database = {
           description?: string | null
           id?: string
           title: string
-          transaction_date: string
+          transaction_date?: string | null
           type: string
           updated_at?: string | null
           user_id?: string | null
@@ -244,7 +244,7 @@ export type Database = {
           description?: string | null
           id?: string
           title?: string
-          transaction_date?: string
+          transaction_date?: string | null
           type?: string
           updated_at?: string | null
           user_id?: string | null
@@ -313,22 +313,22 @@ export type Database = {
     Functions: {
       get_category_breakdown: {
         Args: {
-          p_user_id: string
-          p_type: string
-          p_start_date?: string
           p_end_date?: string
+          p_start_date?: string
+          p_type: string
+          p_user_id: string
         }
         Returns: {
+          category_color: string
+          category_icon: string
           category_id: string
           category_name: string
-          category_icon: string
-          category_color: string
-          total_amount: number
           percentage: number
+          total_amount: number
         }[]
       }
       get_monthly_trend: {
-        Args: { p_user_id: string; p_months_back?: number }
+        Args: { p_months_back?: number; p_user_id: string }
         Returns: {
           month_name: string
           month_year: string
@@ -336,11 +336,11 @@ export type Database = {
         }[]
       }
       get_transaction_summary: {
-        Args: { p_user_id: string; p_start_date?: string; p_end_date?: string }
+        Args: { p_end_date?: string; p_start_date?: string; p_user_id: string }
         Returns: {
+          net_savings: number
           total_expenses: number
           total_income: number
-          net_savings: number
         }[]
       }
     }

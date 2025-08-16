@@ -17,6 +17,8 @@ interface CustomDrawerProps {
   onSubmit?: () => void
   open?: boolean
   onOpenChange?: (open: boolean) => void
+  submitClassName?: string
+  customSubmitButton?: React.ReactNode
 }
 
 const CustomDrawer = ({
@@ -32,6 +34,8 @@ const CustomDrawer = ({
   onSubmit,
   open,
   onOpenChange,
+  submitClassName,
+  customSubmitButton,
 }: CustomDrawerProps) => {
   const [internalOpen, setInternalOpen] = React.useState(false)
   const { isKeyboardVisible } = useMobileKeyboard()
@@ -106,18 +110,22 @@ const CustomDrawer = ({
               {children}
             </div>
             <div className="footer bg-white border-t border-gray-200 flex items-center justify-center py-3 px-3">
-              <button
-                className="bg-black text-white flex items-center justify-center gap-2 font-medium hover:bg-gray-800 transition-colors w-full py-2.5 rounded-md"
-                disabled={submitDisabled}
-                onClick={onSubmit}
-              >
-                {submitLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <SubmitIcon size={20} className="w-4 h-4" />
-                )}
-                {submitTitle}
-              </button>
+              {customSubmitButton ? (
+                customSubmitButton
+              ) : (
+                <button
+                  className={`bg-black text-white flex items-center justify-center gap-2 font-medium hover:bg-gray-800 transition-colors w-full py-2.5 rounded-md ${submitClassName}`}
+                  disabled={submitDisabled}
+                  onClick={onSubmit}
+                >
+                  {submitLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <SubmitIcon size={20} className="w-4 h-4" />
+                  )}
+                  {submitTitle}
+                </button>
+              )}
             </div>
           </div>
         </Drawer.Content>
