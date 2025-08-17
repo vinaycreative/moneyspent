@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import {
   Filter,
   ChevronDown,
@@ -21,6 +22,7 @@ import { useAuth } from "@/lib/contexts/auth-context"
 import { useAnalytics, useTransactionSummary } from "@/lib/hooks"
 
 export default function Analytics() {
+  const router = useRouter()
   const { user, isLoading: authLoading } = useAuth()
   const [selectedDateRange, setSelectedDateRange] = useState("month")
   const [showDateFilter, setShowDateFilter] = useState(false)
@@ -285,9 +287,17 @@ export default function Analytics() {
               ))}
             </div>
           ) : expenseCategories.length > 0 ? (
-            <div className="space-y-4">
-              {expenseCategories.slice(0, 5).map((category, index) => (
-                <div key={category.category} className="flex items-center gap-3">
+            <div className="space-y-4 max-h-[400px] overflow-y-auto">
+              {expenseCategories.map((category, index) => (
+                <div
+                  key={category.category}
+                  className="flex items-center border border-gray-200 gap-2 px-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                  onClick={() =>
+                    router.push(
+                      `/analytics/${encodeURIComponent(category.category.toLowerCase())}`
+                    )
+                  }
+                >
                   <div
                     className={`w-10 h-10 rounded-lg flex items-center justify-center ${category.color} text-white text-sm`}
                   >

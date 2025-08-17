@@ -59,12 +59,13 @@ export function useAnalytics({
 
   // Category breakdown for expenses
   const expenseCategories = useMemo(() => {
+    if (!filteredTransactions) return []
     const expenseTransactions = filteredTransactions.filter((t: any) => t.type === "expense")
 
     const categoryMap = new Map<string, CategoryData>()
 
     expenseTransactions.forEach((transaction: any) => {
-      const categoryName = transaction.categories?.name || "Other"
+      const categoryName = transaction.categories?.name || transaction.category || "Other"
       const existing = categoryMap.get(categoryName)
 
       if (existing) {
@@ -95,6 +96,7 @@ export function useAnalytics({
 
   // Monthly spending trend (last 6 months)
   const monthlyTrend = useMemo(() => {
+    if (!filteredTransactions) return []
     const months: MonthlyTrend[] = []
     for (let i = 5; i >= 0; i--) {
       const date = new Date()
@@ -122,16 +124,18 @@ export function useAnalytics({
     const avgDailySpending = totalExpenses / 30
     const savingsRate = totalIncome > 0 ? (netSavings / totalIncome) * 100 : 0
     const topCategory = expenseCategories[0] || null
-    const transactionCount = filteredTransactions.length
+    const transactionCount = filteredTransactions ? filteredTransactions.length : 0
     const avgTransactionAmount = transactionCount > 0 ? totalExpenses / transactionCount : 0
     const expenseToIncomeRatio = totalIncome > 0 ? (totalExpenses / totalIncome) * 100 : 0
 
     // Find most active day
     const dayCounts = new Map<string, number>()
-    filteredTransactions.forEach((transaction: any) => {
-      const day = moment(transaction.transaction_date).format('dddd')
-      dayCounts.set(day, (dayCounts.get(day) || 0) + 1)
-    })
+    if (filteredTransactions) {
+      filteredTransactions.forEach((transaction: any) => {
+        const day = moment(transaction.transaction_date).format("dddd")
+        dayCounts.set(day, (dayCounts.get(day) || 0) + 1)
+      })
+    }
     const mostActiveDay =
       dayCounts.size > 0 ? Array.from(dayCounts.entries()).sort((a, b) => b[1] - a[1])[0][0] : null
 

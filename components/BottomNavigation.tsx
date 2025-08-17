@@ -20,7 +20,7 @@ export default function BottomNavigation() {
       <div className="max-w-md mx-auto flex items-center justify-around w-full px-4">
         {navigationItems.map((item) => {
           const Icon = item.icon
-          const isActive = pathname === item.path
+          const isActive = pathname === item.path || pathname.startsWith(item.path + "/")
 
           return (
             <button
