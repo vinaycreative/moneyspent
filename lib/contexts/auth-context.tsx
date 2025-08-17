@@ -30,40 +30,75 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initializeAuth = async () => {
       try {
         // Get initial session
-        const { data: { session } } = await supabase.auth.getSession()
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession()
+
+        if (error) {
+          console.error("Session error:", error)
+          setUser(null)
+          setProfile(null)
+          setIsLoading(false)
+          return
+        }
+
         setUser(session?.user ?? null)
 
         if (session?.user) {
+          // Validate session is not expired
+          const now = Math.floor(Date.now() / 1000)
+          if (session.expires_at && session.expires_at < now) {
+            console.log("Session expired during initialization")
+            await supabase.auth.signOut()
+            setUser(null)
+            setProfile(null)
+            setIsLoading(false)
+            return
+          }
+
           // Get user profile from database
           try {
             const userProfile = await UserService.getUserById(session.user.id)
             setProfile(userProfile)
           } catch (error) {
             console.error("Failed to get user profile:", error)
+            // If profile fetch fails, clear auth state
+            await supabase.auth.signOut()
+            setUser(null)
+            setProfile(null)
           }
         }
 
         // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          async (event, session) => {
-            setUser(session?.user ?? null)
+        const {
+          data: { subscription },
+        } = supabase.auth.onAuthStateChange(async (event, session) => {
+          console.log("Auth state change:", event, session?.user?.id)
 
-            if (session?.user) {
-              try {
-                const userProfile = await UserService.getUserById(session.user.id)
-                setProfile(userProfile)
-              } catch (error) {
-                console.error("Failed to get user profile on auth change:", error)
-              }
-            } else {
+          if (event === "SIGNED_OUT" || event === "TOKEN_REFRESHED") {
+            setUser(null)
+            setProfile(null)
+          } else if (session?.user) {
+            setUser(session.user)
+            try {
+              const userProfile = await UserService.getUserById(session.user.id)
+              setProfile(userProfile)
+            } catch (error) {
+              console.error("Failed to get user profile on auth change:", error)
+              // Clear auth if profile fetch fails
+              await supabase.auth.signOut()
+              setUser(null)
               setProfile(null)
             }
           }
-        )
+        })
 
         return () => subscription.unsubscribe()
       } catch (error) {
         console.error("Auth initialization error:", error)
+        setUser(null)
+        setProfile(null)
       } finally {
         setIsLoading(false)
       }
@@ -117,4 +152,4 @@ export function useAuth() {
     throw new Error("useAuth must be used within an AuthProvider")
   }
   return context
-} 
+}
