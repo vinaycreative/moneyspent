@@ -39,6 +39,30 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // Prevent service worker caching for auth routes
+      {
+        source: "/auth/(.*)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate, private",
+          },
+          {
+            key: "Service-Worker-Allowed",
+            value: "none",
+          },
+        ],
+      },
+      // Prevent service worker caching for the cleanup script
+      {
+        source: "/sw-cleanup.js",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
+        ],
+      },
     ]
   },
 }
