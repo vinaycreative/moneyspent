@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   if (code) {
     const supabase = await createClient()
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-    
+
     if (!error && data.user) {
       try {
         // Create or update user profile via API route
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Cookie": request.headers.get("cookie") || "",
+            Cookie: request.headers.get("cookie") || "",
           },
           body: JSON.stringify(userData),
         })
@@ -36,17 +36,14 @@ export async function GET(request: Request) {
           console.error("Failed to create user profile via API")
         }
 
-        const forwardedHost = request.headers.get("x-forwarded-host") // original origin before load balancer
-        const isLocalEnv = process.env.NODE_ENV === "development"
-        const redirectUrl = isLocalEnv ? `${origin}${next}` : `https://${forwardedHost}${next}`
+        // Simplified redirect logic for production
+        const redirectUrl = `${origin}${next}`
         return NextResponse.redirect(redirectUrl)
       } catch (userError) {
         console.error("Failed to create/update user profile:", userError)
         // Even if user profile creation fails, redirect to dashboard
         // The user can still use the app, but some features might be limited
-        const forwardedHost = request.headers.get("x-forwarded-host")
-        const isLocalEnv = process.env.NODE_ENV === "development"
-        const redirectUrl = isLocalEnv ? `${origin}${next}` : `https://${forwardedHost}${next}`
+        const redirectUrl = `${origin}${next}`
         return NextResponse.redirect(redirectUrl)
       }
     }
@@ -54,4 +51,4 @@ export async function GET(request: Request) {
 
   // return the user to an error page with instructions
   return NextResponse.redirect(`${origin}/auth/auth-code-error`)
-} 
+}
