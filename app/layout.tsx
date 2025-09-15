@@ -5,8 +5,9 @@ import BottomNavigation from "@/components/BottomNavigation"
 import Header from "@/components/Header"
 import { QueryProvider } from "@/lib/query-provider"
 import { AuthProvider } from "@/lib/contexts/auth-context"
-import PrivateLayout from "./(private)/layout"
+import PrivateLayout from "./old/layout"
 import Script from "next/script"
+import TanstackProvider from "@/context/TanstackProvider"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,9 +49,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 mobile-viewport`}
         suppressHydrationWarning
       >
-        <QueryProvider>
-          <AuthProvider>{children}</AuthProvider>
-        </QueryProvider>
+        <TanstackProvider>{children}</TanstackProvider>
       </body>
     </html>
   )
