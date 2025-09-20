@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useAddEditCategoryDrawer } from "@/lib/hooks/use-add-edit-category-drawer"
+import { useAddEditCategoryDrawer } from "@/hooks"
 
 export interface CategoryFormData {
   name: string

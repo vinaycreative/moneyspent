@@ -1,132 +1,158 @@
 import { z } from "zod"
 import api from "@/lib/axios"
-import { 
+import {
   ApiResponseSchema,
+  ApiTransaction,
+  ApiTransactionSchema,
   Transaction,
-  TransactionSchema,
-  TransactionWithCategory,
-  TransactionWithCategorySchema,
   CreateTransactionRequest,
   UpdateTransactionRequest,
-  TransactionFilters,
-  TransactionAnalytics,
-  TransactionAnalyticsSchema,
-  PaginatedResponse,
-  PaginatedResponseSchema
+  TransactionQueryParams,
+  TransactionByCategoryParams,
+  TransactionSummary,
+  TransactionSummarySchema,
+  TransactionTrendItem,
+  TransactionTrendItemSchema,
+  TransactionTrendParams,
+  transformApiTransaction,
 } from "@/types"
 
-// Fetch paginated transactions with optional filters
-export const fetchTransactions = async (
-  filters?: Partial<TransactionFilters>
-): Promise<PaginatedResponse<TransactionWithCategory>> => {
-  const params = new URLSearchParams()
+// Fetch all transactions with filters
+export const fetchTransactions = async (params?: TransactionQueryParams): Promise<ApiTransaction[]> => {
+  const searchParams = new URLSearchParams()
   
-  if (filters) {
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        params.append(key, value.toString())
-      }
-    })
-  }
+  if (params?.startDate) searchParams.append("startDate", params.startDate)
+  if (params?.endDate) searchParams.append("endDate", params.endDate)
+  if (params?.type) searchParams.append("type", params.type)
+  if (params?.accountId) searchParams.append("accountId", params.accountId)
+  if (params?.categoryId) searchParams.append("categoryId", params.categoryId)
+  if (params?.limit) searchParams.append("limit", params.limit.toString())
+  if (params?.offset) searchParams.append("offset", params.offset.toString())
+
+  const queryString = searchParams.toString()
+  const url = queryString ? `/transactions?${queryString}` : "/transactions"
   
-  const response = await api.get(`/transactions?${params.toString()}`)
-  
-  const validatedResponse = ApiResponseSchema(
-    PaginatedResponseSchema(TransactionWithCategorySchema)
-  ).parse(response.data)
-  
+  const response = await api.get(url)
+
+  const validatedResponse = ApiResponseSchema(z.array(ApiTransactionSchema)).parse(response.data)
+
   if (!validatedResponse.success) {
     throw new Error(validatedResponse.error || "Failed to fetch transactions")
   }
-  
+
   return validatedResponse.data
 }
 
 // Fetch single transaction by ID
-export const fetchTransactionById = async (id: string): Promise<TransactionWithCategory> => {
+export const fetchTransactionById = async (id: string): Promise<Transaction> => {
   const response = await api.get(`/transactions/${id}`)
-  
-  const validatedResponse = ApiResponseSchema(TransactionWithCategorySchema).parse(response.data)
-  
+
+  const validatedResponse = ApiResponseSchema(ApiTransactionSchema).parse(response.data)
+
   if (!validatedResponse.success) {
     throw new Error(validatedResponse.error || "Failed to fetch transaction")
   }
-  
-  return validatedResponse.data
+
+  // Transform API transaction to frontend transaction
+  return transformApiTransaction(validatedResponse.data)
 }
 
 // Create new transaction
 export const createTransaction = async (data: CreateTransactionRequest): Promise<Transaction> => {
   const response = await api.post("/transactions", data)
-  
-  const validatedResponse = ApiResponseSchema(TransactionSchema).parse(response.data)
-  
+
+  const validatedResponse = ApiResponseSchema(ApiTransactionSchema).parse(response.data)
+
   if (!validatedResponse.success) {
     throw new Error(validatedResponse.error || "Failed to create transaction")
   }
-  
-  return validatedResponse.data
+
+  // Transform API transaction to frontend transaction
+  return transformApiTransaction(validatedResponse.data)
 }
 
 // Update existing transaction
-export const updateTransaction = async (
-  id: string, 
-  data: UpdateTransactionRequest
-): Promise<Transaction> => {
+export const updateTransaction = async (id: string, data: UpdateTransactionRequest): Promise<Transaction> => {
   const response = await api.put(`/transactions/${id}`, data)
-  
-  const validatedResponse = ApiResponseSchema(TransactionSchema).parse(response.data)
-  
+
+  const validatedResponse = ApiResponseSchema(ApiTransactionSchema).parse(response.data)
+
   if (!validatedResponse.success) {
     throw new Error(validatedResponse.error || "Failed to update transaction")
   }
-  
-  return validatedResponse.data
+
+  // Transform API transaction to frontend transaction
+  return transformApiTransaction(validatedResponse.data)
 }
 
 // Delete transaction
 export const deleteTransaction = async (id: string): Promise<void> => {
   const response = await api.delete(`/transactions/${id}`)
-  
+
   const validatedResponse = ApiResponseSchema(z.object({}).optional()).parse(response.data)
-  
+
   if (!validatedResponse.success) {
     throw new Error(validatedResponse.error || "Failed to delete transaction")
   }
 }
 
-// Fetch transaction analytics
-export const fetchTransactionAnalytics = async (
-  userId: string,
-  startDate?: string,
-  endDate?: string,
-  categoryId?: string
-): Promise<TransactionAnalytics> => {
-  const params = new URLSearchParams({ user_id: userId })
-  if (startDate) params.append('start_date', startDate)
-  if (endDate) params.append('end_date', endDate)
-  if (categoryId) params.append('category_id', categoryId)
+// Fetch transactions by category
+export const fetchTransactionsByCategory = async (params: TransactionByCategoryParams): Promise<ApiTransaction[]> => {
+  const searchParams = new URLSearchParams()
   
-  const response = await api.get(`/transactions/analytics?${params.toString()}`)
-  
-  const validatedResponse = ApiResponseSchema(TransactionAnalyticsSchema).parse(response.data)
-  
+  searchParams.append("category", params.category)
+  if (params.dateRange) searchParams.append("dateRange", params.dateRange)
+  if (params.customStartDate) searchParams.append("customStartDate", params.customStartDate)
+  if (params.customEndDate) searchParams.append("customEndDate", params.customEndDate)
+
+  const response = await api.get(`/transactions/by-category?${searchParams.toString()}`)
+
+  const validatedResponse = ApiResponseSchema(z.array(ApiTransactionSchema)).parse(response.data)
+
   if (!validatedResponse.success) {
-    throw new Error(validatedResponse.error || "Failed to fetch transaction analytics")
+    throw new Error(validatedResponse.error || "Failed to fetch transactions by category")
   }
-  
+
   return validatedResponse.data
 }
 
-// Bulk delete transactions
-export const bulkDeleteTransactions = async (ids: string[]): Promise<void> => {
-  const response = await api.delete("/transactions/bulk", { data: { ids } })
+// Fetch transaction summary
+export const fetchTransactionSummary = async (startDate?: string, endDate?: string): Promise<TransactionSummary> => {
+  const searchParams = new URLSearchParams()
   
-  const validatedResponse = ApiResponseSchema(
-    z.object({ deleted_count: z.number() })
-  ).parse(response.data)
+  if (startDate) searchParams.append("startDate", startDate)
+  if (endDate) searchParams.append("endDate", endDate)
+
+  const queryString = searchParams.toString()
+  const url = queryString ? `/transactions/summary?${queryString}` : "/transactions/summary"
   
+  const response = await api.get(url)
+
+  const validatedResponse = ApiResponseSchema(TransactionSummarySchema).parse(response.data)
+
   if (!validatedResponse.success) {
-    throw new Error(validatedResponse.error || "Failed to delete transactions")
+    throw new Error(validatedResponse.error || "Failed to fetch transaction summary")
   }
+
+  return validatedResponse.data
+}
+
+// Fetch transaction trend
+export const fetchTransactionTrend = async (params?: TransactionTrendParams): Promise<TransactionTrendItem[]> => {
+  const searchParams = new URLSearchParams()
+  
+  if (params?.monthsBack) searchParams.append("monthsBack", params.monthsBack.toString())
+
+  const queryString = searchParams.toString()
+  const url = queryString ? `/transactions/trend?${queryString}` : "/transactions/trend"
+  
+  const response = await api.get(url)
+
+  const validatedResponse = ApiResponseSchema(z.array(TransactionTrendItemSchema)).parse(response.data)
+
+  if (!validatedResponse.success) {
+    throw new Error(validatedResponse.error || "Failed to fetch transaction trend")
+  }
+
+  return validatedResponse.data
 }

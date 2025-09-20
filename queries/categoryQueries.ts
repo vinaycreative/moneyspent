@@ -5,32 +5,39 @@ import {
   createCategory,
   updateCategory,
   deleteCategory,
-  fetchCategoriesWithStats
+  fetchCategoriesWithStats,
+  fetchCategoryTransactions
 } from "@/api/categories"
 import type { 
   Category, 
   CategoryWithStats,
   CreateCategoryRequest, 
-  UpdateCategoryRequest 
+  UpdateCategoryRequest,
+  GetCategoriesQuery,
+  GetCategoryTransactionsQuery,
+  CategoryTransaction
 } from "@/types"
 
 // Query keys for consistent cache management
 export const categoryQueryKeys = {
   all: ['categories'] as const,
   lists: () => [...categoryQueryKeys.all, 'list'] as const,
-  list: (userId: string) => [...categoryQueryKeys.lists(), userId] as const,
+  list: (userId: string, query?: GetCategoriesQuery) => [...categoryQueryKeys.lists(), userId, query] as const,
   details: () => [...categoryQueryKeys.all, 'detail'] as const,
   detail: (id: string) => [...categoryQueryKeys.details(), id] as const,
   stats: () => [...categoryQueryKeys.all, 'stats'] as const,
   statsForUser: (userId: string, startDate?: string, endDate?: string) => 
     [...categoryQueryKeys.stats(), userId, startDate, endDate] as const,
+  transactions: () => [...categoryQueryKeys.all, 'transactions'] as const,
+  categoryTransactions: (categoryId: string, query?: GetCategoryTransactionsQuery) => 
+    [...categoryQueryKeys.transactions(), categoryId, query] as const,
 }
 
 // Fetch all categories for a user
-export const useFetchCategories = (userId: string, enabled = true) => {
+export const useFetchCategories = (userId: string, query?: GetCategoriesQuery, enabled = true) => {
   return useQuery({
-    queryKey: categoryQueryKeys.list(userId),
-    queryFn: () => fetchCategories(userId),
+    queryKey: categoryQueryKeys.list(userId, query),
+    queryFn: () => fetchCategories(userId, query),
     enabled: !!userId && enabled,
     staleTime: 10 * 60 * 1000, // 10 minutes
     meta: {
@@ -48,6 +55,23 @@ export const useFetchCategoryById = (id: string, enabled = true) => {
     staleTime: 10 * 60 * 1000, // 10 minutes
     meta: {
       errorMessage: "Failed to fetch category details"
+    }
+  })
+}
+
+// Fetch category transactions
+export const useFetchCategoryTransactions = (
+  categoryId: string,
+  query?: GetCategoryTransactionsQuery,
+  enabled = true
+) => {
+  return useQuery({
+    queryKey: categoryQueryKeys.categoryTransactions(categoryId, query),
+    queryFn: () => fetchCategoryTransactions(categoryId, query),
+    enabled: !!categoryId && enabled,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    meta: {
+      errorMessage: "Failed to fetch category transactions"
     }
   })
 }
@@ -77,13 +101,7 @@ export const useCreateCategory = () => {
   return useMutation({
     mutationFn: createCategory,
     onSuccess: (newCategory) => {
-      // Add to categories list cache
-      queryClient.setQueryData<Category[]>(
-        categoryQueryKeys.list(newCategory.user_id),
-        (old = []) => [...old, newCategory]
-      )
-      
-      // Invalidate categories list to ensure consistency
+      // Invalidate all categories lists since we don't know which query filters were used
       queryClient.invalidateQueries({ 
         queryKey: categoryQueryKeys.lists() 
       })
@@ -91,6 +109,11 @@ export const useCreateCategory = () => {
       // Invalidate stats as they may have changed
       queryClient.invalidateQueries({ 
         queryKey: categoryQueryKeys.stats() 
+      })
+      
+      // Invalidate transactions as category creation may affect transaction data
+      queryClient.invalidateQueries({ 
+        queryKey: categoryQueryKeys.transactions() 
       })
     },
     meta: {
@@ -113,20 +136,15 @@ export const useUpdateCategory = () => {
         updatedCategory
       )
       
-      // Update category in lists cache
-      queryClient.setQueryData<Category[]>(
-        categoryQueryKeys.list(updatedCategory.user_id),
-        (old = []) => old.map(cat => 
-          cat.id === updatedCategory.id ? updatedCategory : cat
-        )
-      )
-      
-      // Invalidate related queries
+      // Invalidate all related queries
       queryClient.invalidateQueries({ 
         queryKey: categoryQueryKeys.lists() 
       })
       queryClient.invalidateQueries({ 
         queryKey: categoryQueryKeys.stats() 
+      })
+      queryClient.invalidateQueries({ 
+        queryKey: categoryQueryKeys.transactions() 
       })
     },
     meta: {
@@ -142,20 +160,25 @@ export const useDeleteCategory = () => {
   return useMutation({
     mutationFn: deleteCategory,
     onSuccess: (_, deletedId) => {
-      // Remove from all relevant caches
+      // Remove specific category detail cache
       queryClient.removeQueries({ 
         queryKey: categoryQueryKeys.detail(deletedId) 
       })
       
-      // Update lists cache to remove deleted category
-      queryClient.setQueriesData<Category[]>(
-        { queryKey: categoryQueryKeys.lists() },
-        (old = []) => old.filter(cat => cat.id !== deletedId)
-      )
+      // Remove category transactions cache
+      queryClient.removeQueries({ 
+        queryKey: categoryQueryKeys.categoryTransactions(deletedId) 
+      })
       
-      // Invalidate stats as they may have changed
+      // Invalidate all related queries
+      queryClient.invalidateQueries({ 
+        queryKey: categoryQueryKeys.lists() 
+      })
       queryClient.invalidateQueries({ 
         queryKey: categoryQueryKeys.stats() 
+      })
+      queryClient.invalidateQueries({ 
+        queryKey: categoryQueryKeys.transactions() 
       })
     },
     meta: {

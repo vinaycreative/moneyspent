@@ -3,11 +3,19 @@ import {
   useFetchCategories, 
   useFetchCategoryById, 
   useFetchCategoriesWithStats,
+  useFetchCategoryTransactions,
   useCreateCategory, 
   useUpdateCategory, 
   useDeleteCategory 
 } from "@/queries/categoryQueries"
-import type { Category, CategoryWithStats, CategoryType } from "@/types"
+import type { 
+  Category, 
+  CategoryWithStats, 
+  CategoryType, 
+  GetCategoriesQuery,
+  GetCategoryTransactionsQuery,
+  CategoryTransaction
+} from "@/types"
 
 interface UseCategoriesReturn {
   data: Category[] | undefined
@@ -23,11 +31,11 @@ interface UseCategoriesReturn {
 }
 
 // UI-ready categories hook with derived values
-export const useCategories = (userId: string, enabled = true): UseCategoriesReturn => {
-  const query = useFetchCategories(userId, enabled)
+export const useCategories = (userId: string, query?: GetCategoriesQuery, enabled = true): UseCategoriesReturn => {
+  const queryResult = useFetchCategories(userId, query, enabled)
   
   const derivedValues = useMemo(() => {
-    const categories = query.data || []
+    const categories = queryResult.data || []
     const expenseCategories = categories.filter(cat => cat.type === "expense")
     const incomeCategories = categories.filter(cat => cat.type === "income")
     
@@ -38,10 +46,10 @@ export const useCategories = (userId: string, enabled = true): UseCategoriesRetu
       incomeCategories,
       categoryCount: categories.length,
     }
-  }, [query.data])
+  }, [queryResult.data])
   
   return {
-    ...query,
+    ...queryResult,
     ...derivedValues,
   }
 }
@@ -53,6 +61,41 @@ export const useCategory = (id: string, enabled = true) => {
   return {
     ...query,
     category: query.data,
+  }
+}
+
+// Category transactions hook
+export const useCategoryTransactions = (
+  categoryId: string,
+  query?: GetCategoryTransactionsQuery,
+  enabled = true
+) => {
+  const queryResult = useFetchCategoryTransactions(categoryId, query, enabled)
+  
+  const derivedValues = useMemo(() => {
+    const transactions = queryResult.data || []
+    const totalAmount = transactions.reduce((sum, tx) => sum + tx.amount, 0)
+    const transactionCount = transactions.length
+    
+    // Group by date for better organization
+    const transactionsByDate = transactions.reduce((acc, tx) => {
+      const date = tx.occurred_at.split('T')[0] // Get date part
+      if (!acc[date]) acc[date] = []
+      acc[date].push(tx)
+      return acc
+    }, {} as Record<string, CategoryTransaction[]>)
+    
+    return {
+      transactions,
+      totalAmount,
+      transactionCount,
+      transactionsByDate,
+    }
+  }, [queryResult.data])
+  
+  return {
+    ...queryResult,
+    ...derivedValues,
   }
 }
 

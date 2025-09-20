@@ -1,80 +1,165 @@
 import { z } from "zod"
-import { CategorySchema } from "./category.schema"
 
-// Transaction schema
-export const TransactionSchema = z.object({
+// Transaction type enum
+export const TransactionTypeSchema = z.enum(["expense", "income", "transfer"])
+export type TransactionType = z.infer<typeof TransactionTypeSchema>
+
+// Date range enum for filtering
+export const DateRangeSchema = z.enum(["today", "week", "month", "year", "all", "custom"])
+export type DateRange = z.infer<typeof DateRangeSchema>
+
+// Related category and account schemas (simplified versions)
+export const TransactionCategorySchema = z.object({
   id: z.string().uuid(),
-  amount: z.number().positive("Amount must be positive"),
-  description: z.string().min(1),
-  date: z.string().datetime(),
-  category_id: z.string().uuid(),
-  account_id: z.string().uuid().optional(),
+  name: z.string(),
+  icon: z.string(),
+  color: z.string().optional(),
+  kind: TransactionTypeSchema.optional(),
+}).nullable()
+
+export const TransactionAccountSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  type: z.string(),
+}).nullable()
+
+// Raw API response schema (matches backend exactly)
+export const ApiTransactionSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string().min(1),
+  description: z.string().nullable(),
+  amount: z.number(),
+  type: TransactionTypeSchema,
+  account_id: z.string().uuid(),
+  category_id: z.string().uuid().nullable(),
+  occurred_at: z.string().datetime(),
+  currency: z.string().min(1).default("INR"),
+  related_transfer_id: z.string().uuid().nullable(),
   user_id: z.string().uuid(),
   created_at: z.string().datetime(),
   updated_at: z.string().datetime(),
+  categories: TransactionCategorySchema,
+  accounts: TransactionAccountSchema,
+})
+
+export type ApiTransaction = z.infer<typeof ApiTransactionSchema>
+
+// Frontend transaction schema (transformed for UI)
+export const TransactionSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string().min(1),
+  description: z.string().nullable(),
+  amount: z.number(),
+  type: TransactionTypeSchema,
+  account_id: z.string().uuid(),
+  category_id: z.string().uuid().nullable(),
+  occurred_at: z.string().datetime(),
+  currency: z.string().min(1).default("INR"),
+  related_transfer_id: z.string().uuid().nullable(),
+  user_id: z.string().uuid(),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
+  category: TransactionCategorySchema,
+  account: TransactionAccountSchema,
 })
 
 export type Transaction = z.infer<typeof TransactionSchema>
 
-// Transaction with category details
-export const TransactionWithCategorySchema = TransactionSchema.extend({
-  category: CategorySchema,
-})
-
-export type TransactionWithCategory = z.infer<typeof TransactionWithCategorySchema>
-
 // Create transaction request
 export const CreateTransactionRequestSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
   amount: z.number().positive("Amount must be positive"),
-  description: z.string().min(1, "Description is required"),
-  date: z.string().datetime(),
-  category_id: z.string().uuid("Valid category is required"),
-  account_id: z.string().uuid().optional(),
+  type: TransactionTypeSchema,
+  account_id: z.string().uuid("Valid account is required"),
+  category_id: z.string().uuid().nullable().optional(),
+  occurred_at: z.string().datetime(),
+  currency: z.string().min(1).default("INR"),
 })
 
 export type CreateTransactionRequest = z.infer<typeof CreateTransactionRequestSchema>
 
 // Update transaction request
 export const UpdateTransactionRequestSchema = z.object({
-  amount: z.number().positive("Amount must be positive").optional(),
-  description: z.string().min(1).optional(),
-  date: z.string().datetime().optional(),
-  category_id: z.string().uuid().optional(),
+  title: z.string().min(1).optional(),
+  description: z.string().optional(),
+  amount: z.number().positive().optional(),
+  type: TransactionTypeSchema.optional(),
   account_id: z.string().uuid().optional(),
+  category_id: z.string().uuid().nullable().optional(),
+  occurred_at: z.string().datetime().optional(),
+  currency: z.string().min(1).optional(),
 })
 
 export type UpdateTransactionRequest = z.infer<typeof UpdateTransactionRequestSchema>
 
-// Transaction filters
-export const TransactionFiltersSchema = z.object({
-  category_id: z.string().uuid().optional(),
-  account_id: z.string().uuid().optional(),
-  start_date: z.string().datetime().optional(),
-  end_date: z.string().datetime().optional(),
-  min_amount: z.number().min(0).optional(),
-  max_amount: z.number().min(0).optional(),
-  search: z.string().optional(),
-  page: z.number().int().min(1).default(1),
-  limit: z.number().int().min(1).max(100).default(20),
+// Transaction query filters
+export const TransactionQueryParamsSchema = z.object({
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  type: TransactionTypeSchema.optional(),
+  accountId: z.string().uuid().optional(),
+  categoryId: z.string().uuid().optional(),
+  limit: z.number().int().min(1).max(1000).default(100).optional(),
+  offset: z.number().int().min(0).default(0).optional(),
 })
 
-export type TransactionFilters = z.infer<typeof TransactionFiltersSchema>
+export type TransactionQueryParams = z.infer<typeof TransactionQueryParamsSchema>
 
-// Transaction analytics
-export const TransactionAnalyticsSchema = z.object({
-  total_income: z.number(),
+// Transaction by category query params
+export const TransactionByCategoryParamsSchema = z.object({
+  category: z.string().min(1),
+  dateRange: DateRangeSchema.optional(),
+  customStartDate: z.string().optional(),
+  customEndDate: z.string().optional(),
+})
+
+export type TransactionByCategoryParams = z.infer<typeof TransactionByCategoryParamsSchema>
+
+// Transaction summary schema
+export const TransactionSummarySchema = z.object({
   total_expenses: z.number(),
-  net_amount: z.number(),
-  transaction_count: z.number().int(),
-  categories: z.array(
-    z.object({
-      category_id: z.string().uuid(),
-      category_name: z.string(),
-      category_type: z.enum(["expense", "income"]),
-      amount: z.number(),
-      count: z.number().int(),
-    })
-  ),
+  total_income: z.number(),
+  net_savings: z.number(),
 })
 
-export type TransactionAnalytics = z.infer<typeof TransactionAnalyticsSchema>
+export type TransactionSummary = z.infer<typeof TransactionSummarySchema>
+
+// Transaction trend item schema
+export const TransactionTrendItemSchema = z.object({
+  month: z.string(),
+  year: z.number(),
+  total_expenses: z.number(),
+  total_income: z.number(),
+  net_savings: z.number(),
+})
+
+export type TransactionTrendItem = z.infer<typeof TransactionTrendItemSchema>
+
+// Transaction trend query params
+export const TransactionTrendParamsSchema = z.object({
+  monthsBack: z.number().int().min(1).max(24).default(6).optional(),
+})
+
+export type TransactionTrendParams = z.infer<typeof TransactionTrendParamsSchema>
+
+// Transformation function from API response to frontend transaction
+export const transformApiTransaction = (apiTransaction: ApiTransaction): Transaction => {
+  return {
+    id: apiTransaction.id,
+    title: apiTransaction.title,
+    description: apiTransaction.description,
+    amount: apiTransaction.amount,
+    type: apiTransaction.type,
+    account_id: apiTransaction.account_id,
+    category_id: apiTransaction.category_id,
+    occurred_at: apiTransaction.occurred_at,
+    currency: apiTransaction.currency,
+    related_transfer_id: apiTransaction.related_transfer_id,
+    user_id: apiTransaction.user_id,
+    created_at: apiTransaction.created_at,
+    updated_at: apiTransaction.updated_at,
+    category: apiTransaction.categories, // API uses 'categories' but UI uses 'category'
+    account: apiTransaction.accounts,    // API uses 'accounts' but UI uses 'account'
+  }
+}

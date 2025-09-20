@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useAddEditCategoryDrawer } from "@/lib/hooks/use-add-edit-category-drawer"
+import { useAddEditCategoryDrawer } from "@/hooks"
 import { CustomInput } from "@/components/CustomInput"
 
 export interface CategoryFormData {
@@ -28,10 +28,14 @@ interface EditCategoryProps {
     type: "expense" | "income"
     icon: string
     color: string
+    is_default?: boolean
   }
 }
 
 export const EditCategory = ({ trigger, category }: EditCategoryProps) => {
+  // Don't allow editing default categories
+  const isDefaultCategory = category.is_default
+  
   const {
     isOpen,
     openDrawer,
@@ -42,6 +46,36 @@ export const EditCategory = ({ trigger, category }: EditCategoryProps) => {
     isSubmitDisabled,
     isLoading,
   } = useAddEditCategoryDrawer()
+  
+  // If it's a default category, show a message instead of the edit form
+  if (isDefaultCategory) {
+    return (
+      <CustomDrawer
+        trigger={trigger}
+        title="Cannot Edit Category"
+        SubmitIcon={FolderOpen}
+        submitTitle="OK"
+        submitDisabled={false}
+        onSubmit={() => closeDrawer()}
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (open) {
+            openDrawer()
+          } else {
+            closeDrawer()
+          }
+        }}
+      >
+        <div className="text-center py-8">
+          <FolderOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Default Category</h3>
+          <p className="text-gray-600">
+            This is a default category and cannot be edited. You can create your own custom categories instead.
+          </p>
+        </div>
+      </CustomDrawer>
+    )
+  }
 
   const handleInputChange = (field: keyof CategoryFormData, value: string) => {
     setFormData({
@@ -697,21 +731,21 @@ export const EditCategory = ({ trigger, category }: EditCategoryProps) => {
   ]
 
   const colorOptions = [
-    { name: "Gray", value: "bg-gray-400" },
-    { name: "Red", value: "bg-red-400" },
-    { name: "Orange", value: "bg-orange-400" },
-    { name: "Yellow", value: "bg-yellow-400" },
-    { name: "Green", value: "bg-green-400" },
-    { name: "Blue", value: "bg-blue-400" },
-    { name: "Purple", value: "bg-purple-400" },
-    { name: "Pink", value: "bg-pink-400" },
-    { name: "Indigo", value: "bg-indigo-400" },
-    { name: "Teal", value: "bg-teal-400" },
-    { name: "Cyan", value: "bg-cyan-400" },
-    { name: "Lime", value: "bg-lime-400" },
-    { name: "Emerald", value: "bg-emerald-400" },
-    { name: "Rose", value: "bg-rose-400" },
-    { name: "Violet", value: "bg-violet-400" },
+    { name: "Gray", value: "#6B7280", bgClass: "bg-gray-400" },
+    { name: "Red", value: "#F87171", bgClass: "bg-red-400" },
+    { name: "Orange", value: "#FB923C", bgClass: "bg-orange-400" },
+    { name: "Yellow", value: "#FACC15", bgClass: "bg-yellow-400" },
+    { name: "Green", value: "#4ADE80", bgClass: "bg-green-400" },
+    { name: "Blue", value: "#60A5FA", bgClass: "bg-blue-400" },
+    { name: "Purple", value: "#A78BFA", bgClass: "bg-purple-400" },
+    { name: "Pink", value: "#F472B6", bgClass: "bg-pink-400" },
+    { name: "Indigo", value: "#818CF8", bgClass: "bg-indigo-400" },
+    { name: "Teal", value: "#2DD4BF", bgClass: "bg-teal-400" },
+    { name: "Cyan", value: "#22D3EE", bgClass: "bg-cyan-400" },
+    { name: "Lime", value: "#A3E635", bgClass: "bg-lime-400" },
+    { name: "Emerald", value: "#34D399", bgClass: "bg-emerald-400" },
+    { name: "Rose", value: "#FB7185", bgClass: "bg-rose-400" },
+    { name: "Violet", value: "#8B5CF6", bgClass: "bg-violet-400" },
   ]
 
   const handleFormSubmit = async () => {
@@ -725,6 +759,12 @@ export const EditCategory = ({ trigger, category }: EditCategoryProps) => {
 
   const handleOpenDrawer = () => {
     openDrawer(category)
+  }
+  
+  // Helper function to get the background class for a hex color
+  const getColorBgClass = (hexColor: string) => {
+    const colorOption = colorOptions.find(c => c.value === hexColor)
+    return colorOption ? colorOption.bgClass : "bg-gray-400"
   }
 
   return (
@@ -811,7 +851,7 @@ export const EditCategory = ({ trigger, category }: EditCategoryProps) => {
                 onClick={() => handleInputChange("color", color.value)}
                 className={cn(
                   "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
-                  color.value,
+                  color.bgClass,
                   formData.color === color.value
                     ? "ring-2 ring-purple-500 ring-offset-2"
                     : "hover:scale-105"
@@ -833,7 +873,7 @@ export const EditCategory = ({ trigger, category }: EditCategoryProps) => {
               <div
                 className={cn(
                   "w-10 h-10 rounded-md flex items-center justify-center text-white text-lg",
-                  formData.color
+                  getColorBgClass(formData.color)
                 )}
               >
                 {formData.icon}
