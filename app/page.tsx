@@ -14,17 +14,18 @@ import {
   Calendar,
   Smartphone,
   Zap,
+  IndianRupee,
 } from "lucide-react"
 import GoogleOneTapComponent from "@/components/GoogleOneTap"
 
 const onboardingSteps = [
   {
     id: 1,
-    title: "Welcome to MoneySpend",
+    title: "Welcome to MoneySpent",
     subtitle: "Your Personal Finance Manager",
     description:
       "Take control of your financial life with our intuitive and powerful money management app.",
-    icon: DollarSign,
+    icon: IndianRupee,
     color: "from-blue-500 to-purple-600",
   },
   {
@@ -102,10 +103,11 @@ export default function Home() {
             {/* Logo and Brand */}
             <div className="mb-8">
               <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-4">
-                <DollarSign className="w-10 h-10 text-white" />
+                <IndianRupee className="w-10 h-10 text-white" />
               </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">MoneySpend</h1>
-              <p className="text-gray-600">Ready to start your financial journey?</p>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">MoneySpent</h1>
+              <p className="text-gray-600 text-base font-medium">Track. Analyze. Control.</p>
+              {/* <p className="text-gray-600">Ready to start your financial journey?</p> */}
             </div>
 
             {/* Sign In Section */}

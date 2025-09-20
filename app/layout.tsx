@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import Script from "next/script"
 import TanstackProvider from "@/context/TanstackProvider"
+import SessionMonitor from "@/components/SessionMonitor"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,7 +45,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 mobile-viewport`}
         suppressHydrationWarning
       >
-        <TanstackProvider>{children}</TanstackProvider>
+        <TanstackProvider>
+          <SessionMonitor />
+          {children}
+        </TanstackProvider>
       </body>
     </html>
   )

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { useAuth } from "@/lib/contexts/auth-context"
-import { supabase } from "@/lib/supabase/client"
+import { useAuth } from "@/hooks/useAuth"
+import { authManager } from "@/lib/auth-manager"
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -31,54 +31,20 @@ export default function AuthGuard({ children }: AuthGuardProps) {
           return
         }
 
-        // Get current session from Supabase
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession()
-
-        if (error) {
-          await clearStaleAuth()
-          router.push("/")
-          return
-        }
-
-        if (!session?.user) {
-          await clearStaleAuth()
-          router.push("/")
-          return
-        }
-
-        // Validate session is not expired
-        const now = Math.floor(Date.now() / 1000)
-        if (session.expires_at && session.expires_at < now) {
-          await clearStaleAuth()
-          router.push("/")
-          return
-        }
-
-        // Additional validation: check if user exists in our database
-        try {
-          const { data: userProfile, error: profileError } = await supabase
-            .from("users")
-            .select("id")
-            .eq("id", session.user.id)
-            .single()
-
-          if (profileError || !userProfile) {
-            await clearStaleAuth()
-            router.push("/")
-            return
-          }
-        } catch (profileError) {
-          await clearStaleAuth()
+        // Use the centralized auth manager for session validation
+        const hasValidSession = await authManager.ensureValidSession()
+        
+        if (!hasValidSession) {
+          console.log('AuthGuard: No valid session, redirecting to login')
+          await authManager.clearAuthData()
           router.push("/")
           return
         }
 
         setIsChecking(false)
       } catch (error) {
-        await clearStaleAuth()
+        console.error('AuthGuard: Auth check failed:', error)
+        await authManager.clearAuthData()
         router.push("/")
       }
     }
@@ -86,26 +52,10 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     checkAuth()
   }, [pathname, router])
 
+  // This function is now handled by authManager.clearAuthData()
+  // Keeping for backward compatibility but it just delegates
   const clearStaleAuth = async () => {
-    try {
-      // Clear Supabase session
-      await supabase.auth.signOut()
-
-      // Clear any local storage
-      if (typeof window !== "undefined") {
-        localStorage.clear()
-        sessionStorage.clear()
-      }
-
-      // Clear cookies (if any custom ones exist)
-      document.cookie.split(";").forEach((c) => {
-        document.cookie = c
-          .replace(/^ +/, "")
-          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/")
-      })
-    } catch (error) {
-      // Silent error handling for auth clearing
-    }
+    await authManager.clearAuthData()
   }
 
   // Show loading while checking authentication
