@@ -4,7 +4,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 ## Project Overview
 
-MoneySpent is a personal finance management application built with Next.js 15, designed as a mobile-first PWA for tracking expenses, managing accounts, and financial analytics.
+MoneySpent is a personal finance management application built with Next.js 15, designed as a mobile-first web app for tracking expenses, managing accounts, and financial analytics.
 
 ## Development Commands
 
@@ -13,7 +13,6 @@ MoneySpent is a personal finance management application built with Next.js 15, d
 - `npm run build` - Build production application
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
-- `npm run clear-sw-cache` - Clear service worker cache (custom script)
 
 ### Development Workflow
 - Use `npm run dev --turbopack` for faster development builds
@@ -112,7 +111,7 @@ utils/                 # Utility functions
 - `middleware.ts` - Route protection and authentication checks
 - `components.json` - shadcn/ui configuration
 - `next.config.ts` - Security headers and caching configuration for auth-sensitive routes
-- `package.json` - Uses Turbopack for development, includes clear-sw-cache script
+- `package.json` - Uses Turbopack for development
 
 ## Development Guidelines
 
@@ -187,7 +186,6 @@ utils/                 # Utility functions
 
 ## Notes
 
-- Service worker cleanup script included for PWA functionality
 - Security headers configured for auth-sensitive routes
 - Mobile keyboard handling implemented for better UX
 - Component library uses "new-york" style with gray base color

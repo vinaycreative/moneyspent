@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
-import Script from "next/script"
 import TanstackProvider from "@/context/TanstackProvider"
 import SessionMonitor from "@/components/SessionMonitor"
 
@@ -38,9 +37,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <Script src="/sw-cleanup.js" strategy="afterInteractive" />
-      </head>
+      <head></head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 mobile-viewport`}
         suppressHydrationWarning
