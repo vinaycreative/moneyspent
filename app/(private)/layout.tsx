@@ -9,7 +9,14 @@ import { useAuth } from "@/hooks/useAuth"
 export default function PrivateLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth()
   if (isLoading) {
-    return <div>Loading...</div>
+    return (
+      <div className="h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
   }
   if (!user) {
     return <div>Not logged in</div>

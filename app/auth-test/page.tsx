@@ -15,7 +15,7 @@ export default function AuthTestPage() {
   const [testResults, setTestResults] = useState<string[]>([])
 
   const addResult = (message: string) => {
-    setTestResults(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`])
+    setTestResults((prev) => [...prev, `${new Date().toLocaleTimeString()}: ${message}`])
   }
 
   const testTokenRefresh = async () => {
@@ -59,21 +59,28 @@ export default function AuthTestPage() {
   }
 
   if (isLoading) {
-    return <div className="p-4">Loading...</div>
+    return (
+      <div className="h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold mb-4">Authentication Test Page</h1>
-        
+
         <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
           <h2 className="text-lg font-semibold mb-2">Current Auth State</h2>
           <div className="space-y-1 text-sm">
-            <p>Authenticated: {isAuthenticated ? '✅' : '❌'}</p>
-            <p>User: {user?.name || 'Not logged in'}</p>
-            <p>Loading: {isLoading ? '🔄' : '✅'}</p>
-            <p>Token: {authManager.getAccessToken() ? '✅ Present' : '❌ Missing'}</p>
+            <p>Authenticated: {isAuthenticated ? "✅" : "❌"}</p>
+            <p>User: {user?.name || "Not logged in"}</p>
+            <p>Loading: {isLoading ? "🔄" : "✅"}</p>
+            <p>Token: {authManager.getAccessToken() ? "✅ Present" : "❌ Missing"}</p>
           </div>
         </div>
 

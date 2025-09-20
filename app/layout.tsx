@@ -20,6 +20,17 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '192x192' }, // Auto-detect type
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+    shortcut: '/favicon.ico',
+  },
 }
 
 export const viewport: Viewport = {
@@ -37,7 +48,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head></head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 mobile-viewport`}
         suppressHydrationWarning

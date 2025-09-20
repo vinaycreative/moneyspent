@@ -33,9 +33,9 @@ export default function AuthGuard({ children }: AuthGuardProps) {
 
         // Use the centralized auth manager for session validation
         const hasValidSession = await authManager.ensureValidSession()
-        
+
         if (!hasValidSession) {
-          console.log('AuthGuard: No valid session, redirecting to login')
+          console.log("AuthGuard: No valid session, redirecting to login")
           await authManager.clearAuthData()
           router.push("/")
           return
@@ -43,7 +43,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
 
         setIsChecking(false)
       } catch (error) {
-        console.error('AuthGuard: Auth check failed:', error)
+        console.error("AuthGuard: Auth check failed:", error)
         await authManager.clearAuthData()
         router.push("/")
       }
