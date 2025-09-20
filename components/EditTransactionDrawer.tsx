@@ -15,8 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { DatePicker } from "@/components/ui/date-picker"
-import { useAuth } from "@/lib/contexts/auth-context"
-import { useCategories, useAccounts } from "@/lib/hooks"
+import { useAuth } from "@/hooks"
+import { useCategories, useAccounts } from "@/hooks"
 
 interface Transaction {
   id: string
@@ -74,8 +74,8 @@ export const EditTransactionDrawer = memo(function EditTransactionDrawer({
   const { user } = useAuth()
 
   // Get categories and accounts for dropdowns
-  const { data: categories = [] } = useCategories(user?.id || "", { enabled: !!user?.id })
-  const { data: accounts = [] } = useAccounts(user?.id || "", { enabled: !!user?.id })
+  const { data: categories = [] } = useCategories(user?.id || "")
+  const { accounts = [] } = useAccounts(user?.id || "")
 
   const handleInputChange = (field: string, value: string | Date | undefined) => {
     onFormDataChange({
@@ -94,7 +94,7 @@ export const EditTransactionDrawer = memo(function EditTransactionDrawer({
   return (
     <>
       <div onClick={() => onOpenChange(true)}>{children}</div>
-      
+
       <ReusableDrawer
         isOpen={isOpen}
         onOpenChange={onOpenChange}
@@ -222,7 +222,9 @@ export const EditTransactionDrawer = memo(function EditTransactionDrawer({
                     {selectedCategory?.name || "Category"} • {selectedAccount?.name || "Account"}
                   </div>
                   <div className="text-xs text-gray-400">
-                    {formData.transaction_date ? moment(formData.transaction_date).tz("Asia/Kolkata").format('lll') : "No date selected"}
+                    {formData.transaction_date
+                      ? moment(formData.transaction_date).tz("Asia/Kolkata").format("lll")
+                      : "No date selected"}
                   </div>
                 </div>
                 <div className="text-right">

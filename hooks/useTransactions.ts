@@ -7,7 +7,7 @@ import {
   useFetchTransactionTrend,
   useCreateTransaction,
   useUpdateTransaction,
-  useDeleteTransaction
+  useDeleteTransaction,
 } from "@/queries/transactionQueries"
 import type {
   Transaction,
@@ -15,36 +15,34 @@ import type {
   TransactionByCategoryParams,
   TransactionSummary,
   TransactionTrendItem,
-  TransactionTrendParams
+  TransactionTrendParams,
 } from "@/types"
-import { transformApiTransaction } from "@/types/schemas/transaction.schema"
 
 // Main transactions hook with derived values
 export const useTransactions = (params?: TransactionQueryParams, enabled = true) => {
-  const { data: apiTransactions, isLoading, isError, error } = useFetchTransactions(params, enabled)
-  
+  const { data: transactions, isLoading, isError, error } = useFetchTransactions(params, enabled)
+
   const derivedValues = useMemo(() => {
-    // Transform API transactions to frontend transactions
-    const transactions: Transaction[] = (apiTransactions || []).map(transformApiTransaction)
-    
+    const transactionList = Array.isArray(transactions) ? transactions : []
+
     // Calculate derived values
-    const hasTransactions = transactions.length > 0
-    const totalAmount = transactions.reduce((sum, tx) => sum + tx.amount, 0)
-    const expenseTransactions = transactions.filter(tx => tx.type === 'expense')
-    const incomeTransactions = transactions.filter(tx => tx.type === 'income')
-    const transferTransactions = transactions.filter(tx => tx.type === 'transfer')
-    
+    const hasTransactions = transactionList.length > 0
+    const totalAmount = transactionList.reduce((sum, tx) => sum + tx.amount, 0)
+    const expenseTransactions = transactionList.filter((tx) => tx.type === "expense")
+    const incomeTransactions = transactionList.filter((tx) => tx.type === "income")
+    const transferTransactions = transactionList.filter((tx) => tx.type === "transfer")
+
     const totalExpenses = expenseTransactions.reduce((sum, tx) => sum + tx.amount, 0)
     const totalIncome = incomeTransactions.reduce((sum, tx) => sum + tx.amount, 0)
     const totalTransfers = transferTransactions.reduce((sum, tx) => sum + tx.amount, 0)
-    
-    const transactionCount = transactions.length
+
+    const transactionCount = transactionList.length
     const expenseCount = expenseTransactions.length
     const incomeCount = incomeTransactions.length
     const transferCount = transferTransactions.length
-    
+
     return {
-      transactions,
+      transactions: transactionList,
       hasTransactions,
       totalAmount,
       expenseTransactions,
@@ -58,8 +56,8 @@ export const useTransactions = (params?: TransactionQueryParams, enabled = true)
       incomeCount,
       transferCount,
     }
-  }, [apiTransactions])
-  
+  }, [transactions])
+
   return {
     ...derivedValues,
     isLoading,
@@ -79,22 +77,27 @@ export const useTransaction = (id: string, enabled = true) => {
 
 // Transactions by category hook
 export const useTransactionsByCategory = (params: TransactionByCategoryParams, enabled = true) => {
-  const { data: apiTransactions, isLoading, isError, error } = useFetchTransactionsByCategory(params, enabled)
-  
+  const {
+    data: transactions,
+    isLoading,
+    isError,
+    error,
+  } = useFetchTransactionsByCategory(params, enabled)
+
   const derivedValues = useMemo(() => {
-    const transactions: Transaction[] = (apiTransactions || []).map(transformApiTransaction)
-    const hasTransactions = transactions.length > 0
-    const totalAmount = transactions.reduce((sum, tx) => sum + tx.amount, 0)
-    const transactionCount = transactions.length
-    
+    const transactionList = transactions || []
+    const hasTransactions = transactionList.length > 0
+    const totalAmount = transactionList.reduce((sum, tx) => sum + tx.amount, 0)
+    const transactionCount = transactionList.length
+
     return {
-      transactions,
+      transactions: transactionList,
       hasTransactions,
       totalAmount,
       transactionCount,
     }
-  }, [apiTransactions])
-  
+  }, [transactions])
+
   return {
     ...derivedValues,
     isLoading,

@@ -10,18 +10,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useEditAccountDrawer } from "@/lib/hooks/use-edit-account-drawer"
-import { useUpdateAccount } from "@/lib/hooks/use-accounts"
-import { useAuth } from "@/lib/contexts/auth-context"
+import { useAccountForm } from "@/hooks"
+import { useAuth } from "@/hooks"
 import { CustomInput } from "@/components/CustomInput"
 import { ApiAccount } from "@/types"
 
 export interface EditAccountFormData {
   name: string
   type: string
-  balance: string
+  starting_balance: string
   currency: string
-  account_number: string
 }
 
 export const EditAccount = ({
@@ -38,9 +36,12 @@ export const EditAccount = ({
   onOpenChange: (open: boolean) => void
 }) => {
   const { user } = useAuth()
-  const { formData, setFormData, isLoading } = useEditAccountDrawer()
-
-  const updateAccount = useUpdateAccount()
+  const { formData, setFormData, isLoading, handleSubmit } = useAccountForm({
+    name: account.name,
+    type: account.type,
+    starting_balance: account.current_balance?.toString() || "0",
+    currency: account.currency || "INR",
+  })
 
   const handleInputChange = (field: keyof EditAccountFormData, value: string) => {
     setFormData({
@@ -75,26 +76,15 @@ export const EditAccount = ({
       setFormData({
         name: account.name,
         type: account.type,
-        balance: account.current_balance?.toString() || "0",
-        currency: account.currency,
-        account_number: account.name,
+        starting_balance: account.current_balance?.toString() || "0",
+        currency: account.currency || "INR",
       })
     }
   }, [account, setFormData])
 
   const handleFormSubmit = async () => {
     try {
-      // Create the account update data (only send fields that can be updated)
-      const accountData = {
-        name: formData.name,
-        current_balance: parseFloat(formData.balance) || 0,
-        is_archived: false, // Keep account active
-      }
-
-      // Call the update mutation directly
-      await updateAccount.mutateAsync({ id: account.id, data: accountData })
-
-      // Close the drawer and call onClose
+      await handleSubmit(account.id)
       onClose?.()
     } catch (error) {
       console.error("Failed to update account:", error)
@@ -109,8 +99,8 @@ export const EditAccount = ({
       title="Edit Account"
       SubmitIcon={Edit}
       submitTitle="Update Account"
-      submitDisabled={!formData.name.trim() || !formData.balance.trim() || updateAccount.isPending}
-      submitLoading={updateAccount.isPending}
+      submitDisabled={!formData.name.trim() || !formData.starting_balance.trim() || isLoading}
+      submitLoading={isLoading}
       onSubmit={handleFormSubmit}
       open={isOpen}
       onOpenChange={(open) => {
@@ -167,13 +157,13 @@ export const EditAccount = ({
 
         {/* Balance */}
         <CustomInput
-          id="balance"
+          id="starting_balance"
           label="Balance"
-          name="balance"
+          name="starting_balance"
           type="number"
           placeholder="Enter balance"
-          value={formData.balance}
-          onChange={(e) => handleInputChange("balance", e.target.value)}
+          value={formData.starting_balance}
+          onChange={(e) => handleInputChange("starting_balance", e.target.value)}
           inputMode="numeric"
           required
         />
@@ -198,16 +188,6 @@ export const EditAccount = ({
           </Select>
         </div>
 
-        {/* Account Number */}
-        <CustomInput
-          id="account_number"
-          label="Account Number (Optional)"
-          name="account_number"
-          placeholder="Enter account number"
-          value={formData.account_number}
-          onChange={(e) => handleInputChange("account_number", e.target.value)}
-          className="col-span-2"
-        />
 
         {/* Preview */}
         {selectedType && (
@@ -228,13 +208,10 @@ export const EditAccount = ({
                     {formData.name || "Account Name"}
                   </div>
                   <div className="text-sm text-gray-500">{selectedType.label}</div>
-                  {formData.balance && (
+                  {formData.starting_balance && (
                     <div className="text-sm font-medium text-gray-700">
-                      {formData.currency} {parseFloat(formData.balance).toLocaleString()}
+                      {formData.currency} {parseFloat(formData.starting_balance).toLocaleString()}
                     </div>
-                  )}
-                  {formData.account_number && (
-                    <div className="text-sm text-gray-500">Account: {formData.account_number}</div>
                   )}
                 </div>
               </div>

@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { useCategories } from "@/hooks/useCategories"
-import { useAuth } from "@/lib/contexts/auth-context"
+import { useAuth } from "@/hooks"
 import { useAccounts } from "@/hooks/useAccounts"
 import { AiTwotoneBank } from "react-icons/ai"
 import { BsCreditCard2Front } from "react-icons/bs"
@@ -27,6 +27,7 @@ export interface TransactionFormData {
   type: string
   date: Date | undefined
   amount: string
+  title: string
   description: string
   category: string
   account: string
@@ -66,13 +67,13 @@ export const AddTransaction = ({ trigger }: { trigger: React.ReactNode }) => {
   ]
 
   // Get categories and accounts
-  const { data: categories, isLoading: categoriesLoading } = useCategories(user?.id || "", {
-    enabled: !!user?.id,
-  })
+  const { data: categories, isLoading: categoriesLoading } = useCategories(
+    user?.id || "",
+    undefined,
+    !!user?.id
+  )
 
-  const { data: accounts, isLoading: accountsLoading } = useAccounts(user?.id || "", {
-    enabled: !!user?.id,
-  })
+  const { accounts, isLoading: accountsLoading, isError: accountsError } = useAccounts(user?.id!)
 
   // Filter categories by type
   const filteredCategories = categories?.filter((cat: any) => cat.type === activeTab) || []
@@ -120,7 +121,7 @@ export const AddTransaction = ({ trigger }: { trigger: React.ReactNode }) => {
                 }
               )}
               onClick={() => {
-                setActiveTab(type.id)
+                setActiveTab(type.id as "expense" | "income")
                 setFormData({ ...formData, category: "" })
               }}
             >
@@ -154,15 +155,25 @@ export const AddTransaction = ({ trigger }: { trigger: React.ReactNode }) => {
           />
         </div>
         <CustomInput
+          id="title"
+          label="Title"
+          name="title"
+          placeholder="Enter transaction title"
+          type="text"
+          value={formData.title}
+          onChange={handleInputChange}
+          className="col-span-2"
+          required
+        />
+        <CustomInput
           id="description"
-          label="Description"
+          label="Description (Optional)"
           name="description"
           placeholder="Enter description"
           type="text"
           value={formData.description}
           onChange={handleInputChange}
           className="col-span-2"
-          required
         />
 
         {/* Category Field */}

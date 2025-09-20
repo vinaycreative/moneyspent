@@ -17,15 +17,10 @@ import {
 } from "lucide-react"
 import { ReusableDrawer } from "@/components/ReusableDrawer"
 import { AddTransactionFormContent } from "@/components/AddTransactionFormContent"
-import { useAddTransactionDrawer } from "@/hooks"
+import { useAddTransactionDrawer, useDeleteCategoryMutation } from "@/hooks"
 import { Plus } from "lucide-react"
-import { useAuth } from "@/lib/contexts/auth-context"
-import {
-  useFilteredTransactions,
-  useTransactionSummary,
-  useDeleteTransaction,
-  useAccounts,
-} from "@/hooks"
+import { useAuth } from "@/hooks"
+import { useTransactions, useDeleteTransactionMutation, useAccounts } from "@/hooks"
 import { DeleteConfirmationSheet } from "@/components/DeleteConfirmationSheet"
 import { AddTransaction } from "@/form/AddTransaction"
 import { EditTransaction } from "@/form/EditTransaction"
@@ -38,7 +33,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { cn } from "@/lib/utils"
 
 export default function Transactions() {
   const { user, isLoading: authLoading } = useAuth()
@@ -83,34 +77,63 @@ export default function Transactions() {
   >("all")
 
   // Get accounts for the filter
-  const { data: accounts, isLoading: accountsLoading } = useAccounts(user?.id || "", {
-    enabled: !!user?.id,
-  })
+  const { accounts, isLoading: accountsLoading } = useAccounts(user?.id!)
 
-  // Get filtered transactions based on date range, account, and transaction type
+  // Get transactions with filtering
+  const transactionParams = useMemo(() => {
+    const params: any = {}
+
+    // Date filtering
+    if (selectedDateRange === "today") {
+      params.startDate = new Date().toISOString().split("T")[0]
+      params.endDate = new Date().toISOString().split("T")[0]
+    } else if (selectedDateRange === "week") {
+      const today = new Date()
+      const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()))
+      params.startDate = startOfWeek.toISOString().split("T")[0]
+      params.endDate = new Date().toISOString().split("T")[0]
+    } else if (selectedDateRange === "month") {
+      const today = new Date()
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+      params.startDate = startOfMonth.toISOString().split("T")[0]
+      params.endDate = new Date().toISOString().split("T")[0]
+    } else if (selectedDateRange === "year") {
+      const today = new Date()
+      const startOfYear = new Date(today.getFullYear(), 0, 1)
+      params.startDate = startOfYear.toISOString().split("T")[0]
+      params.endDate = new Date().toISOString().split("T")[0]
+    } else if (selectedDateRange === "custom" && customStartDate && customEndDate) {
+      params.startDate = customStartDate
+      params.endDate = customEndDate
+    }
+
+    // Account filtering
+    if (selectedAccountId && selectedAccountId !== "all") {
+      params.accountId = selectedAccountId
+    }
+
+    // Transaction type filtering
+    if (selectedTransactionType && selectedTransactionType !== "all") {
+      params.type = selectedTransactionType
+    }
+
+    return params
+  }, [
+    selectedDateRange,
+    customStartDate,
+    customEndDate,
+    selectedAccountId,
+    selectedTransactionType,
+  ])
+
   const {
     transactions: filteredTransactions,
     totalExpenses,
     totalIncome,
-    netSavings,
     isLoading: transactionsLoading,
-  } = useFilteredTransactions({
-    userId: user?.id || "",
-    dateRange: selectedDateRange as any,
-    customStartDate: customStartDate || undefined,
-    customEndDate: customEndDate || undefined,
-    accountId: selectedAccountId || undefined,
-    transactionType: selectedTransactionType,
-    enabled: !!user?.id,
-  })
+  } = useTransactions(transactionParams, !!user?.id)
 
-  // Get transaction summary for the filtered date range
-  const { data: summary, isLoading: summaryLoading } = useTransactionSummary(user?.id || "", {
-    enabled: !!user?.id,
-  })
-
-  const deleteTransaction = useDeleteTransaction()
-
+  const deleteTransaction = useDeleteTransactionMutation()
   // Debounce search query to prevent excessive filtering
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -125,7 +148,7 @@ export default function Transactions() {
     if (!debouncedSearchQuery.trim()) return filteredTransactions
 
     const query = debouncedSearchQuery.toLowerCase().trim()
-    return filteredTransactions.filter((transaction: any) => {
+    return filteredTransactions?.filter((transaction: any) => {
       return (
         transaction.title.toLowerCase().includes(query) ||
         transaction.categories?.name?.toLowerCase().includes(query) ||
@@ -136,10 +159,10 @@ export default function Transactions() {
 
   // Sort transactions by date (newest first) and created_at for better ordering
   const sortedTransactions = useMemo(() => {
-    return searchFilteredTransactions.sort((a: any, b: any) => {
-      // First sort by transaction_date (newest first)
-      const dateA = new Date(a.transaction_date).getTime()
-      const dateB = new Date(b.transaction_date).getTime()
+    return searchFilteredTransactions?.sort((a: any, b: any) => {
+      // First sort by occurred_at (newest first)
+      const dateA = new Date(a.occurred_at).getTime()
+      const dateB = new Date(b.occurred_at).getTime()
 
       if (dateA !== dateB) {
         return dateB - dateA
@@ -207,7 +230,7 @@ export default function Transactions() {
     }
   }
 
-  const transactionToDelete = sortedTransactions.find(
+  const transactionToDelete = sortedTransactions?.find(
     (transaction: any) => transaction.id === deleteTransactionId
   )
 
@@ -239,7 +262,7 @@ export default function Transactions() {
               <TrendingDown className="w-4 h-4 text-red-500" />
               <div className="text-sm text-red-600 font-medium">Total Expenses</div>
             </div>
-            {summaryLoading ? (
+            {transactionsLoading ? (
               <div className="animate-pulse bg-red-200 h-6 w-20 rounded"></div>
             ) : (
               <div className="text-xl font-bold text-red-600">
@@ -252,7 +275,7 @@ export default function Transactions() {
               <TrendingUp className="w-4 h-4 text-green-500" />
               <div className="text-sm text-green-600 font-medium">Total Income</div>
             </div>
-            {summaryLoading ? (
+            {transactionsLoading ? (
               <div className="animate-pulse bg-green-200 h-6 w-20 rounded"></div>
             ) : (
               <div className="text-xl font-bold text-green-600">
@@ -260,44 +283,6 @@ export default function Transactions() {
               </div>
             )}
           </div>
-          {/* Net Savings Card */}
-          {/* <div className="col-span-2 bg-white">
-            <div
-              className={`rounded-md p-4 border ${
-                netSavings >= 0 ? "bg-blue-50 border-blue-300" : "bg-orange-50 border-orange-300"
-              }`}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <div
-                  className={`w-4 h-4 rounded-full ${
-                    netSavings >= 0 ? "bg-blue-500" : "bg-orange-500"
-                  }`}
-                ></div>
-                <div className="text-sm font-medium ${
-                    netSavings >= 0 ? "text-blue-600" : "text-orange-600"
-                  }`}
-                >
-                  Net Savings
-                </div>
-              </div>
-              {summaryLoading ? (
-                <div className="animate-pulse bg-gray-200 h-6 w-24 rounded"></div>
-              ) : (
-                <div
-                  className={`text-xl font-bold ${
-                    netSavings >= 0 ? "text-blue-600" : "text-orange-600"
-                  }`}
-                >
-                  ₹ {netSavings.toLocaleString()}
-                </div>
-              )}
-              <div
-                className={`text-xs mt-1 ${netSavings >= 0 ? "text-blue-500" : "text-orange-500"}`}
-              >
-                {netSavings >= 0 ? "You're saving well!" : "You're spending more than earning"}
-              </div>
-            </div>
-          </div> */}
         </div>
       </div>
 
@@ -542,17 +527,21 @@ export default function Transactions() {
 
       {/* Transactions List */}
       <div className="px-4 pb-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">
-          {sortedTransactions.length} Transaction{sortedTransactions.length !== 1 ? "s" : ""}
-          {selectedAccountId && accounts && (
+        <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+          {selectedAccountId !== "all" ? sortedTransactions?.length : "All"} Transaction
+          {sortedTransactions?.length !== 1 ? "s" : ""}{" "}
+          {selectedAccountId === "all" && (
+            <span className="text-xs font-semibold text-gray-600 bg-gray-50 px-2 py-0.5 rounded-sm border border-gray-200 ml-auto">
+              Total: {sortedTransactions?.length}
+            </span>
+          )}
+          {selectedAccountId !== "all" && accounts && (
             <span className="text-sm font-normal text-gray-600">
-              {" "}
-              from {accounts.find((a: any) => a.id === selectedAccountId)?.name}
+              from {accounts?.find((a: any) => a.id === selectedAccountId)?.name}
             </span>
           )}
           {selectedTransactionType !== "all" && (
             <span className="text-sm font-normal text-gray-600">
-              {" "}
               ({selectedTransactionType === "expense" ? "expenses" : "income"})
             </span>
           )}
@@ -575,9 +564,9 @@ export default function Transactions() {
               </div>
             ))}
           </div>
-        ) : sortedTransactions.length > 0 ? (
+        ) : sortedTransactions?.length && sortedTransactions?.length > 0 ? (
           <div className="space-y-2">
-            {sortedTransactions.map((transaction: any) => (
+            {sortedTransactions?.map((transaction: any) => (
               <div
                 key={transaction.id}
                 className="flex items-center bg-white gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200 cursor-pointer"
@@ -592,12 +581,18 @@ export default function Transactions() {
                 </div>
 
                 <div className="flex-1">
-                  <div className="font-medium text-black">{transaction.title}</div>
+                  <div className="font-medium text-black">
+                    {transaction.title || transaction.description}
+                  </div>
                   <div className="text-xs text-gray-500 flex items-center gap-1">
                     <span className="font-medium">
-                      {moment(transaction.transaction_date).tz("Asia/Kolkata").format("DD MMM")}
+                      {moment(transaction.occurred_at).tz("Asia/Kolkata").format("DD MMM")}
                     </span>{" "}
-                    - <span className="font-medium">{transaction.accounts?.name}</span>
+                    -
+                    <span className="font-medium">
+                      {transaction.categories?.name || "Unknown"}
+                    </span>
+                    -<span className="font-medium">{transaction.accounts?.name}</span>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-1">
@@ -611,7 +606,7 @@ export default function Transactions() {
                   </div>
                   <span className="text-[10px] text-gray-500">
                     {" "}
-                    {moment(transaction.transaction_date).tz("Asia/Kolkata").format("LT")}
+                    {moment(transaction.occurred_at).tz("Asia/Kolkata").format("LT")}
                   </span>
                 </div>
                 {/* Action Buttons */}
@@ -663,7 +658,7 @@ export default function Transactions() {
         onOpenChange={setShowDeleteConfirm}
         title="Delete Transaction"
         description="Are you sure you want to delete"
-        itemName={transactionToDelete?.title}
+        itemName={transactionToDelete?.title || transactionToDelete?.description || ""}
         onConfirm={handleDeleteConfirm}
         onCancel={() => setShowDeleteConfirm(false)}
         isPending={deleteTransaction.isPending}
@@ -675,7 +670,7 @@ export default function Transactions() {
                 <span className="text-sm text-gray-600">Amount:</span>
                 <span
                   className={`font-medium ${
-                    transactionToDelete.type === "expense" ? "text-red-600" : "text-green-600"
+                    transactionToDelete?.type === "expense" ? "text-red-600" : "text-green-600"
                   }`}
                 >
                   {transactionToDelete.type === "expense" ? "-" : "+"} ₹{" "}
@@ -685,19 +680,21 @@ export default function Transactions() {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Date:</span>
                 <span className="font-medium text-gray-900">
-                  {moment(transactionToDelete.transaction_date).tz("Asia/Kolkata").format("lll")}
+                  {moment(transactionToDelete.occurred_at).tz("Asia/Kolkata").format("lll")}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Category:</span>
                 <span className="font-medium text-gray-900">
-                  {transactionToDelete.categories?.name || "Uncategorized"}
+                  {/* @ts-ignore */}
+                  {transactionToDelete?.categories?.name! || "Uncategorized"}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Account:</span>
                 <span className="font-medium text-gray-900">
-                  {transactionToDelete.accounts?.name || "Unknown"}
+                  {/* @ts-ignore */}
+                  {transactionToDelete?.accounts?.name! || "Unknown"}
                 </span>
               </div>
             </div>

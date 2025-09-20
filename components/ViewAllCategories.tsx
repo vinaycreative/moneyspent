@@ -1,5 +1,5 @@
 import { EditCategory } from "@/form/EditCategory"
-import { useAuth } from "@/lib/contexts/auth-context"
+import { useAuth } from "@/hooks"
 import { useCategories, useDeleteCategoryMutation } from "@/hooks"
 import { Edit2, Loader, Loader2, SquarePen, Trash2 } from "lucide-react"
 import React, { useState } from "react"
@@ -8,7 +8,12 @@ import { DeleteConfirmationSheet } from "./DeleteConfirmationSheet"
 const ViewAllCategories = () => {
   const { user } = useAuth()
   // Get categories from API
-  const { data: categories, isLoading, isError, error } = useCategories(user?.id || "", undefined, !!user?.id)
+  const {
+    data: categories,
+    isLoading,
+    isError,
+    error,
+  } = useCategories(user?.id || "", undefined, !!user?.id)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [categoryToDelete, setCategoryToDelete] = useState<any>(null)
   const handleDeleteClick = (category: any) => {
@@ -45,7 +50,7 @@ const ViewAllCategories = () => {
           <div className="flex items-center justify-center h-full text-center p-4">
             <div>
               <p className="text-red-500 mb-2">Error loading categories</p>
-              <p className="text-sm text-gray-600">{error?.message || 'Unknown error'}</p>
+              <p className="text-sm text-gray-600">{error?.message || "Unknown error"}</p>
             </div>
           </div>
         )}
@@ -85,14 +90,17 @@ const ViewAllCategories = () => {
                 trigger={
                   <button
                     className={`p-2 border rounded transition-colors ${
-                      category.is_default 
-                        ? "border-gray-200 bg-gray-100 cursor-not-allowed" 
+                      category.is_default
+                        ? "border-gray-200 bg-gray-100 cursor-not-allowed"
                         : "border-gray-300 bg-gray-50 hover:bg-white cursor-pointer"
                     }`}
                     title={category.is_default ? "Cannot edit default category" : "Edit category"}
                     disabled={category.is_default}
                   >
-                    <SquarePen size={18} className={category.is_default ? "text-gray-300" : "text-gray-500"} />
+                    <SquarePen
+                      size={18}
+                      className={category.is_default ? "text-gray-300" : "text-gray-500"}
+                    />
                   </button>
                 }
                 category={category}
@@ -102,13 +110,16 @@ const ViewAllCategories = () => {
                 onClick={() => !category.is_default && handleDeleteClick(category)}
                 disabled={category.is_default}
                 className={`p-2 border rounded transition-colors ${
-                  category.is_default 
-                    ? "border-gray-200 bg-gray-100 cursor-not-allowed" 
+                  category.is_default
+                    ? "border-gray-200 bg-gray-100 cursor-not-allowed"
                     : "border-red-200 bg-red-50 hover:bg-red-100 cursor-pointer"
                 }`}
                 title={category.is_default ? "Cannot delete default category" : "Delete category"}
               >
-                <Trash2 size={18} className={category.is_default ? "text-gray-300" : "text-red-500"} />
+                <Trash2
+                  size={18}
+                  className={category.is_default ? "text-gray-300" : "text-red-500"}
+                />
               </button>
             </div>
           </div>

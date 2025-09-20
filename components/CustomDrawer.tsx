@@ -2,7 +2,7 @@
 import React, { useEffect } from "react"
 import { Drawer } from "vaul"
 import { LucideIcon, Icon, Loader2 } from "lucide-react"
-import { useMobileKeyboard } from "@/lib/hooks/use-mobile-keyboard"
+import { useMobileKeyboard } from "@/hooks/useMobileKeyboard"
 
 interface CustomDrawerProps {
   trigger: React.ReactNode

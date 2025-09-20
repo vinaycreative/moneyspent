@@ -19,7 +19,6 @@ interface UseAccountsReturn {
 
 export const useAccounts = (userId: string) => {
   const { data: accounts, isLoading, isError, error } = useFetchAccounts(userId)
-  console.log("accounts: ", accounts)
 
   return {
     accounts,

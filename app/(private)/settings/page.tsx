@@ -12,9 +12,8 @@ import {
   Info,
   Plus,
 } from "lucide-react"
-import { useAuth } from "@/lib/contexts/auth-context"
+import { useAuth } from "@/hooks"
 import CustomDrawer from "@/components/CustomDrawer"
-import { ViewCategoriesContent } from "@/components/ViewCategoriesContent"
 import { AddCategory } from "@/form/AddCategory"
 import { useViewCategoriesDrawer, useAddEditCategoryDrawer } from "@/hooks"
 import { useRouter } from "next/navigation"
@@ -29,7 +28,7 @@ interface SettingItem {
 }
 
 export default function SettingsPage() {
-  const { user, profile, signOut } = useAuth()
+  const { user, signOut } = useAuth()
   const [currency, setCurrency] = useState("INR")
   const {
     isOpen: isViewOpen,
@@ -160,16 +159,16 @@ export default function SettingsPage() {
         <div className="bg-white rounded-md p-4 border border-gray-200">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
-              {profile?.full_name
-                ? profile.full_name.charAt(0).toUpperCase()
+              {user?.name
+                ? user.name.charAt(0).toUpperCase()
                 : user?.email?.charAt(0).toUpperCase() || "U"}
             </div>
             <div className="flex-1">
-              <div className="font-bold text-gray-900">{profile?.full_name || "User"}</div>
+              <div className="font-bold text-gray-900">{user?.name || "User"}</div>
               <div className="text-sm text-gray-500">{user?.email}</div>
               <div className="text-xs text-gray-400">
-                {profile?.created_at
-                  ? "Member since " + new Date(profile.created_at).toLocaleDateString()
+                {user?.created_at
+                  ? "Member since " + new Date(user.created_at).toLocaleDateString()
                   : "New member"}
               </div>
             </div>

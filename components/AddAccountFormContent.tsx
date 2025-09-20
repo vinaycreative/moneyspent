@@ -11,11 +11,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useAuth } from "@/lib/contexts/auth-context"
-import { useCreateAccount } from "@/lib/hooks"
-import { TablesInsert } from "@/types/supabase"
+import { useAuth } from "@/hooks"
+import { useCreateAccountMutation } from "@/hooks"
 
-type AccountInsert = TablesInsert<"accounts">
+type AccountInsert = any
 
 export interface AccountFormData {
   name: string
@@ -38,7 +37,7 @@ export function AddAccountFormContent({
   isLoading = false,
 }: AddAccountFormContentProps) {
   const { user } = useAuth()
-  const createAccount = useCreateAccount()
+  const createAccount = useCreateAccountMutation()
 
   const accountTypes = [
     { value: "bank", label: "Bank Account", icon: Building2, color: "bg-blue-500" },
@@ -68,80 +67,79 @@ export function AddAccountFormContent({
     <div className="p-6">
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
+          {/* Account Name */}
+          <div>
+            <Label className="text-gray-800 font-medium">Account Name</Label>
+            <Input
+              type="text"
+              placeholder="Enter account name"
+              value={formData.name}
+              onChange={(e) => handleInputChange("name", e.target.value)}
+              className="w-full border-gray-300 bg-white mt-1"
+            />
+          </div>
 
-        {/* Account Name */}
-        <div>
-          <Label className="text-gray-800 font-medium">Account Name</Label>
-          <Input
-            type="text"
-            placeholder="Enter account name"
-            value={formData.name}
-            onChange={(e) => handleInputChange("name", e.target.value)}
-            className="w-full border-gray-300 bg-white mt-1"
-          />
-        </div>
-
-        {/* Account Type */}
-        <div>
-          <Label className="text-gray-800 font-medium">Account Type</Label>
-          <Select
-            value={formData.type}
-            onValueChange={(value) => handleInputChange("type", value)}
-          >
-            <SelectTrigger className="w-full border-gray-300 bg-white mt-1">
-              <SelectValue placeholder="Select account type" />
-            </SelectTrigger>
-            <SelectContent>
-              {accountTypes.map((type) => {
-                const Icon = type.icon
-                return (
-                  <SelectItem key={type.value} value={type.value}>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`w-6 h-6 rounded-lg flex items-center justify-center ${type.color} text-white text-xs`}
-                      >
-                        <Icon className="w-3 h-3" />
+          {/* Account Type */}
+          <div>
+            <Label className="text-gray-800 font-medium">Account Type</Label>
+            <Select
+              value={formData.type}
+              onValueChange={(value) => handleInputChange("type", value)}
+            >
+              <SelectTrigger className="w-full border-gray-300 bg-white mt-1">
+                <SelectValue placeholder="Select account type" />
+              </SelectTrigger>
+              <SelectContent>
+                {accountTypes.map((type) => {
+                  const Icon = type.icon
+                  return (
+                    <SelectItem key={type.value} value={type.value}>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`w-6 h-6 rounded-lg flex items-center justify-center ${type.color} text-white text-xs`}
+                        >
+                          <Icon className="w-3 h-3" />
+                        </div>
+                        <span>{type.label}</span>
                       </div>
-                      <span>{type.label}</span>
-                    </div>
+                    </SelectItem>
+                  )
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Initial Balance */}
+          <div>
+            <Label className="text-gray-800 font-medium">Initial Balance</Label>
+            <Input
+              type="number"
+              placeholder="Enter initial balance"
+              value={formData.balance}
+              onChange={(e) => handleInputChange("balance", e.target.value)}
+              className="w-full border-gray-300 bg-white mt-1"
+            />
+          </div>
+
+          {/* Currency */}
+          <div>
+            <Label className="text-gray-800 font-medium">Currency</Label>
+            <Select
+              value={formData.currency}
+              onValueChange={(value) => handleInputChange("currency", value)}
+            >
+              <SelectTrigger className="w-full border-gray-300 bg-white mt-1">
+                <SelectValue placeholder="Select currency" />
+              </SelectTrigger>
+              <SelectContent>
+                {currencies.map((currency) => (
+                  <SelectItem key={currency.value} value={currency.value}>
+                    {currency.label}
                   </SelectItem>
-                )
-              })}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Initial Balance */}
-        <div>
-          <Label className="text-gray-800 font-medium">Initial Balance</Label>
-          <Input
-            type="number"
-            placeholder="Enter initial balance"
-            value={formData.balance}
-            onChange={(e) => handleInputChange("balance", e.target.value)}
-            className="w-full border-gray-300 bg-white mt-1"
-          />
-        </div>
-
-        {/* Currency */}
-        <div>
-          <Label className="text-gray-800 font-medium">Currency</Label>
-          <Select
-            value={formData.currency}
-            onValueChange={(value) => handleInputChange("currency", value)}
-          >
-            <SelectTrigger className="w-full border-gray-300 bg-white mt-1">
-              <SelectValue placeholder="Select currency" />
-            </SelectTrigger>
-            <SelectContent>
-              {currencies.map((currency) => (
-                <SelectItem key={currency.value} value={currency.value}>
-                  {currency.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Preview */}

@@ -13,17 +13,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useAuth } from "@/lib/contexts/auth-context"
+import { useAuth } from "@/hooks"
 import {
-  useUpdateTransaction,
-  useDeleteTransaction,
+  useUpdateTransactionMutation,
+  useDeleteTransactionMutation,
   useCategories,
   useAccounts,
-} from "@/lib/hooks"
-import { TablesUpdate } from "@/types/supabase"
+} from "@/hooks"
 import moment from "moment-timezone"
-
-type TransactionUpdate = TablesUpdate<"transactions">
 
 interface Transaction {
   id: string
@@ -66,12 +63,12 @@ export function EditTransactionModal({ transaction, children }: EditTransactionM
     description: transaction.description || "",
   })
 
-  const updateTransaction = useUpdateTransaction()
-  const deleteTransaction = useDeleteTransaction()
+  const updateTransaction = useUpdateTransactionMutation()
+  const deleteTransaction = useDeleteTransactionMutation
 
   // Get categories and accounts for dropdowns
-  const { data: categories = [] } = useCategories(user?.id || "", { enabled: !!user?.id })
-  const { data: accounts = [] } = useAccounts(user?.id || "", { enabled: !!user?.id })
+  const { data: categories = [] } = useCategories(user?.id || "")
+  const { accounts = [] } = useAccounts(user?.id || "")
 
   // Close date picker when clicking outside
   useEffect(() => {
@@ -112,7 +109,7 @@ export function EditTransactionModal({ transaction, children }: EditTransactionM
     }
 
     try {
-      const transactionData: TransactionUpdate = {
+      const transactionData: any = {
         title: formData.title,
         amount: parseFloat(formData.amount) || 0,
         type: formData.type as "expense" | "income",
@@ -210,8 +207,13 @@ export function EditTransactionModal({ transaction, children }: EditTransactionM
     // Convert the selected date to full ISO string with current time
     const now = new Date()
     const selectedDate = new Date(date)
-    selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds())
-    
+    selectedDate.setHours(
+      now.getHours(),
+      now.getMinutes(),
+      now.getSeconds(),
+      now.getMilliseconds()
+    )
+
     handleInputChange("transaction_date", selectedDate.toISOString())
     setShowDatePicker(false)
   }
@@ -351,7 +353,7 @@ export function EditTransactionModal({ transaction, children }: EditTransactionM
                 <Input
                   type="text"
                   placeholder="Select date"
-                  value={moment(formData.transaction_date).tz("Asia/Kolkata").format('lll')}
+                  value={moment(formData.transaction_date).tz("Asia/Kolkata").format("lll")}
                   onClick={() => setShowDatePicker(!showDatePicker)}
                   readOnly
                   className="w-full border-gray-300 bg-white cursor-pointer"
@@ -419,7 +421,7 @@ export function EditTransactionModal({ transaction, children }: EditTransactionM
                       {selectedCategory?.name || "Category"} • {selectedAccount?.name || "Account"}
                     </div>
                     <div className="text-xs text-gray-400">
-                      {moment(formData.transaction_date).tz("Asia/Kolkata").format('lll')}
+                      {moment(formData.transaction_date).tz("Asia/Kolkata").format("lll")}
                     </div>
                   </div>
                   <div className="text-right">

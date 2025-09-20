@@ -40,9 +40,9 @@ export default function AccountsPage() {
   const { accounts, isLoading: accountsLoading, isError: accountsError } = useAccounts(user?.id!)
 
   // Calculate derived values in the component
-  const activeAccounts = accounts?.filter((acc) => !acc.is_archived)
+  const activeAccounts = accounts?.filter((acc: any) => !acc.is_archived)
   const hasAccounts = accounts?.length! > 0
-  const totalBalance = activeAccounts?.reduce((sum, acc) => sum + acc.current_balance, 0)
+  const totalBalance = activeAccounts?.reduce((sum: any, acc: any) => sum + acc.current_balance, 0)
   const accountCount = accounts?.length!
 
   const deleteAccountMutation = useDeleteAccountMutation()
@@ -67,8 +67,6 @@ export default function AccountsPage() {
       </div>
     )
   }
-
-  console.log("accountsError: ", accountsError)
 
   // Handle accounts error state
   if (accountsError) {
@@ -292,42 +290,48 @@ export default function AccountsPage() {
         onOpenChange={setShowDeleteConfirm}
         title="Delete Account"
         description="Are you sure you want to delete"
-        itemName={selectedAccount?.name}
+        itemName={accounts?.find((acc: any) => acc.id === deleteAccountId)?.name}
         onConfirm={handleDeleteConfirm}
         onCancel={() => setShowDeleteConfirm(false)}
         isPending={deleteAccountMutation.isPending}
         confirmText="Delete Account"
         additionalDetails={
-          selectedAccount && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Type:</span>
-                <span className="font-medium text-gray-900 capitalize">
-                  {selectedAccount.type}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Balance:</span>
-                <span
-                  className={`font-medium ${
-                    selectedAccount.balance >= 0 ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  ₹ {selectedAccount.current_balance.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Status:</span>
-                <span
-                  className={`font-medium ${
-                    selectedAccount.balance >= 0 ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {selectedAccount.balance >= 0 ? "Available" : "Due"}
-                </span>
-              </div>
-            </div>
-          )
+          deleteAccountId &&
+          (() => {
+            const accountToDelete = accounts?.find((acc: any) => acc.id === deleteAccountId)
+            return (
+              accountToDelete && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Type:</span>
+                    <span className="font-medium text-gray-900 capitalize">
+                      {accountToDelete.type}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Balance:</span>
+                    <span
+                      className={`font-medium ${
+                        accountToDelete.current_balance >= 0 ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      ₹ {accountToDelete.current_balance.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Status:</span>
+                    <span
+                      className={`font-medium ${
+                        accountToDelete.current_balance >= 0 ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      {accountToDelete.current_balance >= 0 ? "Available" : "Due"}
+                    </span>
+                  </div>
+                </div>
+              )
+            )
+          })()
         }
       />
 

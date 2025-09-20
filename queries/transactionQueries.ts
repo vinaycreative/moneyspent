@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { 
+import {
   fetchTransactions,
   fetchTransactionById,
   createTransaction,
@@ -7,33 +7,36 @@ import {
   deleteTransaction,
   fetchTransactionsByCategory,
   fetchTransactionSummary,
-  fetchTransactionTrend
+  fetchTransactionTrend,
 } from "@/api/transactions"
-import type { 
+import type {
   Transaction,
   ApiTransaction,
-  CreateTransactionRequest, 
+  CreateTransactionRequest,
   UpdateTransactionRequest,
   TransactionQueryParams,
   TransactionByCategoryParams,
   TransactionSummary,
   TransactionTrendItem,
-  TransactionTrendParams
+  TransactionTrendParams,
 } from "@/types"
 
 // Query keys for consistent cache management
 export const transactionQueryKeys = {
-  all: ['transactions'] as const,
-  lists: () => [...transactionQueryKeys.all, 'list'] as const,
+  all: ["transactions"] as const,
+  lists: () => [...transactionQueryKeys.all, "list"] as const,
   list: (params?: TransactionQueryParams) => [...transactionQueryKeys.lists(), params] as const,
-  details: () => [...transactionQueryKeys.all, 'detail'] as const,
+  details: () => [...transactionQueryKeys.all, "detail"] as const,
   detail: (id: string) => [...transactionQueryKeys.details(), id] as const,
-  byCategory: () => [...transactionQueryKeys.all, 'by-category'] as const,
-  byCategoryParams: (params: TransactionByCategoryParams) => [...transactionQueryKeys.byCategory(), params] as const,
-  summary: () => [...transactionQueryKeys.all, 'summary'] as const,
-  summaryWithDates: (startDate?: string, endDate?: string) => [...transactionQueryKeys.summary(), startDate, endDate] as const,
-  trend: () => [...transactionQueryKeys.all, 'trend'] as const,
-  trendWithParams: (params?: TransactionTrendParams) => [...transactionQueryKeys.trend(), params] as const,
+  byCategory: () => [...transactionQueryKeys.all, "by-category"] as const,
+  byCategoryParams: (params: TransactionByCategoryParams) =>
+    [...transactionQueryKeys.byCategory(), params] as const,
+  summary: () => [...transactionQueryKeys.all, "summary"] as const,
+  summaryWithDates: (startDate?: string, endDate?: string) =>
+    [...transactionQueryKeys.summary(), startDate, endDate] as const,
+  trend: () => [...transactionQueryKeys.all, "trend"] as const,
+  trendWithParams: (params?: TransactionTrendParams) =>
+    [...transactionQueryKeys.trend(), params] as const,
 }
 
 // Fetch transactions with filters
@@ -44,8 +47,8 @@ export const useFetchTransactions = (params?: TransactionQueryParams, enabled = 
     enabled,
     staleTime: 2 * 60 * 1000, // 2 minutes
     meta: {
-      errorMessage: "Failed to fetch transactions"
-    }
+      errorMessage: "Failed to fetch transactions",
+    },
   })
 }
 
@@ -57,34 +60,41 @@ export const useFetchTransactionById = (id: string, enabled = true) => {
     enabled: !!id && enabled,
     staleTime: 5 * 60 * 1000, // 5 minutes
     meta: {
-      errorMessage: "Failed to fetch transaction details"
-    }
+      errorMessage: "Failed to fetch transaction details",
+    },
   })
 }
 
 // Fetch transactions by category
-export const useFetchTransactionsByCategory = (params: TransactionByCategoryParams, enabled = true) => {
+export const useFetchTransactionsByCategory = (
+  params: TransactionByCategoryParams,
+  enabled = true
+) => {
   return useQuery({
     queryKey: transactionQueryKeys.byCategoryParams(params),
     queryFn: () => fetchTransactionsByCategory(params),
     enabled,
     staleTime: 2 * 60 * 1000, // 2 minutes
     meta: {
-      errorMessage: "Failed to fetch transactions by category"
-    }
+      errorMessage: "Failed to fetch transactions by category",
+    },
   })
 }
 
 // Fetch transaction summary
-export const useFetchTransactionSummary = (startDate?: string, endDate?: string, enabled = true) => {
+export const useFetchTransactionSummary = (
+  startDate?: string,
+  endDate?: string,
+  enabled = true
+) => {
   return useQuery({
     queryKey: transactionQueryKeys.summaryWithDates(startDate, endDate),
     queryFn: () => fetchTransactionSummary(startDate, endDate),
     enabled,
     staleTime: 5 * 60 * 1000, // 5 minutes
     meta: {
-      errorMessage: "Failed to fetch transaction summary"
-    }
+      errorMessage: "Failed to fetch transaction summary",
+    },
   })
 }
 
@@ -96,93 +106,90 @@ export const useFetchTransactionTrend = (params?: TransactionTrendParams, enable
     enabled,
     staleTime: 10 * 60 * 1000, // 10 minutes (trends change less frequently)
     meta: {
-      errorMessage: "Failed to fetch transaction trend"
-    }
+      errorMessage: "Failed to fetch transaction trend",
+    },
   })
 }
 
 // Create new transaction
 export const useCreateTransaction = () => {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: createTransaction,
     onSuccess: (newTransaction) => {
       // Invalidate transactions list to refetch with new data
-      queryClient.invalidateQueries({ 
-        queryKey: transactionQueryKeys.lists() 
+      queryClient.invalidateQueries({
+        queryKey: transactionQueryKeys.lists(),
       })
-      
+
       // Invalidate summary and trend data
-      queryClient.invalidateQueries({ 
-        queryKey: transactionQueryKeys.summary() 
+      queryClient.invalidateQueries({
+        queryKey: transactionQueryKeys.summary(),
       })
-      queryClient.invalidateQueries({ 
-        queryKey: transactionQueryKeys.trend() 
+      queryClient.invalidateQueries({
+        queryKey: transactionQueryKeys.trend(),
       })
-      queryClient.invalidateQueries({ 
-        queryKey: transactionQueryKeys.byCategory() 
+      queryClient.invalidateQueries({
+        queryKey: transactionQueryKeys.byCategory(),
       })
-      
-      // Invalidate account stats if they exist
-      queryClient.invalidateQueries({ 
-        queryKey: ['accounts', 'stats'] 
+
+      // Invalidate account-related queries since balances changed
+      queryClient.invalidateQueries({
+        queryKey: ["accounts"],
       })
-      
+
       // Invalidate category stats if they exist
-      queryClient.invalidateQueries({ 
-        queryKey: ['categories', 'stats'] 
+      queryClient.invalidateQueries({
+        queryKey: ["categories", "stats"],
       })
     },
     meta: {
-      errorMessage: "Failed to create transaction"
-    }
+      errorMessage: "Failed to create transaction",
+    },
   })
 }
 
 // Update existing transaction
 export const useUpdateTransaction = () => {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateTransactionRequest }) =>
       updateTransaction(id, data),
     onSuccess: (updatedTransaction, { id }) => {
       // Update specific transaction in cache
-      queryClient.setQueryData(
-        transactionQueryKeys.detail(id),
-        updatedTransaction
-      )
-      
+      queryClient.setQueryData(transactionQueryKeys.detail(id), updatedTransaction)
+
       // Invalidate transactions list
-      queryClient.invalidateQueries({ 
-        queryKey: transactionQueryKeys.lists() 
+      queryClient.invalidateQueries({
+        queryKey: transactionQueryKeys.lists(),
       })
-      
+
       // Invalidate summary and trend data
-      queryClient.invalidateQueries({ 
-        queryKey: transactionQueryKeys.summary() 
+      queryClient.invalidateQueries({
+        queryKey: transactionQueryKeys.summary(),
       })
-      queryClient.invalidateQueries({ 
-        queryKey: transactionQueryKeys.trend() 
+      queryClient.invalidateQueries({
+        queryKey: transactionQueryKeys.trend(),
       })
-      queryClient.invalidateQueries({ 
-        queryKey: transactionQueryKeys.byCategory() 
+      queryClient.invalidateQueries({
+        queryKey: transactionQueryKeys.byCategory(),
       })
-      
-      // Invalidate account stats
-      queryClient.invalidateQueries({ 
-        queryKey: ['accounts', 'stats'] 
+
+      // Invalidate account-related queries since balances may have changed
+      queryClient.invalidateQueries({
+        queryKey: ["accounts"],
       })
-      
+
       // Invalidate category stats
-      queryClient.invalidateQueries({ 
-        queryKey: ['categories', 'stats'] 
+      queryClient.invalidateQueries({
+        queryKey: ["categories", "stats"],
       })
     },
     meta: {
-      errorMessage: "Failed to update transaction"
-    }
+      errorMessage: "Failed to update transaction",
+    },
   })
 }
 
@@ -192,40 +199,35 @@ export const useDeleteTransaction = () => {
   
   return useMutation({
     mutationFn: deleteTransaction,
-    onSuccess: (_, deletedId) => {
-      // Remove from cache
-      queryClient.removeQueries({ 
-        queryKey: transactionQueryKeys.detail(deletedId) 
-      })
-      
+    onSuccess: () => {
       // Invalidate transactions list
-      queryClient.invalidateQueries({ 
-        queryKey: transactionQueryKeys.lists() 
+      queryClient.invalidateQueries({
+        queryKey: transactionQueryKeys.lists(),
       })
       
       // Invalidate summary and trend data
-      queryClient.invalidateQueries({ 
-        queryKey: transactionQueryKeys.summary() 
+      queryClient.invalidateQueries({
+        queryKey: transactionQueryKeys.summary(),
       })
-      queryClient.invalidateQueries({ 
-        queryKey: transactionQueryKeys.trend() 
+      queryClient.invalidateQueries({
+        queryKey: transactionQueryKeys.trend(),
       })
-      queryClient.invalidateQueries({ 
-        queryKey: transactionQueryKeys.byCategory() 
+      queryClient.invalidateQueries({
+        queryKey: transactionQueryKeys.byCategory(),
       })
       
-      // Invalidate account stats
-      queryClient.invalidateQueries({ 
-        queryKey: ['accounts', 'stats'] 
+      // Invalidate account-related queries since balances changed
+      queryClient.invalidateQueries({
+        queryKey: ["accounts"],
       })
       
       // Invalidate category stats
-      queryClient.invalidateQueries({ 
-        queryKey: ['categories', 'stats'] 
+      queryClient.invalidateQueries({
+        queryKey: ["categories", "stats"],
       })
     },
     meta: {
-      errorMessage: "Failed to delete transaction"
-    }
+      errorMessage: "Failed to delete transaction",
+    },
   })
 }

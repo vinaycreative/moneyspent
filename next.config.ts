@@ -3,6 +3,7 @@ import type { NextConfig } from "next"
 const nextConfig: NextConfig = {
   // Cache control for production
   generateEtags: false,
+  strictMode: false,
 
   // Headers for security and caching control
   async headers() {

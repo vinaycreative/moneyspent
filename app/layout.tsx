@@ -1,11 +1,6 @@
 import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
-import BottomNavigation from "@/components/BottomNavigation"
-import Header from "@/components/Header"
-import { QueryProvider } from "@/lib/query-provider"
-import { AuthProvider } from "@/lib/contexts/auth-context"
-import PrivateLayout from "./old/layout"
 import Script from "next/script"
 import TanstackProvider from "@/context/TanstackProvider"
 

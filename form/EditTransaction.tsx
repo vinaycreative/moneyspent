@@ -13,13 +13,13 @@ import {
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { useCategories } from "@/hooks/useCategories"
-import { useAuth } from "@/lib/contexts/auth-context"
+import { useAuth } from "@/hooks"
 import { useAccounts } from "@/hooks/useAccounts"
 import { AiTwotoneBank } from "react-icons/ai"
 import { BsCreditCard2Front } from "react-icons/bs"
 import { HiOutlineCash } from "react-icons/hi"
 import { useEditTransactionDrawer } from "@/hooks"
-import { useUpdateTransaction } from "@/hooks"
+import { useUpdateTransactionMutation } from "@/hooks"
 import { AddCategory } from "./AddCategory"
 import { Button } from "@/components/ui/button"
 import { AddAccount } from "./AddAccount"
@@ -27,7 +27,7 @@ import { AddAccount } from "./AddAccount"
 export interface EditTransactionFormData {
   title: string
   type: string
-  date: Date | undefined
+  occurred_at: Date | undefined
   amount: string
   description: string
   category: string
@@ -58,7 +58,7 @@ export const EditTransaction = ({
     isLoading,
   } = useEditTransactionDrawer()
 
-  const updateTransaction = useUpdateTransaction()
+  const updateTransaction = useUpdateTransactionMutation()
 
   // Initialize form data when transaction changes
   React.useEffect(() => {
@@ -66,9 +66,7 @@ export const EditTransaction = ({
       setFormData({
         title: transaction.title || "",
         type: transaction.type || "expense",
-        transaction_date: transaction.transaction_date
-          ? new Date(transaction.transaction_date)
-          : undefined,
+        occurred_at: transaction.occurred_at ? new Date(transaction.occurred_at) : undefined,
         amount: transaction.amount?.toString() || "",
         description: transaction.description || "",
         category_id: transaction.category_id || "",
@@ -97,13 +95,9 @@ export const EditTransaction = ({
   ]
 
   // Get categories and accounts
-  const { data: categories, isLoading: categoriesLoading } = useCategories(user?.id || "", {
-    enabled: !!user?.id,
-  })
+  const { data: categories, isLoading: categoriesLoading } = useCategories(user?.id!)
 
-  const { data: accounts, isLoading: accountsLoading } = useAccounts(user?.id || "", {
-    enabled: !!user?.id,
-  })
+  const { accounts, isLoading: accountsLoading } = useAccounts(user?.id!)
 
   // Filter categories by type
   const filteredCategories = categories?.filter((cat: any) => cat.type === activeTab) || []
@@ -111,9 +105,9 @@ export const EditTransaction = ({
   const handleFormSubmit = async () => {
     try {
       // Use the date from the form (which includes any time changes made by the user)
-      const transactionDate = formData.transaction_date
-        ? formData.transaction_date.toISOString()
-        : transaction.transaction_date
+      const transactionDate = formData.occurred_at
+        ? formData.occurred_at.toISOString()
+        : transaction.occurred_at
 
       const transactionData = {
         title: formData.title,
@@ -121,8 +115,8 @@ export const EditTransaction = ({
         type: formData.type,
         category_id: formData.category_id,
         account_id: formData.account_id,
-        transaction_date: transactionDate,
-        description: formData.description || null,
+        occurred_at: transactionDate,
+        description: formData.description || "",
         updated_at: new Date().toISOString(),
       }
 
@@ -202,15 +196,26 @@ export const EditTransaction = ({
           <DateTimePicker
             id="date"
             name="date"
-            date={formData.transaction_date}
-            onDateChange={(date) => setFormData({ ...formData, transaction_date: date })}
+            date={formData.occurred_at}
+            onDateChange={(date) => setFormData({ ...formData, occurred_at: date })}
             placeholder="Select date"
             required={true}
           />
         </div>
         <CustomInput
+          id="title"
+          label="Title"
+          name="title"
+          placeholder="Enter transaction title"
+          type="text"
+          value={formData.title}
+          onChange={handleInputChange}
+          className="col-span-2"
+          required
+        />
+        <CustomInput
           id="description"
-          label="Description"
+          label="Description (Optional)"
           name="description"
           placeholder="Enter description"
           type="text"

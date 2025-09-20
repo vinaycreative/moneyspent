@@ -9,19 +9,23 @@ export const DateRangeSchema = z.enum(["today", "week", "month", "year", "all", 
 export type DateRange = z.infer<typeof DateRangeSchema>
 
 // Related category and account schemas (simplified versions)
-export const TransactionCategorySchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  icon: z.string(),
-  color: z.string().optional(),
-  kind: TransactionTypeSchema.optional(),
-}).nullable()
+export const TransactionCategorySchema = z
+  .object({
+    id: z.string().uuid(),
+    name: z.string(),
+    icon: z.string(),
+    color: z.string().optional(),
+    kind: TransactionTypeSchema.optional(),
+  })
+  .nullable()
 
-export const TransactionAccountSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  type: z.string(),
-}).nullable()
+export const TransactionAccountSchema = z
+  .object({
+    id: z.string().uuid(),
+    name: z.string(),
+    type: z.string(),
+  })
+  .nullable()
 
 // Raw API response schema (matches backend exactly)
 export const ApiTransactionSchema = z.object({
@@ -38,8 +42,8 @@ export const ApiTransactionSchema = z.object({
   user_id: z.string().uuid(),
   created_at: z.string().datetime(),
   updated_at: z.string().datetime(),
-  categories: TransactionCategorySchema,
-  accounts: TransactionAccountSchema,
+  category: TransactionCategorySchema,
+  account: TransactionAccountSchema,
 })
 
 export type ApiTransaction = z.infer<typeof ApiTransactionSchema>
@@ -85,9 +89,9 @@ export const UpdateTransactionRequestSchema = z.object({
   description: z.string().optional(),
   amount: z.number().positive().optional(),
   type: TransactionTypeSchema.optional(),
-  account_id: z.string().uuid().optional(),
-  category_id: z.string().uuid().nullable().optional(),
-  occurred_at: z.string().datetime().optional(),
+  account_id: z.string().optional(),
+  category_id: z.string().nullable().optional(),
+  occurred_at: z.string().optional(),
   currency: z.string().min(1).optional(),
 })
 
@@ -98,8 +102,8 @@ export const TransactionQueryParamsSchema = z.object({
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   type: TransactionTypeSchema.optional(),
-  accountId: z.string().uuid().optional(),
-  categoryId: z.string().uuid().optional(),
+  accountId: z.string().optional(),
+  categoryId: z.string().optional(),
   limit: z.number().int().min(1).max(1000).default(100).optional(),
   offset: z.number().int().min(0).default(0).optional(),
 })
@@ -159,7 +163,7 @@ export const transformApiTransaction = (apiTransaction: ApiTransaction): Transac
     user_id: apiTransaction.user_id,
     created_at: apiTransaction.created_at,
     updated_at: apiTransaction.updated_at,
-    category: apiTransaction.categories, // API uses 'categories' but UI uses 'category'
-    account: apiTransaction.accounts,    // API uses 'accounts' but UI uses 'account'
+    category: apiTransaction.category,
+    account: apiTransaction.account,
   }
 }
