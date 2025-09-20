@@ -10,13 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useAddAccountDrawer } from "@/lib/hooks/use-add-account-drawer"
+import { useAccountForm } from "@/hooks"
 import { CustomInput } from "@/components/CustomInput"
 
 export interface AccountFormData {
   name: string
   type: string
-  balance: string
+  starting_balance: string
   currency: string
 }
 
@@ -30,7 +30,7 @@ export const AddAccount = ({ trigger }: { trigger: React.ReactNode }) => {
     handleSubmit,
     isSubmitDisabled,
     isLoading,
-  } = useAddAccountDrawer()
+  } = useAccountForm()
 
   const handleInputChange = (field: keyof AccountFormData, value: string) => {
     setFormData({
@@ -134,11 +134,11 @@ export const AddAccount = ({ trigger }: { trigger: React.ReactNode }) => {
         <CustomInput
           id="balance"
           label="Initial Balance"
-          name="balance"
+          name="starting_balance"
           type="number"
           placeholder="Enter initial balance"
-          value={formData.balance}
-          onChange={(e) => handleInputChange("balance", e.target.value)}
+          value={formData.starting_balance}
+          onChange={(e) => handleInputChange("starting_balance", e.target.value)}
           inputMode="numeric"
           required
         />
@@ -220,9 +220,9 @@ export const AddAccount = ({ trigger }: { trigger: React.ReactNode }) => {
                     {formData.name || "Account Name"}
                   </div>
                   <div className="text-sm text-gray-500">{selectedType.label}</div>
-                  {formData.balance && (
+                  {formData.starting_balance && (
                     <div className="text-sm font-medium text-gray-700">
-                      {formData.currency} {parseFloat(formData.balance).toLocaleString()}
+                      {formData.currency} {parseFloat(formData.starting_balance).toLocaleString()}
                     </div>
                   )}
                 </div>

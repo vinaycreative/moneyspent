@@ -1,67 +1,79 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 
-interface UseMobileKeyboardReturn {
-  isKeyboardVisible: boolean
-  viewportHeight: number
-  initialViewportHeight: number
-  keyboardHeight: number
-}
-
-export const useMobileKeyboard = (): UseMobileKeyboardReturn => {
+export const useMobileKeyboard = () => {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false)
-  const [viewportHeight, setViewportHeight] = useState(0)
-  const [initialViewportHeight, setInitialViewportHeight] = useState(0)
-  const [keyboardHeight, setKeyboardHeight] = useState(0)
-
-  const updateViewportInfo = useCallback(() => {
-    if (typeof window !== "undefined") {
-      const currentHeight = window.visualViewport?.height || window.innerHeight
-      const newInitialHeight = initialViewportHeight || currentHeight
-
-      setViewportHeight(currentHeight)
-
-      if (!initialViewportHeight) {
-        setInitialViewportHeight(newInitialHeight)
-      }
-
-      const heightDifference = newInitialHeight - currentHeight
-      const newKeyboardVisible = heightDifference > 150
-
-      setIsKeyboardVisible(newKeyboardVisible)
-      setKeyboardHeight(newKeyboardVisible ? heightDifference : 0)
-    }
-  }, [initialViewportHeight])
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      // Set initial values
-      setInitialViewportHeight(window.visualViewport?.height || window.innerHeight)
-      setViewportHeight(window.visualViewport?.height || window.innerHeight)
+    if (typeof window === "undefined") return
 
-      // Use visualViewport API if available (more reliable)
-      if (window.visualViewport) {
-        window.visualViewport.addEventListener("resize", updateViewportInfo)
-      } else {
-        // Fallback for older browsers
-        window.addEventListener("resize", updateViewportInfo)
-        window.addEventListener("orientationchange", updateViewportInfo)
-      }
+    const initialViewportHeight = window.visualViewport?.height || window.innerHeight
+    let timeoutId: NodeJS.Timeout
 
-      return () => {
-        if (window.visualViewport) {
-          window.visualViewport.removeEventListener("resize", updateViewportInfo)
-        } else {
-          window.removeEventListener("resize", updateViewportInfo)
-          window.removeEventListener("orientationchange", updateViewportInfo)
-        }
+    const handleViewportChange = () => {
+      // Clear any existing timeout
+      if (timeoutId) clearTimeout(timeoutId)
+      
+      // Debounce to avoid rapid changes
+      timeoutId = setTimeout(() => {
+        const currentHeight = window.visualViewport?.height || window.innerHeight
+        const heightDifference = initialViewportHeight - currentHeight
+        
+        // Consider keyboard visible if viewport height decreased by more than 150px
+        // This threshold accounts for mobile browsers' address bar changes
+        const keyboardVisible = heightDifference > 150
+        
+        setIsKeyboardVisible(keyboardVisible)
+      }, 100)
+    }
+
+    // Listen for viewport changes (modern approach)
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", handleViewportChange)
+    } else {
+      // Fallback for older browsers
+      window.addEventListener("resize", handleViewportChange)
+    }
+
+    // Also listen for focusin/focusout events on input elements
+    const handleFocusIn = (e: FocusEvent) => {
+      const target = e.target as HTMLElement
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT")) {
+        // Small delay to allow keyboard animation to start
+        setTimeout(() => {
+          const currentHeight = window.visualViewport?.height || window.innerHeight
+          const heightDifference = initialViewportHeight - currentHeight
+          setIsKeyboardVisible(heightDifference > 150)
+        }, 300)
       }
     }
-  }, [updateViewportInfo])
+
+    const handleFocusOut = () => {
+      // Small delay to allow keyboard to hide
+      setTimeout(() => {
+        const currentHeight = window.visualViewport?.height || window.innerHeight
+        const heightDifference = initialViewportHeight - currentHeight
+        setIsKeyboardVisible(heightDifference > 150)
+      }, 300)
+    }
+
+    document.addEventListener("focusin", handleFocusIn)
+    document.addEventListener("focusout", handleFocusOut)
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId)
+      
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", handleViewportChange)
+      } else {
+        window.removeEventListener("resize", handleViewportChange)
+      }
+      
+      document.removeEventListener("focusin", handleFocusIn)
+      document.removeEventListener("focusout", handleFocusOut)
+    }
+  }, [])
 
   return {
     isKeyboardVisible,
-    viewportHeight,
-    initialViewportHeight,
-    keyboardHeight,
   }
 }

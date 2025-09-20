@@ -14,6 +14,7 @@ import { useEditAccountDrawer } from "@/lib/hooks/use-edit-account-drawer"
 import { useUpdateAccount } from "@/lib/hooks/use-accounts"
 import { useAuth } from "@/lib/contexts/auth-context"
 import { CustomInput } from "@/components/CustomInput"
+import { ApiAccount } from "@/types"
 
 export interface EditAccountFormData {
   name: string
@@ -31,7 +32,7 @@ export const EditAccount = ({
   onOpenChange,
 }: {
   trigger: React.ReactNode
-  account: any
+  account: ApiAccount
   onClose?: () => void
   isOpen: boolean
   onOpenChange: (open: boolean) => void
@@ -52,7 +53,9 @@ export const EditAccount = ({
     { value: "bank", label: "Bank Account", icon: Building2, color: "bg-blue-500" },
     { value: "credit", label: "Credit Card", icon: CreditCard, color: "bg-purple-500" },
     { value: "cash", label: "Cash", icon: Wallet, color: "bg-green-500" },
+    { value: "wallet", label: "Wallet", icon: Wallet, color: "bg-green-600" },
     { value: "savings", label: "Savings", icon: PiggyBank, color: "bg-orange-500" },
+    { value: "investment", label: "Investment", icon: PiggyBank, color: "bg-indigo-500" },
   ]
 
   const currencies = [
@@ -70,26 +73,22 @@ export const EditAccount = ({
   React.useEffect(() => {
     if (account) {
       setFormData({
-        name: account.name || "",
-        type: account.type || "bank",
-        balance: account.balance?.toString() || "0",
-        currency: account.currency || "INR",
-        account_number: account.account_number || "",
+        name: account.name,
+        type: account.type,
+        balance: account.current_balance?.toString() || "0",
+        currency: account.currency,
+        account_number: account.name,
       })
     }
   }, [account, setFormData])
 
   const handleFormSubmit = async () => {
     try {
-      // Create the account update data
+      // Create the account update data (only send fields that can be updated)
       const accountData = {
         name: formData.name,
-        type: formData.type as "bank" | "credit" | "cash" | "savings",
-        balance: parseFloat(formData.balance) || 0,
-        currency: formData.currency,
-        account_number: formData.account_number || null,
-        updated_at: new Date().toISOString(),
-        user_id: user?.id, // Include user_id for cache invalidation
+        current_balance: parseFloat(formData.balance) || 0,
+        is_archived: false, // Keep account active
       }
 
       // Call the update mutation directly

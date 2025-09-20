@@ -1,5 +1,4 @@
 "use client"
-
 import { Drawer } from "vaul"
 import { X, Trash2 } from "lucide-react"
 import { ReactNode } from "react"
