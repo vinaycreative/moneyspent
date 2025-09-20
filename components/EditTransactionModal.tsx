@@ -233,7 +233,7 @@ export function EditTransactionModal({ transaction, children }: EditTransactionM
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">Delete Transaction</h2>
               <p className="text-gray-600">
-                Are you sure you want to delete "{transaction.title}"? This action cannot be
+                Are you sure you want to delete &quot;{transaction.title}&quot;? This action cannot be
                 undone.
               </p>
             </div>

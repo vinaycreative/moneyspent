@@ -1,9 +1,6 @@
 "use client"
 import React from "react"
 import BottomNavigation from "@/components/BottomNavigation"
-import Header from "@/components/Header"
-import AuthGuard from "@/components/AuthGuard"
-import AuthErrorBoundary from "@/components/AuthErrorBoundary"
 import { useAuth } from "@/hooks/useAuth"
 
 export default function PrivateLayout({ children }: { children: React.ReactNode }) {

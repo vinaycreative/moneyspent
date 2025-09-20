@@ -9,8 +9,6 @@ import {
   TrendingDown,
   PieChart,
   BarChart3,
-  DollarSign,
-  Calendar,
   Target,
   AlertCircle,
   CheckCircle,
@@ -39,7 +37,7 @@ export default function Analytics() {
     isLoading: analyticsLoading,
   } = useAnalytics({
     userId: user?.id || "",
-    dateRange: selectedDateRange as any,
+    dateRange: selectedDateRange as 'today' | 'week' | 'month' | 'year' | 'custom',
     customStartDate: customStartDate || undefined,
     customEndDate: customEndDate || undefined,
     enabled: !!user?.id,
@@ -285,7 +283,7 @@ export default function Analytics() {
             </div>
           ) : expenseCategories.length > 0 ? (
             <div className="space-y-4 max-h-[400px] overflow-y-auto">
-              {expenseCategories.map((category, index) => (
+              {expenseCategories.map((category: { category: string; amount: number; percentage: number; count: number; color: string; icon: string }) => (
                 <div
                   key={category.category}
                   className="flex items-center border border-gray-200 gap-2 px-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"

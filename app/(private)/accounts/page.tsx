@@ -1,5 +1,6 @@
 "use client"
 import { useState } from "react"
+import type { ApiAccount } from "@/types/schemas/account.schema"
 import {
   Building2,
   CreditCard,
@@ -23,7 +24,7 @@ export default function AccountsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   // Edit account state
-  const [selectedAccount, setSelectedAccount] = useState<any>(null)
+  const [selectedAccount, setSelectedAccount] = useState<ApiAccount | null>(null)
   const [isEditOpen, setIsEditOpen] = useState(false)
 
   const handleCloseEdit = () => {
@@ -31,19 +32,19 @@ export default function AccountsPage() {
     setIsEditOpen(false)
   }
 
-  const handleOpenEdit = (account: any) => {
+  const handleOpenEdit = (account: ApiAccount) => {
     setSelectedAccount(account)
     setIsEditOpen(true)
   }
 
   // Get user's accounts using new architecture
-  const { accounts, isLoading: accountsLoading, isError: accountsError } = useAccounts(user?.id!)
+  const { accounts, isLoading: accountsLoading, isError: accountsError } = useAccounts(user?.id || '')
 
   // Calculate derived values in the component
-  const activeAccounts = accounts?.filter((acc: any) => !acc.is_archived)
-  const hasAccounts = accounts?.length! > 0
-  const totalBalance = activeAccounts?.reduce((sum: any, acc: any) => sum + acc.current_balance, 0)
-  const accountCount = accounts?.length!
+  const activeAccounts = accounts?.filter((acc: ApiAccount) => !acc.is_archived)
+  const hasAccounts = (accounts?.length || 0) > 0
+  const totalBalance = activeAccounts?.reduce((sum: number, acc: ApiAccount) => sum + acc.current_balance, 0)
+  const accountCount = accounts?.length || 0
 
   const deleteAccountMutation = useDeleteAccountMutation()
 
@@ -204,7 +205,7 @@ export default function AccountsPage() {
           </div>
         ) : hasAccounts ? (
           <div className="space-y-4">
-            {accounts?.map((account: any) => {
+            {accounts?.map((account: ApiAccount) => {
               const Icon = getAccountIcon(account.type)
               const color = getAccountColor(account.type)
 
@@ -221,9 +222,9 @@ export default function AccountsPage() {
 
                   <div className="flex-1">
                     <div className="font-medium text-black">{account.name}</div>
-                    {account.account_number && (
+                    {/* account.account_number && (
                       <div className="text-sm text-gray-500">{account.account_number}</div>
-                    )}
+                    ) */}
                     <div className="text-xs text-gray-400 capitalize">
                       {account.type.replace("_", " ")}
                     </div>
@@ -290,7 +291,7 @@ export default function AccountsPage() {
         onOpenChange={setShowDeleteConfirm}
         title="Delete Account"
         description="Are you sure you want to delete"
-        itemName={accounts?.find((acc: any) => acc.id === deleteAccountId)?.name}
+        itemName={accounts?.find((acc: ApiAccount) => acc.id === deleteAccountId)?.name}
         onConfirm={handleDeleteConfirm}
         onCancel={() => setShowDeleteConfirm(false)}
         isPending={deleteAccountMutation.isPending}
@@ -298,7 +299,7 @@ export default function AccountsPage() {
         additionalDetails={
           deleteAccountId &&
           (() => {
-            const accountToDelete = accounts?.find((acc: any) => acc.id === deleteAccountId)
+            const accountToDelete = accounts?.find((acc: ApiAccount) => acc.id === deleteAccountId)
             return (
               accountToDelete && (
                 <div className="space-y-3">

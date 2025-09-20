@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { ArrowLeft, ArrowRight, Plus } from "lucide-react"
-import { useAddTransactionDrawer } from "@/hooks"
 import { DashboardStats } from "@/components/DashboardStats"
 import { useAuth } from "@/hooks"
 import { useTransactions } from "@/hooks"
@@ -27,14 +26,6 @@ export default function Dashboard() {
     )
   }
 
-  // Check if selected date is in the future
-  const isFuture = () => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const selected = new Date(selectedDate)
-    selected.setHours(0, 0, 0, 0)
-    return selected > today
-  }
 
   // Navigate to previous date
   const goToPreviousDate = () => {
@@ -74,7 +65,7 @@ export default function Dashboard() {
     if (!transactions) return []
 
     const selectedDateStr = selectedDate.toISOString().split("T")[0]
-    return transactions.filter((transaction: any) => {
+    return transactions.filter((transaction: { occurred_at: string }) => {
       const transactionDate = new Date(transaction.occurred_at).toISOString().split("T")[0]
       return transactionDate === selectedDateStr
     })
@@ -106,12 +97,12 @@ export default function Dashboard() {
 
   // Calculate totals for selected date
   const totalExpenses = transactionsForDate
-    .filter((t: any) => t.type === "expense")
-    .reduce((sum: number, t: any) => sum + t.amount, 0)
+    .filter((t: { type: string }) => t.type === "expense")
+    .reduce((sum: number, t: { amount: number }) => sum + t.amount, 0)
 
   const totalIncome = transactionsForDate
-    .filter((t: any) => t.type === "income")
-    .reduce((sum: number, t: any) => sum + t.amount, 0)
+    .filter((t: { type: string }) => t.type === "income")
+    .reduce((sum: number, t: { amount: number }) => sum + t.amount, 0)
 
   const netSavings = totalIncome - totalExpenses
 
@@ -194,7 +185,7 @@ export default function Dashboard() {
           </div>
         ) : transactionsForDate.length > 0 ? (
           <div className="space-y-2">
-            {transactionsForDate.slice(0, 5).map((transaction: any) => (
+            {transactionsForDate.slice(0, 5).map((transaction: { id: string; title: string; occurred_at: string; amount: number; type: string; categories?: { color?: string; icon?: string; name?: string }; accounts?: { name: string } }) => (
               <div
                 key={transaction.id}
                 className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200"

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { ArrowLeft, Filter, ChevronDown, Calendar, IndianRupee } from "lucide-react"
 import { useAuth, useCategoryTransactions } from "@/hooks"
@@ -22,7 +22,7 @@ export default function CategoryPage() {
   const { data: transactions, isLoading: transactionsLoading } = useCategoryTransactions({
     userId: user?.id || "",
     category: decodedCategory,
-    dateRange: selectedDateRange as any,
+    dateRange: selectedDateRange as 'today' | 'week' | 'month' | 'year' | 'custom' | 'all',
     customStartDate: customStartDate || undefined,
     customEndDate: customEndDate || undefined,
     enabled: !!user?.id,
@@ -69,7 +69,7 @@ export default function CategoryPage() {
   }
 
   const totalAmount = (transactions || []).reduce(
-    (sum: number, transaction: any) => sum + transaction.amount,
+    (sum: number, transaction: { amount: number }) => sum + transaction.amount,
     0
   )
 
@@ -239,7 +239,7 @@ export default function CategoryPage() {
           </div>
         ) : (transactions || []).length > 0 ? (
           <div className="space-y-3">
-            {transactions.map((transaction: any) => (
+            {transactions.map((transaction: { id: string; title?: string; description: string | null; amount: number; occurred_at: string; accounts?: { name: string; type: string } }) => (
               <div
                 key={transaction.id}
                 className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow flex items-center justify-between"

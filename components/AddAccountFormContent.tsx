@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Building2, CreditCard, Wallet, PiggyBank } from "lucide-react"
+import { Building2, CreditCard, Wallet, PiggyBank } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -14,7 +14,6 @@ import {
 import { useAuth } from "@/hooks"
 import { useCreateAccountMutation } from "@/hooks"
 
-type AccountInsert = any
 
 export interface AccountFormData {
   name: string
@@ -33,8 +32,6 @@ interface AddAccountFormContentProps {
 export function AddAccountFormContent({
   formData,
   onFormDataChange,
-  onSubmit,
-  isLoading = false,
 }: AddAccountFormContentProps) {
   const { user } = useAuth()
   const createAccount = useCreateAccountMutation()

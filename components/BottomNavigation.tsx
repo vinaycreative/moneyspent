@@ -1,6 +1,6 @@
 "use client"
 
-import { Home, Receipt, BarChart3, Building2, Settings, ArrowRightLeft } from "lucide-react"
+import { Home, BarChart3, Building2, Settings, ArrowRightLeft } from "lucide-react"
 import { useRouter, usePathname } from "next/navigation"
 
 export default function BottomNavigation() {

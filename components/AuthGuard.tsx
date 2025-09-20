@@ -54,9 +54,9 @@ export default function AuthGuard({ children }: AuthGuardProps) {
 
   // This function is now handled by authManager.clearAuthData()
   // Keeping for backward compatibility but it just delegates
-  const clearStaleAuth = async () => {
-    await authManager.clearAuthData()
-  }
+  // const clearStaleAuth = async () => {
+  //   await authManager.clearAuthData()
+  // }
 
   // Show loading while checking authentication
   if (isLoading || isChecking) {

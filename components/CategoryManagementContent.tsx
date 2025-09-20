@@ -11,13 +11,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useAuth } from "@/lib/contexts/auth-context"
+import { useAuth } from "@/hooks"
 import {
   useCategories,
-  useCreateCategory,
-  useUpdateCategory,
-  useDeleteCategory,
-} from "@/lib/hooks"
+} from "@/hooks"
 import { DeleteConfirmationSheet } from "./DeleteConfirmationSheet"
 
 interface CategoryForm {

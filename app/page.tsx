@@ -3,17 +3,12 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-  TrendingUp,
   PieChart,
   Target,
   Shield,
   ArrowRight,
   ArrowLeft,
-  DollarSign,
   BarChart3,
-  Calendar,
-  Smartphone,
-  Zap,
   IndianRupee,
 } from "lucide-react"
 import GoogleOneTapComponent from "@/components/GoogleOneTap"

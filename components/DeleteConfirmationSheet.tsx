@@ -1,6 +1,6 @@
 "use client"
 import { Drawer } from "vaul"
-import { X, Trash2 } from "lucide-react"
+import { Trash2 } from "lucide-react"
 import { ReactNode } from "react"
 
 interface DeleteConfirmationSheetProps {
@@ -49,7 +49,7 @@ export function DeleteConfirmationSheet({
               <Drawer.Title className="text-xl font-bold text-gray-900 mb-3">{title}</Drawer.Title>
               <p className="text-gray-600 mb-6">
                 {description}
-                {itemName && <span className="font-medium text-gray-900"> "{itemName}"</span>}?
+                {itemName && <span className="font-medium text-gray-900"> &quot;{itemName}&quot;</span>}?
                 This action cannot be undone.
               </p>
 

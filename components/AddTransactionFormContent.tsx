@@ -12,8 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useAuth } from "@/lib/contexts/auth-context"
-import { useCategories, useAccounts } from "@/lib/hooks"
+import { useAuth } from "@/hooks"
+import { useCategories, useAccounts } from "@/hooks"
 import { DateTimePicker } from "@/components/DateTimePicker"
 
 export interface TransactionFormData {
@@ -42,12 +42,8 @@ export const AddTransactionFormContent = memo(function AddTransactionFormContent
   const { user } = useAuth()
 
   // Get categories and accounts
-  const { data: categories, isLoading: categoriesLoading } = useCategories(user?.id || "", {
-    enabled: !!user?.id,
-  })
-  const { data: accounts, isLoading: accountsLoading } = useAccounts(user?.id || "", {
-    enabled: !!user?.id,
-  })
+  const { data: categories, isLoading: categoriesLoading } = useCategories(user?.id || '')
+  const { accounts, isLoading: accountsLoading } = useAccounts(user?.id || '')
 
   const handleInputChange = (
     field: keyof TransactionFormData,

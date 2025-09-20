@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import {
   User,
   HelpCircle,
@@ -23,13 +23,13 @@ interface SettingItem {
   id: string
   title: string
   subtitle: string
-  icon: any
+  icon: React.ComponentType<{ className?: string }>
   action: "navigate" | "modal" | "logout"
 }
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth()
-  const [currency, setCurrency] = useState("INR")
+  const [currency] = useState("INR")
   const {
     isOpen: isViewOpen,
     openDrawer: openViewDrawer,
@@ -38,7 +38,6 @@ export default function SettingsPage() {
 
   // Add category drawer state
   const {
-    isOpen: isAddEditOpen,
     openDrawer: openAddEditDrawer,
     closeDrawer: closeAddEditDrawer,
   } = useAddEditCategoryDrawer()
@@ -86,15 +85,6 @@ export default function SettingsPage() {
     }
   }
 
-  const handleAddCategory = () => {
-    closeViewDrawer()
-    openAddEditDrawer()
-  }
-
-  const handleEditCategory = (category: any) => {
-    closeViewDrawer()
-    openAddEditDrawer(category)
-  }
 
   const settingsItems: SettingItem[] = [
     {

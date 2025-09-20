@@ -1,23 +1,36 @@
 "use client"
 
-import { useState, useMemo, useCallback, useEffect } from "react"
+import { useState, useMemo, useEffect } from "react"
+import type { ApiAccount } from "@/types/schemas/account.schema"
+
+// Define transaction with relations type
+type TransactionWithRelations = {
+  id: string
+  title: string
+  description: string | null
+  amount: number
+  type: "expense" | "income" | "transfer"
+  occurred_at: string
+  created_at: string
+  category?: {
+    name: string
+    color?: string
+    icon?: string
+  } | null
+  account?: {
+    name: string
+  } | null
+}
 import moment from "moment-timezone"
 import {
-  ArrowLeft,
-  ArrowRight,
   Calendar,
   ChevronDown,
-  Filter,
   TrendingUp,
   TrendingDown,
   Search,
-  MoreVertical,
   Trash2,
-  Wallet,
 } from "lucide-react"
-import { ReusableDrawer } from "@/components/ReusableDrawer"
-import { AddTransactionFormContent } from "@/components/AddTransactionFormContent"
-import { useAddTransactionDrawer, useDeleteCategoryMutation } from "@/hooks"
+import { useAddTransactionDrawer } from "@/hooks"
 import { Plus } from "lucide-react"
 import { useAuth } from "@/hooks"
 import { useTransactions, useDeleteTransactionMutation, useAccounts } from "@/hooks"
@@ -36,21 +49,10 @@ import {
 
 export default function Transactions() {
   const { user, isLoading: authLoading } = useAuth()
-  const {
-    isOpen,
-    openDrawer,
-    closeDrawer,
-    activeTab,
-    setActiveTab,
-    formData,
-    setFormData,
-    handleSubmit,
-    isSubmitDisabled,
-    isLoading: isSubmitting,
-  } = useAddTransactionDrawer()
+  const { openDrawer } = useAddTransactionDrawer()
 
   // Edit transaction state
-  const [selectedTransaction, setSelectedTransaction] = useState<any>(null)
+  const [selectedTransaction, setSelectedTransaction] = useState<TransactionWithRelations | null>(null)
   const [isEditOpen, setIsEditOpen] = useState(false)
 
   const handleCloseEdit = () => {
@@ -58,7 +60,7 @@ export default function Transactions() {
     setIsEditOpen(false)
   }
 
-  const handleOpenEdit = (transaction: any) => {
+  const handleOpenEdit = (transaction: TransactionWithRelations) => {
     setSelectedTransaction(transaction)
     setIsEditOpen(true)
   }
@@ -77,11 +79,11 @@ export default function Transactions() {
   >("all")
 
   // Get accounts for the filter
-  const { accounts, isLoading: accountsLoading } = useAccounts(user?.id!)
+  const { accounts } = useAccounts(user?.id || '')
 
   // Get transactions with filtering
   const transactionParams = useMemo(() => {
-    const params: any = {}
+    const params: Record<string, unknown> = {}
 
     // Date filtering
     if (selectedDateRange === "today") {
@@ -148,10 +150,10 @@ export default function Transactions() {
     if (!debouncedSearchQuery.trim()) return filteredTransactions
 
     const query = debouncedSearchQuery.toLowerCase().trim()
-    return filteredTransactions?.filter((transaction: any) => {
+    return filteredTransactions?.filter((transaction: TransactionWithRelations) => {
       return (
         transaction.title.toLowerCase().includes(query) ||
-        transaction.categories?.name?.toLowerCase().includes(query) ||
+        transaction.category?.name?.toLowerCase().includes(query) ||
         transaction.amount.toString().includes(query)
       )
     })
@@ -159,7 +161,7 @@ export default function Transactions() {
 
   // Sort transactions by date (newest first) and created_at for better ordering
   const sortedTransactions = useMemo(() => {
-    return searchFilteredTransactions?.sort((a: any, b: any) => {
+    return searchFilteredTransactions?.sort((a: TransactionWithRelations, b: TransactionWithRelations) => {
       // First sort by occurred_at (newest first)
       const dateA = new Date(a.occurred_at).getTime()
       const dateB = new Date(b.occurred_at).getTime()
@@ -231,7 +233,7 @@ export default function Transactions() {
   }
 
   const transactionToDelete = sortedTransactions?.find(
-    (transaction: any) => transaction.id === deleteTransactionId
+    (transaction: TransactionWithRelations) => transaction.id === deleteTransactionId
   )
 
   return (
@@ -318,7 +320,7 @@ export default function Transactions() {
                   <span>All Accounts</span>
                 </div>
               </SelectItem>
-              {accounts?.map((account: any) => {
+              {accounts?.map((account: ApiAccount) => {
                 return (
                   <SelectItem key={account.id} value={account.id}>
                     <div className="flex items-center gap-2">
@@ -537,7 +539,7 @@ export default function Transactions() {
           )}
           {selectedAccountId !== "all" && accounts && (
             <span className="text-sm font-normal text-gray-600">
-              from {accounts?.find((a: any) => a.id === selectedAccountId)?.name}
+              from {accounts?.find((a: ApiAccount) => a.id === selectedAccountId)?.name}
             </span>
           )}
           {selectedTransactionType !== "all" && (
@@ -566,7 +568,7 @@ export default function Transactions() {
           </div>
         ) : sortedTransactions?.length && sortedTransactions?.length > 0 ? (
           <div className="space-y-2">
-            {sortedTransactions?.map((transaction: any) => (
+            {sortedTransactions?.map((transaction: TransactionWithRelations) => (
               <div
                 key={transaction.id}
                 className="flex items-center bg-white gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200 cursor-pointer"
@@ -574,10 +576,10 @@ export default function Transactions() {
               >
                 <div
                   className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                    transaction.categories?.color || "bg-gray-400"
+                    transaction.category?.color || "bg-gray-400"
                   } text-white font-bold`}
                 >
-                  {transaction.categories?.icon || "💰"}
+                  {transaction.category?.icon || "💰"}
                 </div>
 
                 <div className="flex-1">
@@ -590,9 +592,9 @@ export default function Transactions() {
                     </span>{" "}
                     -
                     <span className="font-medium">
-                      {transaction.categories?.name || "Unknown"}
+                      {transaction.category?.name || "Unknown"}
                     </span>
-                    -<span className="font-medium">{transaction.accounts?.name}</span>
+                    -<span className="font-medium">{transaction.account?.name}</span>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-1">
@@ -686,15 +688,13 @@ export default function Transactions() {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Category:</span>
                 <span className="font-medium text-gray-900">
-                  {/* @ts-ignore */}
-                  {transactionToDelete?.categories?.name! || "Uncategorized"}
+                  {transactionToDelete?.category?.name || "Uncategorized"}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Account:</span>
                 <span className="font-medium text-gray-900">
-                  {/* @ts-ignore */}
-                  {transactionToDelete?.accounts?.name! || "Unknown"}
+                  {transactionToDelete?.account?.name || "Unknown"}
                 </span>
               </div>
             </div>

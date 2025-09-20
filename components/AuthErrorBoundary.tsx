@@ -22,7 +22,7 @@ export default class AuthErrorBoundary extends Component<Props, State> {
     return { hasError: true, error }
   }
 
-  componentDidCatch(error: Error, errorInfo: any) {
+  componentDidCatch(error: Error, errorInfo: { componentStack: string }) {
     console.error("Auth error boundary caught an error:", error, errorInfo)
 
     // If it's an auth-related error, clear the session

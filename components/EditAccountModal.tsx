@@ -134,7 +134,7 @@ export function EditAccountModal({ account, children }: EditAccountModalProps) {
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">Delete Account</h2>
               <p className="text-gray-600">
-                Are you sure you want to delete "{account.name}"? This action cannot be undone.
+                Are you sure you want to delete &quot;{account.name}&quot;? This action cannot be undone.
               </p>
             </div>
 
