@@ -68,23 +68,18 @@ export default function SettingsPage() {
         switch (item.id) {
           case "profile":
             // Navigate to profile page (you can implement this later)
-            console.log("Navigate to profile")
             break
           case "currency":
             // Handle currency selection (you can implement this later)
-            console.log("Currency settings")
             break
           case "language":
             // Handle language selection (you can implement this later)
-            console.log("Language settings")
             break
           case "help":
             // Handle help and support (you can implement this later)
-            console.log("Help and support")
             break
           case "about":
             // Handle about page (you can implement this later)
-            console.log("About page")
             break
         }
         break

@@ -32,14 +32,14 @@ export const fetchCategories = async (
 
   // Parse the API response structure
   const apiResponse = response.data
-  
+
   if (!apiResponse || !apiResponse.success || !apiResponse.data) {
     throw new Error(apiResponse?.message || "Failed to fetch categories")
   }
-  
+
   // Validate the categories array
   const validatedCategories = z.array(ApiCategorySchema).parse(apiResponse.data)
-  
+
   // Transform API categories to frontend format
   return validatedCategories.map(transformApiCategory)
 }
@@ -49,11 +49,11 @@ export const fetchCategoryById = async (id: string): Promise<Category> => {
   const response = await api.get(`/categories/${id}`)
 
   const apiResponse = response.data
-  
+
   if (!apiResponse || !apiResponse.success || !apiResponse.data) {
     throw new Error(apiResponse?.message || "Failed to fetch category")
   }
-  
+
   const validatedCategory = ApiCategorySchema.parse(apiResponse.data)
   return transformApiCategory(validatedCategory)
 }
@@ -63,11 +63,11 @@ export const createCategory = async (data: CreateCategoryRequest): Promise<Categ
   const response = await api.post("/categories", data)
 
   const apiResponse = response.data
-  
+
   if (!apiResponse || !apiResponse.success || !apiResponse.data) {
     throw new Error(apiResponse?.message || "Failed to create category")
   }
-  
+
   const validatedCategory = ApiCategorySchema.parse(apiResponse.data)
   return transformApiCategory(validatedCategory)
 }
@@ -80,11 +80,11 @@ export const updateCategory = async (
   const response = await api.put(`/categories/${id}`, data)
 
   const apiResponse = response.data
-  
+
   if (!apiResponse || !apiResponse.success || !apiResponse.data) {
     throw new Error(apiResponse?.message || "Failed to update category")
   }
-  
+
   const validatedCategory = ApiCategorySchema.parse(apiResponse.data)
   return transformApiCategory(validatedCategory)
 }
@@ -94,7 +94,7 @@ export const deleteCategory = async (id: string): Promise<void> => {
   const response = await api.delete(`/categories/${id}`)
 
   const apiResponse = response.data
-  
+
   if (!apiResponse || !apiResponse.success) {
     throw new Error(apiResponse?.message || "Failed to delete category")
   }
@@ -122,11 +122,11 @@ export const fetchCategoryTransactions = async (
   const response = await api.get(url)
 
   const apiResponse = response.data
-  
+
   if (!apiResponse || !apiResponse.success || !apiResponse.data) {
     throw new Error(apiResponse?.message || "Failed to fetch category transactions")
   }
-  
+
   const validatedTransactions = z.array(CategoryTransactionSchema).parse(apiResponse.data)
   return validatedTransactions
 }

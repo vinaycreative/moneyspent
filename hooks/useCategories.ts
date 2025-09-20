@@ -64,8 +64,8 @@ export const useCategory = (id: string, enabled = true) => {
   }
 }
 
-// Category transactions hook
-export const useCategoryTransactions = (
+// Category transactions hook (for fetching transactions of a specific category by ID)
+export const useFetchTransactionsForCategory = (
   categoryId: string,
   query?: GetCategoryTransactionsQuery,
   enabled = true

@@ -35,11 +35,9 @@ export const fetchTransactions = async (
 
   const response = await api.get(url)
 
-  console.log("fetchTransactions response: ", response.data)
-
   // Simple response format: { success, message, data }
   const apiResponse = response.data
-  
+
   if (!apiResponse.success) {
     throw new Error(apiResponse.message || "Failed to fetch transactions")
   }
@@ -104,23 +102,24 @@ export const deleteTransaction = async (id: string): Promise<void> => {
 // Fetch transactions by category
 export const fetchTransactionsByCategory = async (
   params: TransactionByCategoryParams
-): Promise<ApiTransaction[]> => {
+): Promise<Transaction[]> => {
   const searchParams = new URLSearchParams()
 
+  // Add the category parameter - this was missing!
   searchParams.append("category", params.category)
   if (params.dateRange) searchParams.append("dateRange", params.dateRange)
   if (params.customStartDate) searchParams.append("customStartDate", params.customStartDate)
   if (params.customEndDate) searchParams.append("customEndDate", params.customEndDate)
 
   const response = await api.get(`/transactions/by-category?${searchParams.toString()}`)
+  
+  const apiResponse = response.data
 
-  const validatedResponse = ApiResponseSchema(z.array(ApiTransactionSchema)).parse(response.data)
-
-  if (!validatedResponse.success) {
-    throw new Error(validatedResponse.error || "Failed to fetch transactions by category")
+  if (!apiResponse.success) {
+    throw new Error(apiResponse.message || "Failed to fetch transactions by category")
   }
 
-  return validatedResponse.data
+  return apiResponse.data
 }
 
 // Fetch transaction summary
@@ -138,13 +137,13 @@ export const fetchTransactionSummary = async (
 
   const response = await api.get(url)
 
-  const validatedResponse = ApiResponseSchema(TransactionSummarySchema).parse(response.data)
+  const apiResponse = response.data
 
-  if (!validatedResponse.success) {
-    throw new Error(validatedResponse.error || "Failed to fetch transaction summary")
+  if (!apiResponse.success) {
+    throw new Error(apiResponse.message || "Failed to fetch transaction summary")
   }
 
-  return validatedResponse.data
+  return apiResponse.data
 }
 
 // Fetch transaction trend
@@ -160,13 +159,11 @@ export const fetchTransactionTrend = async (
 
   const response = await api.get(url)
 
-  const validatedResponse = ApiResponseSchema(z.array(TransactionTrendItemSchema)).parse(
-    response.data
-  )
+  const apiResponse = response.data
 
-  if (!validatedResponse.success) {
-    throw new Error(validatedResponse.error || "Failed to fetch transaction trend")
+  if (!apiResponse.success) {
+    throw new Error(apiResponse.message || "Failed to fetch transaction trend")
   }
 
-  return validatedResponse.data
+  return apiResponse.data
 }

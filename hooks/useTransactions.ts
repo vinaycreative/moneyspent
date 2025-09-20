@@ -1,4 +1,5 @@
 import { useMemo } from "react"
+import { useQuery } from "@tanstack/react-query"
 import {
   useFetchTransactions,
   useFetchTransactionById,
@@ -7,8 +8,9 @@ import {
   useFetchTransactionTrend,
   useCreateTransaction,
   useUpdateTransaction,
-  useDeleteTransaction,
+  useDeleteTransaction
 } from "@/queries/transactionQueries"
+import { fetchTransactionsByCategory } from "@/api/transactions"
 import type {
   Transaction,
   TransactionQueryParams,
@@ -106,12 +108,24 @@ export const useTransactionsByCategory = (params: TransactionByCategoryParams, e
   }
 }
 
-// Transaction summary hook
-export const useTransactionSummary = (startDate?: string, endDate?: string, enabled = true) => {
-  const query = useFetchTransactionSummary(startDate, endDate, enabled)
+// Transaction summary hook (computed from existing data)
+export const useTransactionSummary = (enabled = true) => {
+  const { totalExpenses, totalIncome, transactionCount, isLoading, error } = useTransactions(
+    {},
+    enabled
+  )
+
+  const netSavings = totalIncome - totalExpenses
+
   return {
-    ...query,
-    summary: query.data,
+    data: {
+      totalExpenses,
+      totalIncome,
+      netSavings,
+      transactionCount,
+    },
+    isLoading,
+    error,
   }
 }
 
@@ -121,6 +135,47 @@ export const useTransactionTrend = (params?: TransactionTrendParams, enabled = t
   return {
     ...query,
     trend: query.data || [],
+  }
+}
+
+// Category transactions hook - directly using React Query without going through other hooks
+export function useCategoryTransactions({
+  userId,
+  category,
+  dateRange = "month",
+  customStartDate,
+  customEndDate,
+  enabled = true,
+}: {
+  userId: string
+  category: string
+  dateRange?: "all" | "today" | "week" | "month" | "year" | "custom"
+  customStartDate?: string
+  customEndDate?: string
+  enabled?: boolean
+}) {
+  // Build the params object for the API call
+  const params = {
+    category,
+    dateRange,
+    customStartDate,
+    customEndDate,
+  }
+  
+  // Use React Query directly to avoid any hook confusion
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["transactions", "by-category", params],
+    queryFn: async () => {
+      return await fetchTransactionsByCategory(params)
+    },
+    enabled: enabled && !!userId && !!category,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  })
+
+  return {
+    data: data || [],
+    isLoading,
+    error,
   }
 }
 

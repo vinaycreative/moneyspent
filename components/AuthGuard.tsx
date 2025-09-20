@@ -38,14 +38,12 @@ export default function AuthGuard({ children }: AuthGuardProps) {
         } = await supabase.auth.getSession()
 
         if (error) {
-          console.error("Session check error:", error)
           await clearStaleAuth()
           router.push("/")
           return
         }
 
         if (!session?.user) {
-          console.log("No valid session found, redirecting to home")
           await clearStaleAuth()
           router.push("/")
           return
@@ -54,7 +52,6 @@ export default function AuthGuard({ children }: AuthGuardProps) {
         // Validate session is not expired
         const now = Math.floor(Date.now() / 1000)
         if (session.expires_at && session.expires_at < now) {
-          console.log("Session expired, clearing auth and redirecting")
           await clearStaleAuth()
           router.push("/")
           return
@@ -69,13 +66,11 @@ export default function AuthGuard({ children }: AuthGuardProps) {
             .single()
 
           if (profileError || !userProfile) {
-            console.log("User profile not found, clearing auth and redirecting")
             await clearStaleAuth()
             router.push("/")
             return
           }
         } catch (profileError) {
-          console.error("Profile validation error:", profileError)
           await clearStaleAuth()
           router.push("/")
           return
@@ -83,7 +78,6 @@ export default function AuthGuard({ children }: AuthGuardProps) {
 
         setIsChecking(false)
       } catch (error) {
-        console.error("Auth guard error:", error)
         await clearStaleAuth()
         router.push("/")
       }
@@ -110,7 +104,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
           .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/")
       })
     } catch (error) {
-      console.error("Error clearing auth:", error)
+      // Silent error handling for auth clearing
     }
   }
 

@@ -143,6 +143,11 @@ export const useCreateTransaction = () => {
       queryClient.invalidateQueries({
         queryKey: ["categories", "stats"],
       })
+
+      // Invalidate analytics data since transaction data changed
+      queryClient.invalidateQueries({
+        queryKey: ["analytics"],
+      })
     },
     meta: {
       errorMessage: "Failed to create transaction",
@@ -186,6 +191,11 @@ export const useUpdateTransaction = () => {
       queryClient.invalidateQueries({
         queryKey: ["categories", "stats"],
       })
+
+      // Invalidate analytics data since transaction data changed
+      queryClient.invalidateQueries({
+        queryKey: ["analytics"],
+      })
     },
     meta: {
       errorMessage: "Failed to update transaction",
@@ -224,6 +234,11 @@ export const useDeleteTransaction = () => {
       // Invalidate category stats
       queryClient.invalidateQueries({
         queryKey: ["categories", "stats"],
+      })
+      
+      // Invalidate analytics data since transaction data changed
+      queryClient.invalidateQueries({
+        queryKey: ["analytics"],
       })
     },
     meta: {
