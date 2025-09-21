@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useCallback } from "react"
+import { usePathname } from "next/navigation"
 import { authManager } from "@/lib/auth-manager"
 import { useAuth } from "@/hooks/useAuth"
 
@@ -13,10 +14,22 @@ import { useAuth } from "@/hooks/useAuth"
  * It should be included in the root layout to monitor all pages.
  */
 export default function SessionMonitor() {
-  const { isAuthenticated } = useAuth()
+  const pathname = usePathname()
+  
+  // Only monitor auth on private routes
+  const isPrivateRoute =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/transactions") ||
+    pathname.startsWith("/analytics") ||
+    pathname.startsWith("/accounts") ||
+    pathname.startsWith("/settings")
+  
+  // Only call auth API on private routes to avoid unnecessary /auth/me calls
+  const { isAuthenticated } = useAuth({ enabled: isPrivateRoute })
+  const shouldMonitor = isPrivateRoute && isAuthenticated
 
   const checkAndRefreshSession = useCallback(async () => {
-    if (!isAuthenticated) return
+    if (!shouldMonitor) return
 
     try {
       // Check if token needs refresh (within 5 minutes of expiry)
@@ -35,11 +48,11 @@ export default function SessionMonitor() {
     } catch (error) {
       console.error('SessionMonitor: Error during session check:', error)
     }
-  }, [isAuthenticated])
+  }, [shouldMonitor])
 
   // Set up periodic session monitoring
   useEffect(() => {
-    if (!isAuthenticated) return
+    if (!shouldMonitor) return
 
     // Check immediately
     checkAndRefreshSession()
@@ -48,11 +61,11 @@ export default function SessionMonitor() {
     const intervalId = setInterval(checkAndRefreshSession, 2 * 60 * 1000)
 
     return () => clearInterval(intervalId)
-  }, [isAuthenticated, checkAndRefreshSession])
+  }, [shouldMonitor, checkAndRefreshSession])
 
   // Also check on window focus (when user returns to the tab)
   useEffect(() => {
-    if (!isAuthenticated) return
+    if (!shouldMonitor) return
 
     const handleFocus = () => {
       console.log('SessionMonitor: Window focused, checking session')
@@ -61,11 +74,11 @@ export default function SessionMonitor() {
 
     window.addEventListener('focus', handleFocus)
     return () => window.removeEventListener('focus', handleFocus)
-  }, [isAuthenticated, checkAndRefreshSession])
+  }, [shouldMonitor, checkAndRefreshSession])
 
   // Monitor for the refresh header from middleware
   useEffect(() => {
-    if (!isAuthenticated) return
+    if (!shouldMonitor) return
 
     const handleResponse = (event: Event) => {
       const response = (event as any).detail
@@ -80,7 +93,7 @@ export default function SessionMonitor() {
     // This is a custom event that would be dispatched by axios interceptors
     window.addEventListener('http-response', handleResponse)
     return () => window.removeEventListener('http-response', handleResponse)
-  }, [isAuthenticated, checkAndRefreshSession])
+  }, [shouldMonitor, checkAndRefreshSession])
 
   // This component renders nothing - it's just for side effects
   return null

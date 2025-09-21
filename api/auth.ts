@@ -1,3 +1,4 @@
+"use server"
 import { z } from "zod"
 import api from "@/lib/axios"
 import { ApiResponseSchema, User, UserSchema } from "@/types"
@@ -20,9 +21,12 @@ export const fetchLoggedInUser = async (): Promise<User> => {
 export const signOut = async (): Promise<void> => {
   await api.post("/auth/logout")
 
-  // Clear local auth state
+  // Clear local auth state with correct domain
   if (typeof window !== "undefined") {
-    document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
+    const isProduction = process.env.NODE_ENV === "production"
+    const domain = isProduction ? "; domain=.moneyspend.app" : ""
+
+    document.cookie = `access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/${domain}`
     localStorage.clear()
     sessionStorage.clear()
   }

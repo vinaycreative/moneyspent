@@ -9,10 +9,11 @@ export const authQueryKeys = {
 }
 
 // Fetch current logged-in user
-export const useFetchLoggedInUser = () => {
+export const useFetchLoggedInUser = (options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: authQueryKeys.user,
     queryFn: fetchLoggedInUser,
+    enabled: options?.enabled ?? true, // Allow disabling the query
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: (failureCount, error: any) => {
       // Don't retry on auth errors
@@ -55,9 +56,16 @@ export const useRefreshToken = () => {
   return useMutation({
     mutationFn: refreshToken,
     onSuccess: (data) => {
-      // Update cookie with new token
+      // Update cookie with new token using correct domain
       if (typeof window !== 'undefined') {
-        document.cookie = `access_token=${data.access_token}; path=/; secure; samesite=strict`
+        const isProduction = process.env.NODE_ENV === 'production'
+        const sameSite = isProduction ? 'none' : 'lax'
+        const secure = isProduction ? '; secure' : ''
+        const domain = isProduction ? '; domain=.moneyspend.app' : ''
+        const expiryDate = new Date()
+        expiryDate.setTime(expiryDate.getTime() + (24 * 60 * 60 * 1000)) // 24 hours
+        
+        document.cookie = `access_token=${data.access_token}; expires=${expiryDate.toUTCString()}; path=/; samesite=${sameSite}${secure}${domain}`
       }
       
       // Invalidate user query to refetch with new token

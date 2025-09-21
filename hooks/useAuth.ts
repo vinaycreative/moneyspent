@@ -16,13 +16,13 @@ interface UseAuthReturn {
 }
 
 // UI-ready auth hook with derived values and actions
-export const useAuth = (): UseAuthReturn => {
+export const useAuth = (options?: { enabled?: boolean }): UseAuthReturn => {
   const { 
     data: user, 
     isLoading, 
     isError, 
     error 
-  } = useFetchLoggedInUser()
+  } = useFetchLoggedInUser(options)
   
   const signOutMutation = useSignOut()
   const refreshTokenMutation = useRefreshToken()
