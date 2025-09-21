@@ -57,12 +57,13 @@ class AuthManager {
     const expiryDate = new Date()
     expiryDate.setTime(expiryDate.getTime() + (24 * 60 * 60 * 1000)) // 24 hours
     
-    // Use production-compatible cookie settings
+    // Use production-compatible cookie settings with correct domain
     const isProduction = process.env.NODE_ENV === 'production'
     const sameSite = isProduction ? 'none' : 'lax'
     const secure = isProduction ? '; secure' : ''
+    const domain = isProduction ? '; domain=.moneyspend.app' : ''
     
-    document.cookie = `access_token=${token}; expires=${expiryDate.toUTCString()}; path=/; samesite=${sameSite}${secure}`
+    document.cookie = `access_token=${token}; expires=${expiryDate.toUTCString()}; path=/; samesite=${sameSite}${secure}${domain}`
   }
 
   /**
