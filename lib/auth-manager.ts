@@ -35,11 +35,15 @@ class AuthManager {
   getAccessToken(): string | null {
     if (typeof window === 'undefined') return null
     
-    const token = document.cookie
+    const allCookies = document.cookie
+    console.log('All cookies:', allCookies) // Debug log
+    
+    const token = allCookies
       .split('; ')
       .find(row => row.startsWith('access_token='))
       ?.split('=')[1]
     
+    console.log('Found access_token:', token ? 'present' : 'missing') // Debug log
     return token || null
   }
 
@@ -53,7 +57,12 @@ class AuthManager {
     const expiryDate = new Date()
     expiryDate.setTime(expiryDate.getTime() + (24 * 60 * 60 * 1000)) // 24 hours
     
-    document.cookie = `access_token=${token}; expires=${expiryDate.toUTCString()}; path=/; secure; samesite=strict`
+    // Use production-compatible cookie settings
+    const isProduction = process.env.NODE_ENV === 'production'
+    const sameSite = isProduction ? 'none' : 'lax'
+    const secure = isProduction ? '; secure' : ''
+    
+    document.cookie = `access_token=${token}; expires=${expiryDate.toUTCString()}; path=/; samesite=${sameSite}${secure}`
   }
 
   /**
