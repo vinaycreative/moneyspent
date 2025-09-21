@@ -12,24 +12,18 @@ type TransactionWithRelations = {
   type: "expense" | "income" | "transfer"
   occurred_at: string
   created_at: string
-  category?: {
+  categories?: {
     name: string
     color?: string
     icon?: string
   } | null
-  account?: {
+  accounts?: {
     name: string
+    type: string
   } | null
 }
 import moment from "moment-timezone"
-import {
-  Calendar,
-  ChevronDown,
-  TrendingUp,
-  TrendingDown,
-  Search,
-  Trash2,
-} from "lucide-react"
+import { Calendar, ChevronDown, TrendingUp, TrendingDown, Search, Trash2 } from "lucide-react"
 import { useAddTransactionDrawer } from "@/hooks"
 import { Plus } from "lucide-react"
 import { useAuth } from "@/hooks"
@@ -52,7 +46,9 @@ export default function Transactions() {
   const { openDrawer } = useAddTransactionDrawer()
 
   // Edit transaction state
-  const [selectedTransaction, setSelectedTransaction] = useState<TransactionWithRelations | null>(null)
+  const [selectedTransaction, setSelectedTransaction] = useState<TransactionWithRelations | null>(
+    null
+  )
   const [isEditOpen, setIsEditOpen] = useState(false)
 
   const handleCloseEdit = () => {
@@ -79,7 +75,7 @@ export default function Transactions() {
   >("all")
 
   // Get accounts for the filter
-  const { accounts } = useAccounts(user?.id || '')
+  const { accounts } = useAccounts(user?.id || "")
 
   // Get transactions with filtering
   const transactionParams = useMemo(() => {
@@ -153,7 +149,7 @@ export default function Transactions() {
     return filteredTransactions?.filter((transaction: TransactionWithRelations) => {
       return (
         transaction.title.toLowerCase().includes(query) ||
-        transaction.category?.name?.toLowerCase().includes(query) ||
+        transaction.categories?.name?.toLowerCase().includes(query) ||
         transaction.amount.toString().includes(query)
       )
     })
@@ -161,20 +157,22 @@ export default function Transactions() {
 
   // Sort transactions by date (newest first) and created_at for better ordering
   const sortedTransactions = useMemo(() => {
-    return searchFilteredTransactions?.sort((a: TransactionWithRelations, b: TransactionWithRelations) => {
-      // First sort by occurred_at (newest first)
-      const dateA = new Date(a.occurred_at).getTime()
-      const dateB = new Date(b.occurred_at).getTime()
+    return searchFilteredTransactions?.sort(
+      (a: TransactionWithRelations, b: TransactionWithRelations) => {
+        // First sort by occurred_at (newest first)
+        const dateA = new Date(a.occurred_at).getTime()
+        const dateB = new Date(b.occurred_at).getTime()
 
-      if (dateA !== dateB) {
-        return dateB - dateA
+        if (dateA !== dateB) {
+          return dateB - dateA
+        }
+
+        // If dates are the same, sort by created_at (newest first)
+        const createdA = new Date(a.created_at).getTime()
+        const createdB = new Date(b.created_at).getTime()
+        return createdB - createdA
       }
-
-      // If dates are the same, sort by created_at (newest first)
-      const createdA = new Date(a.created_at).getTime()
-      const createdB = new Date(b.created_at).getTime()
-      return createdB - createdA
-    })
+    )
   }, [searchFilteredTransactions])
 
   if (authLoading) {
@@ -235,6 +233,8 @@ export default function Transactions() {
   const transactionToDelete = sortedTransactions?.find(
     (transaction: TransactionWithRelations) => transaction.id === deleteTransactionId
   )
+
+  console.log("sortedTransactions", sortedTransactions)
 
   return (
     <div className="max-w-md mx-auto h-full flex flex-col gap-4">
@@ -576,10 +576,10 @@ export default function Transactions() {
               >
                 <div
                   className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                    transaction.category?.color || "bg-gray-400"
+                    transaction.categories?.color || "bg-gray-400"
                   } text-white font-bold`}
                 >
-                  {transaction.category?.icon || "💰"}
+                  {transaction.categories?.icon || "💰"}
                 </div>
 
                 <div className="flex-1">
@@ -592,9 +592,9 @@ export default function Transactions() {
                     </span>{" "}
                     -
                     <span className="font-medium">
-                      {transaction.category?.name || "Unknown"}
+                      {transaction.categories?.name || "Unknown"}
                     </span>
-                    -<span className="font-medium">{transaction.account?.name}</span>
+                    -<span className="font-medium">{transaction.accounts?.name}</span>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-1">
