@@ -1,9 +1,7 @@
-"use server"
-import { z } from "zod"
 import api from "@/lib/axios"
 import { ApiResponseSchema, User, UserSchema } from "@/types"
 
-// Fetch current logged-in user
+// Fetch current logged-in user (uses api instance with auth)
 export const fetchLoggedInUser = async (): Promise<User> => {
   const response = await api.get("/auth/me")
 
@@ -17,32 +15,22 @@ export const fetchLoggedInUser = async (): Promise<User> => {
   return validatedResponse.data
 }
 
-// Sign out user
-export const signOut = async (): Promise<void> => {
-  await api.post("/auth/logout")
-
-  // Clear local auth state with correct domain
-  if (typeof window !== "undefined") {
-    const isProduction = process.env.NODE_ENV === "production"
-    const domain = isProduction ? "; domain=.moneyspend.app" : ""
-
-    document.cookie = `access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/${domain}`
-    localStorage.clear()
-    sessionStorage.clear()
-  }
+// Redirect to backend login (client-side redirect)
+export const initiateLogin = (): void => {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1"
+  window.location.href = `${API_BASE_URL}/auth/login`
 }
 
-// Refresh auth token
-export const refreshToken = async (): Promise<{ access_token: string }> => {
-  const response = await api.post("/auth/refresh")
-
-  const validatedResponse = ApiResponseSchema(z.object({ access_token: z.string() })).parse(
-    response.data
-  )
-
-  if (!validatedResponse.success) {
-    throw new Error(validatedResponse.error || "Failed to refresh token")
+// Sign out user (uses api instance, backend handles cookie clearing)
+export const signOut = async (): Promise<void> => {
+  try {
+    await api.post("/auth/logout")
+  } catch (error) {
+    console.warn('Logout request failed, but continuing...', error)
   }
 
-  return validatedResponse.data
+  // Redirect to home page after logout
+  if (typeof window !== "undefined") {
+    window.location.href = '/'
+  }
 }

@@ -234,8 +234,6 @@ export default function Transactions() {
     (transaction: TransactionWithRelations) => transaction.id === deleteTransactionId
   )
 
-  console.log("sortedTransactions", sortedTransactions)
-
   return (
     <div className="max-w-md mx-auto h-full flex flex-col gap-4">
       {/* Header */}

@@ -1,4 +1,4 @@
-import { useFetchLoggedInUser, useSignOut, useRefreshToken } from "@/queries/authQueries"
+import { useFetchLoggedInUser, useSignOut } from "@/queries/authQueries"
 import type { User } from "@/types"
 
 interface UseAuthReturn {
@@ -7,7 +7,6 @@ interface UseAuthReturn {
   isError: boolean
   isAuthenticated: boolean
   signOut: () => void
-  refreshToken: () => void
   error: Error | null
   // Derived values
   userName: string
@@ -15,7 +14,7 @@ interface UseAuthReturn {
   hasAvatar: boolean
 }
 
-// UI-ready auth hook with derived values and actions
+// Simplified auth hook - backend handles all complexity
 export const useAuth = (options?: { enabled?: boolean }): UseAuthReturn => {
   const { 
     data: user, 
@@ -25,26 +24,24 @@ export const useAuth = (options?: { enabled?: boolean }): UseAuthReturn => {
   } = useFetchLoggedInUser(options)
   
   const signOutMutation = useSignOut()
-  const refreshTokenMutation = useRefreshToken()
   
   // Derived values for UI components
   const userName = user?.name || "Unknown User"
   const userInitials = user?.name
     ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
     : "??"
-  const hasAvatar = Boolean(user?.avatar)
+  const hasAvatar = Boolean(user?.avatar_url)
   const isAuthenticated = Boolean(user && !isError)
   
   return {
     user,
-    isLoading: isLoading || signOutMutation.isPending || refreshTokenMutation.isPending,
-    isError: isError || signOutMutation.isError || refreshTokenMutation.isError,
+    isLoading: isLoading || signOutMutation.isPending,
+    isError: isError || signOutMutation.isError,
     isAuthenticated,
-    error: error || signOutMutation.error || refreshTokenMutation.error,
+    error: error || signOutMutation.error,
     
     // Actions
     signOut: () => signOutMutation.mutate(),
-    refreshToken: () => refreshTokenMutation.mutate(),
     
     // Derived values for UI
     userName,

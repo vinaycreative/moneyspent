@@ -1,27 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabase/client"
+import { initiateLogin } from "@/api/auth"
 
 const GoogleOneTapComponent = () => {
-  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = () => {
     setIsLoading(true)
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      })
-      if (error) throw error
-    } catch (error) {
-      console.error("Error signing in with Google:", error)
-      setIsLoading(false)
-    }
+    // Simply redirect to backend login endpoint - much cleaner!
+    initiateLogin()
   }
 
   return (

@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import TanstackProvider from "@/context/TanstackProvider"
-import SessionMonitor from "@/components/SessionMonitor"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const geistSans = Geist({
@@ -52,7 +51,6 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <TanstackProvider>
-          <SessionMonitor />
           {children}
         </TanstackProvider>
         <SpeedInsights />
