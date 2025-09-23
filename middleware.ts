@@ -11,7 +11,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/accounts") ||
     pathname.startsWith("/settings")
 
-  // For private routes, just check if token exists - backend will handle validation and refresh
+  // For private routes, check if token exists (any token = user is logged in)
+  // Backend will handle token validation and refresh
   if (isPrivateRoute && !token) {
     return NextResponse.redirect(new URL("/", request.url))
   }

@@ -26,6 +26,23 @@ export const useAuthDebug = () => {
     return result
   }
 
+  const testBackendEndpoint = async () => {
+    console.log("🧪 Testing backend refresh endpoint")
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1'
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      console.log("🧪 Backend response:", response.status, response.statusText)
+      return response.ok
+    } catch (error) {
+      console.error("🧪 Backend test failed:", error)
+      return false
+    }
+  }
+
   const clearAuth = async () => {
     console.log("🗑️ Clear auth triggered")
     await authManager.clearAuthData()
@@ -45,6 +62,7 @@ export const useAuthDebug = () => {
       forceRefresh,
       clearAuth,
       checkExpiry,
+      testBackendEndpoint,
     },
   }
 }
@@ -89,6 +107,9 @@ export const AuthDebugPanel = () => {
         </button>
         <button onClick={actions.checkExpiry} style={{ marginRight: 5, fontSize: 10 }}>
           Check
+        </button>
+        <button onClick={actions.testBackendEndpoint} style={{ marginRight: 5, fontSize: 10 }}>
+          Test BE
         </button>
         <button onClick={actions.clearAuth} style={{ fontSize: 10 }}>
           Clear
