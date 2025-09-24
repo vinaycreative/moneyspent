@@ -12,39 +12,30 @@ const api = axios.create({
   },
 })
 
-// Smart response interceptor with token refresh
+// Smart response interceptor - backend handles refresh automatically
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config
     
-    // If 401 and we haven't already tried to refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true
+    // If 401, check if user should be logged out
+    if (error.response?.status === 401) {
+      console.log('❌ Got 401 response')
       
-      // Check if user has any token (even expired)
+      // Check if user still has tokens after backend processing
       if (authManager.hasToken()) {
-        console.log('🔄 Got 401, attempting token refresh...')
-        
-        try {
-          const refreshSuccess = await authManager.refreshToken()
-          
-          if (refreshSuccess) {
-            console.log('✅ Token refreshed, retrying original request')
-            // Retry the original request
-            return api(originalRequest)
-          } else {
-            console.log('❌ Token refresh failed')
-            // authManager.refreshToken() already handled logout if needed
-            return Promise.reject(error)
-          }
-        } catch (refreshError) {
-          console.error('❌ Token refresh error:', refreshError)
-          return Promise.reject(error)
+        console.log('⚠️ User has token but got 401 - backend should have handled refresh')
+        // Backend middleware should have handled refresh automatically
+        // If we still get 401, it means refresh failed on backend
+        // Let's retry once in case there was a race condition
+        if (!originalRequest._retry) {
+          originalRequest._retry = true
+          console.log('🔄 Retrying request once...')
+          return api(originalRequest)
         }
       } else {
         // No token at all, user is not logged in
-        console.log('❌ No token found, user not logged in')
+        console.log('❌ No token found, redirecting to home')
         if (typeof window !== "undefined" && !window.location.pathname.startsWith('/')) {
           window.location.href = '/'
         }

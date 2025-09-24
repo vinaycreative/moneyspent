@@ -17,9 +17,7 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
       </div>
     )
   }
-  if (!user) {
-    router.push("/auth/login")
-  }
+
   return (
     <div className="h-dvh grid border-x border-gray-200 grid-rows-[1fr_70px] bg-white min-w-[320px] max-w-[400px] mx-auto mobile-viewport">
       {/* <Header title="Money Manager" /> */}

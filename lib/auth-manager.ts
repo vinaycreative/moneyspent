@@ -141,10 +141,25 @@ class AuthManager {
       return false
     }
 
-    // User has a token (expired or active), so they're "logged in"
-    // We'll let the backend API calls handle the actual validation
-    // and refresh the token when we get 401 responses
-    console.log('✅ User has token - considering them logged in')
+    console.log('✅ User has token - checking expiry...')
+    
+    // Check if token is expired or expiring soon
+    const isExpiring = await this.isTokenExpiredOrExpiring()
+    
+    if (isExpiring) {
+      console.log('⚠️ Token is expired/expiring, attempting refresh...')
+      const refreshSuccess = await this.refreshToken()
+      
+      if (refreshSuccess) {
+        console.log('✅ Token refreshed successfully')
+        return true
+      } else {
+        console.log('❌ Token refresh failed - user needs to login')
+        return false
+      }
+    }
+    
+    console.log('✅ Token is still valid - user is logged in')
     return true
   }
 
@@ -174,23 +189,30 @@ class AuthManager {
   }
 
   /**
-   * Check if token is expired or expiring soon (for debugging)
+   * Check if token is expired or expiring soon
    */
   async isTokenExpiredOrExpiring(): Promise<boolean> {
     const token = this.getAccessToken()
     if (!token) return true
     
     try {
-      // Simple check - try to decode the token
+      // Decode JWT token properly
       const payload = JSON.parse(atob(token.split('.')[1]))
       const expiresAt = new Date(payload.exp * 1000)
       const now = new Date()
       const timeUntilExpiry = expiresAt.getTime() - now.getTime()
       const FIVE_MINUTES = 5 * 60 * 1000
       
-      return timeUntilExpiry <= FIVE_MINUTES
+      console.log(`🕐 Token expires: ${expiresAt.toISOString()}`)
+      console.log(`🕐 Current time: ${now.toISOString()}`)
+      console.log(`🕐 Time until expiry: ${Math.round(timeUntilExpiry / 1000 / 60)} minutes`)
+      
+      const isExpiring = timeUntilExpiry <= FIVE_MINUTES
+      console.log(`🕐 Token is ${isExpiring ? 'expiring soon' : 'still valid'}`)
+      
+      return isExpiring
     } catch (error) {
-      // If we can't decode the token, consider it expired
+      console.error('❌ Failed to decode token:', error)
       return true
     }
   }
