@@ -66,24 +66,24 @@ export function AddAccountFormContent({
         <div className="grid grid-cols-2 gap-4">
           {/* Account Name */}
           <div>
-            <Label className="text-gray-800 font-medium">Account Name</Label>
+            <Label className="font-medium text-ink">Account Name</Label>
             <Input
               type="text"
               placeholder="Enter account name"
               value={formData.name}
               onChange={(e) => handleInputChange("name", e.target.value)}
-              className="w-full border-gray-300 bg-white mt-1"
+              className="w-full mt-1 bg-surface border border-line text-ink"
             />
           </div>
 
           {/* Account Type */}
           <div>
-            <Label className="text-gray-800 font-medium">Account Type</Label>
+            <Label className="font-medium text-ink">Account Type</Label>
             <Select
               value={formData.type}
               onValueChange={(value) => handleInputChange("type", value)}
             >
-              <SelectTrigger className="w-full border-gray-300 bg-white mt-1">
+              <SelectTrigger className="w-full mt-1 bg-surface border border-line text-ink">
                 <SelectValue placeholder="Select account type" />
               </SelectTrigger>
               <SelectContent>
@@ -108,24 +108,24 @@ export function AddAccountFormContent({
 
           {/* Initial Balance */}
           <div>
-            <Label className="text-gray-800 font-medium">Initial Balance</Label>
+            <Label className="font-medium text-ink">Initial Balance</Label>
             <Input
               type="number"
               placeholder="Enter initial balance"
               value={formData.balance}
               onChange={(e) => handleInputChange("balance", e.target.value)}
-              className="w-full border-gray-300 bg-white mt-1"
+              className="w-full mt-1 bg-surface border border-line text-ink"
             />
           </div>
 
           {/* Currency */}
           <div>
-            <Label className="text-gray-800 font-medium">Currency</Label>
+            <Label className="font-medium text-ink">Currency</Label>
             <Select
               value={formData.currency}
               onValueChange={(value) => handleInputChange("currency", value)}
             >
-              <SelectTrigger className="w-full border-gray-300 bg-white mt-1">
+              <SelectTrigger className="w-full mt-1 bg-surface border border-line text-ink">
                 <SelectValue placeholder="Select currency" />
               </SelectTrigger>
               <SelectContent>
@@ -141,17 +141,17 @@ export function AddAccountFormContent({
 
         {/* Preview */}
         {selectedType && (
-          <div className="bg-gray-50 rounded-lg p-3">
-            <Label className="text-gray-700 mb-2 block">Preview</Label>
+          <div
+            className="rounded-xl p-3 bg-surface-alt border border-line"
+          >
+            <Label className="mb-2 block text-sm text-ms-muted">Preview</Label>
             <div className="flex items-center gap-3">
-              <div
-                className={`w-10 h-10 rounded-lg flex items-center justify-center ${selectedType.color} text-white`}
-              >
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${selectedType.color} text-white`}>
                 <selectedType.icon className="w-5 h-5" />
               </div>
               <div>
-                <div className="font-medium text-gray-800">{formData.name || "Account Name"}</div>
-                <div className="text-xs text-gray-500">{selectedType.label}</div>
+                <div className="font-medium text-ink">{formData.name || "Account Name"}</div>
+                <div className="text-xs text-ms-muted">{selectedType.label}</div>
               </div>
             </div>
           </div>

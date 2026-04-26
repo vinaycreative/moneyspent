@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect } from "react"
 import { Drawer } from "vaul"
-import { LucideIcon, Icon, Loader2 } from "lucide-react"
+import { LucideIcon, Loader2 } from "lucide-react"
 import { useMobileKeyboard } from "@/hooks/useMobileKeyboard"
 
 interface CustomDrawerProps {
@@ -40,37 +40,24 @@ const CustomDrawer = ({
   const [internalOpen, setInternalOpen] = React.useState(false)
   const { isKeyboardVisible } = useMobileKeyboard()
 
-  // Use controlled state if provided, otherwise use internal state
   const isControlled = open !== undefined
   const isOpen = isControlled ? open : internalOpen
   const setIsOpen = isControlled ? onOpenChange || (() => {}) : setInternalOpen
 
-  // Handle input focus to ensure visibility
   useEffect(() => {
     if (isOpen && isKeyboardVisible) {
       const handleFocus = (e: Event) => {
         const target = e.target as HTMLElement
-        if (target && target.scrollIntoView) {
-          // Scroll the focused element into view with a delay to account for keyboard animation
+        if (target?.scrollIntoView) {
           setTimeout(() => {
-            target.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-              inline: "nearest",
-            })
+            target.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" })
           }, 300)
         }
       }
-
       const inputs = document.querySelectorAll("input, select, textarea")
-      inputs.forEach((input) => {
-        input.addEventListener("focus", handleFocus as EventListener)
-      })
-
+      inputs.forEach((input) => input.addEventListener("focus", handleFocus as EventListener))
       return () => {
-        inputs.forEach((input) => {
-          input.removeEventListener("focus", handleFocus as EventListener)
-        })
+        inputs.forEach((input) => input.removeEventListener("focus", handleFocus as EventListener))
       }
     }
   }, [isOpen, isKeyboardVisible])
@@ -81,47 +68,61 @@ const CustomDrawer = ({
         {trigger}
       </Drawer.Trigger>
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed min-w-[320px] max-w-[400px] mx-auto inset-0 bg-black/40" />
+        <Drawer.Overlay className="fixed min-w-[320px] max-w-[400px] mx-auto inset-0 bg-black/50" />
         <Drawer.Content
           className={`
-            bg-white min-w-[320px] max-w-[400px] mx-auto flex flex-col z-[9999] rounded-t-[10px] 
+            min-w-[320px] max-w-[400px] mx-auto flex flex-col z-[9999] rounded-t-[14px]
             fixed bottom-0 left-0 right-0 outline-none transition-all duration-300
             ${isKeyboardVisible ? "max-h-[85vh] min-h-[60vh]" : "max-h-[96%] min-h-[80%]"}
-            ${isKeyboardVisible ? "mt-8" : "mt-24"}
+            ${isKeyboardVisible ? "mt-8" : "mt-24"} bg-surface
           `}
         >
           <div className="h-full flex-1 grid grid-rows-[auto_1fr_auto]">
-            <div className="header bg-white border-b border-gray-200 px-4 py-3 rounded-t-[10px]">
-              <Drawer.Title className="text-base font-semibold text-gray-800">
+            {/* Header */}
+            <div
+              className="px-4 py-3 rounded-t-[14px] bg-surface border-b border-line"
+            >
+              {/* Drag handle */}
+              <div
+                className="w-10 h-1 rounded-full mx-auto mb-3 bg-line-strong"
+              />
+              <Drawer.Title
+                className="text-base font-semibold text-ink"
+              >
                 {title}
               </Drawer.Title>
               {description && (
-                <Drawer.Description className="text-sm text-gray-500">
+                <Drawer.Description
+                  className="text-sm mt-0.5 text-ms-muted"
+                >
                   {description}
                 </Drawer.Description>
               )}
             </div>
+
+            {/* Body */}
             <div
-              className={`
-                body bg-[#fbfbfb] p-4 overflow-y-auto mobile-scroll
-                ${isKeyboardVisible ? "pb-20" : ""}
-              `}
+              className={`p-4 overflow-y-auto mobile-scroll bg-surface-alt ${isKeyboardVisible ? "pb-20" : ""}`}
             >
               {children}
             </div>
-            <div className="footer bg-white border-t border-gray-200 flex items-center justify-center py-3 px-3">
+
+            {/* Footer */}
+            <div
+              className="flex items-center justify-center py-3 px-3 bg-surface border-t border-line"
+            >
               {customSubmitButton ? (
                 customSubmitButton
               ) : (
                 <button
-                  className={`bg-black text-white flex items-center justify-center gap-2 font-medium hover:bg-gray-800 transition-colors w-full py-2.5 rounded-md ${submitClassName}`}
+                  className={`flex items-center justify-center gap-2 font-semibold transition-opacity w-full py-2.5 rounded-xl disabled:opacity-50 bg-ink text-paper text-[14.5px] ${submitClassName ?? ""}`}
                   disabled={submitDisabled}
                   onClick={onSubmit}
                 >
                   {submitLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    <SubmitIcon size={20} className="w-4 h-4" />
+                    <SubmitIcon size={16} />
                   )}
                   {submitTitle}
                 </button>

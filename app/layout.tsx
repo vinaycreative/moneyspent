@@ -4,6 +4,8 @@ import "./globals.css"
 import TanstackProvider from "@/context/TanstackProvider"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Analytics } from "@vercel/analytics/next"
+import { ThemeScript } from "@/components/ThemeScript"
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -15,14 +17,12 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "MoneySpend - Your Personal Finance Manager",
-  description: "Track expenses, manage budgets, and achieve your financial goals with MoneySpend",
-  formatDetection: {
-    telephone: false,
-  },
+  title: "MoneySpent",
+  description: "Know where it actually goes.",
+  formatDetection: { telephone: false },
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "192x192" }, // Auto-detect type
+      { url: "/favicon.ico", sizes: "192x192" },
       { url: "/icon.svg", type: "image/svg+xml" },
       { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
     ],
@@ -32,7 +32,6 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -41,14 +40,21 @@ export const viewport: Viewport = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 mobile-viewport`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased mobile-viewport`}
         suppressHydrationWarning
+        style={{
+          fontFamily:
+            "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
+          background: "var(--paper)",
+          color: "var(--ink)",
+        }}
       >
         <TanstackProvider>
           {children}

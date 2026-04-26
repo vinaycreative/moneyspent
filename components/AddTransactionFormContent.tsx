@@ -79,7 +79,7 @@ export const AddTransactionFormContent = memo(function AddTransactionFormContent
       <div className="grid grid-cols-2 gap-4">
         {/* Date & Time Picker */}
         <div className="space-y-2">
-          <Label className="text-gray-800 font-medium">Date & Time</Label>
+          <Label className="font-medium text-ink">Date & Time</Label>
           <DateTimePicker
             date={formData.date}
             onDateChange={handleDateChange}
@@ -90,7 +90,7 @@ export const AddTransactionFormContent = memo(function AddTransactionFormContent
 
         {/* Amount Field */}
         <div className="space-y-2">
-          <Label className="text-gray-800 font-medium">Amount</Label>
+          <Label className="font-medium text-ink">Amount</Label>
           <Input
             type="text"
             typeof="currency"
@@ -98,29 +98,27 @@ export const AddTransactionFormContent = memo(function AddTransactionFormContent
             prefix="₹"
             value={formData.amount}
             onChange={(e) => handleInputChange("amount", e.target.value)}
-            className="w-full border-gray-300 bg-white"
+            className="w-full bg-surface border border-line text-ink"
             disabled={isLoading}
           />
         </div>
 
         {/* Category Field */}
         <div className="space-y-2">
-          <Label className="text-gray-800 font-medium">Category</Label>
+          <Label className="font-medium text-ink">Category</Label>
           <Select
             value={formData.category}
             onValueChange={(value) => handleInputChange("category", value)}
             disabled={categoriesLoading || isLoading}
           >
-            <SelectTrigger className="w-full border-gray-300 bg-white">
+            <SelectTrigger className="w-full bg-surface border border-line text-ink">
               <SelectValue
                 placeholder={categoriesLoading ? "Loading categories..." : "Select category"}
               />
             </SelectTrigger>
             <SelectContent>
               {categoriesLoading ? (
-                <SelectItem value="loading" disabled>
-                  Loading categories...
-                </SelectItem>
+                <SelectItem value="loading" disabled>Loading categories...</SelectItem>
               ) : filteredCategories.length > 0 ? (
                 filteredCategories.map((category: any) => (
                   <SelectItem key={category.id} value={category.id}>
@@ -131,9 +129,7 @@ export const AddTransactionFormContent = memo(function AddTransactionFormContent
                   </SelectItem>
                 ))
               ) : (
-                <SelectItem value="no-categories" disabled>
-                  No categories available
-                </SelectItem>
+                <SelectItem value="no-categories" disabled>No categories available</SelectItem>
               )}
             </SelectContent>
           </Select>
@@ -141,32 +137,26 @@ export const AddTransactionFormContent = memo(function AddTransactionFormContent
 
         {/* Account Field */}
         <div className="space-y-2">
-          <Label className="text-gray-800 font-medium">Account</Label>
+          <Label className="font-medium text-ink">Account</Label>
           <Select
             value={formData.account}
             onValueChange={(value) => handleInputChange("account", value)}
             disabled={accountsLoading || isLoading}
           >
-            <SelectTrigger className="w-full border-gray-300 bg-white">
+            <SelectTrigger className="w-full bg-surface border border-line text-ink">
               <SelectValue
                 placeholder={accountsLoading ? "Loading accounts..." : "Select account"}
               />
             </SelectTrigger>
             <SelectContent>
               {accountsLoading ? (
-                <SelectItem value="loading" disabled>
-                  Loading accounts...
-                </SelectItem>
+                <SelectItem value="loading" disabled>Loading accounts...</SelectItem>
               ) : accounts && accounts.length > 0 ? (
                 accounts.map((account: any) => (
-                  <SelectItem key={account.id} value={account.id}>
-                    {account.name}
-                  </SelectItem>
+                  <SelectItem key={account.id} value={account.id}>{account.name}</SelectItem>
                 ))
               ) : (
-                <SelectItem value="no-accounts" disabled>
-                  No accounts available
-                </SelectItem>
+                <SelectItem value="no-accounts" disabled>No accounts available</SelectItem>
               )}
             </SelectContent>
           </Select>
@@ -175,13 +165,13 @@ export const AddTransactionFormContent = memo(function AddTransactionFormContent
 
       {/* Description Field */}
       <div className="space-y-2">
-        <Label className="text-gray-800 font-medium">Description (Optional)</Label>
+        <Label className="font-medium text-ink">Description (Optional)</Label>
         <Input
           type="text"
           placeholder="Enter description"
           value={formData.description}
           onChange={(e) => handleInputChange("description", e.target.value)}
-          className="w-full border-gray-300 bg-white"
+          className="w-full bg-surface border border-line text-ink"
           disabled={isLoading}
         />
       </div>

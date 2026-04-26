@@ -123,36 +123,36 @@ export const EditTransactionDrawer = memo(function EditTransactionDrawer({
           <div className="grid grid-cols-2 gap-4">
             {/* Transaction Title */}
             <div className="space-y-2">
-              <Label className="text-gray-800 font-medium">Transaction Title</Label>
+              <Label className="font-medium text-ink">Transaction Title</Label>
               <Input
                 type="text"
                 placeholder="Enter transaction title"
                 value={formData.title}
                 onChange={(e) => handleInputChange("title", e.target.value)}
-                className="w-full border-gray-300 bg-white"
+                className="w-full bg-surface border border-line text-ink"
               />
             </div>
 
             {/* Amount */}
             <div className="space-y-2">
-              <Label className="text-gray-800 font-medium">Amount</Label>
+              <Label className="font-medium text-ink">Amount</Label>
               <Input
                 type="number"
                 placeholder="Enter amount"
                 value={formData.amount}
                 onChange={(e) => handleInputChange("amount", e.target.value)}
-                className="w-full border-gray-300 bg-white"
+                className="w-full bg-surface border border-line text-ink"
               />
             </div>
 
             {/* Category */}
             <div className="space-y-2">
-              <Label className="text-gray-800 font-medium">Category</Label>
+              <Label className="font-medium text-ink">Category</Label>
               <Select
                 value={formData.category_id}
                 onValueChange={(value) => handleInputChange("category_id", value)}
               >
-                <SelectTrigger className="w-full border-gray-300 bg-white">
+                <SelectTrigger className="w-full bg-surface border border-line text-ink">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -167,12 +167,12 @@ export const EditTransactionDrawer = memo(function EditTransactionDrawer({
 
             {/* Account */}
             <div className="space-y-2">
-              <Label className="text-gray-800 font-medium">Account</Label>
+              <Label className="font-medium text-ink">Account</Label>
               <Select
                 value={formData.account_id}
                 onValueChange={(value) => handleInputChange("account_id", value)}
               >
-                <SelectTrigger className="w-full border-gray-300 bg-white">
+                <SelectTrigger className="w-full bg-surface border border-line text-ink">
                   <SelectValue placeholder="Select account" />
                 </SelectTrigger>
                 <SelectContent>
@@ -187,7 +187,7 @@ export const EditTransactionDrawer = memo(function EditTransactionDrawer({
 
             {/* Date Picker */}
             <div className="space-y-2">
-              <Label className="text-gray-800 font-medium">Date</Label>
+              <Label className="font-medium text-ink">Date</Label>
               <DatePicker
                 date={formData.transaction_date}
                 onDateChange={handleDateChange}
@@ -198,30 +198,32 @@ export const EditTransactionDrawer = memo(function EditTransactionDrawer({
 
             {/* Description */}
             <div className="space-y-2">
-              <Label className="text-gray-800 font-medium">Description (Optional)</Label>
+              <Label className="font-medium text-ink">Description (Optional)</Label>
               <Input
                 type="text"
                 placeholder="Enter description"
                 value={formData.description}
                 onChange={(e) => handleInputChange("description", e.target.value)}
-                className="w-full border-gray-300 bg-white"
+                className="w-full bg-surface border border-line text-ink"
               />
             </div>
           </div>
 
           {/* Transaction Preview */}
           <div>
-            <Label className="text-gray-800 font-medium mb-3 block">Preview</Label>
-            <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+            <Label className="font-medium mb-3 block text-ink">Preview</Label>
+            <div
+              className="rounded-xl p-4 bg-surface-alt border border-line"
+            >
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <div className="font-medium text-black">
+                  <div className="font-medium text-ink">
                     {formData.title || "Transaction Title"}
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-ms-muted">
                     {selectedCategory?.name || "Category"} • {selectedAccount?.name || "Account"}
                   </div>
-                  <div className="text-xs text-gray-400">
+                  <div className="text-xs text-ms-muted">
                     {formData.transaction_date
                       ? moment(formData.transaction_date).tz("Asia/Kolkata").format("lll")
                       : "No date selected"}
@@ -229,9 +231,7 @@ export const EditTransactionDrawer = memo(function EditTransactionDrawer({
                 </div>
                 <div className="text-right">
                   <div
-                    className={`font-bold text-lg ${
-                      activeTab === "expense" ? "text-red-500" : "text-green-600"
-                    }`}
+                    className={`font-bold text-lg ${activeTab === "expense" ? "text-neg" : "text-pos"}`}
                   >
                     {activeTab === "expense" ? "-" : "+"} ₹ {parseFloat(formData.amount) || 0}
                   </div>

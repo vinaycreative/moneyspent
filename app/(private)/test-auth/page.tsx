@@ -22,13 +22,13 @@ export default function TestAuthPage() {
   if (isLoading) return <div>Loading...</div>
 
   return (
-    <div className="min-h-screen p-8 bg-gray-50">
+    <div className="min-h-screen p-8 bg-paper text-ink">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">🧪 Auth Testing</h1>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* User Info */}
-          <div className="bg-white p-6 rounded-lg shadow">
+          <div className="bg-surface p-6 rounded-lg border border-line">
             <h2 className="text-xl font-semibold mb-4">👤 User Info</h2>
             <div className="space-y-2">
               <p><strong>Name:</strong> {user?.name || 'N/A'}</p>
@@ -38,7 +38,7 @@ export default function TestAuthPage() {
           </div>
 
           {/* API Testing */}
-          <div className="bg-white p-6 rounded-lg shadow">
+          <div className="bg-surface p-6 rounded-lg border border-line">
             <h2 className="text-xl font-semibold mb-4">🔗 API Testing</h2>
             <button
               onClick={testApiCall}
@@ -46,22 +46,22 @@ export default function TestAuthPage() {
             >
               Test /auth/me API
             </button>
-            <div className="text-sm bg-gray-100 p-3 rounded">
+            <div className="text-sm bg-surface-alt p-3 rounded">
               {testResult || 'Click button to test API'}
             </div>
           </div>
 
           {/* Cookie Info */}
-          <div className="bg-white p-6 rounded-lg shadow">
+          <div className="bg-surface p-6 rounded-lg border border-line">
             <h2 className="text-xl font-semibold mb-4">🍪 Cookies</h2>
-            <div className="text-sm bg-gray-100 p-3 rounded">
+            <div className="text-sm bg-surface-alt p-3 rounded">
               <p><strong>access_token:</strong> {document.cookie.includes('access_token') ? 'Present' : 'Missing'}</p>
               <p><strong>refresh_token:</strong> {document.cookie.includes('refresh_token') ? 'Present' : 'Missing'}</p>
             </div>
           </div>
 
           {/* Manual Tests */}
-          <div className="bg-white p-6 rounded-lg shadow">
+          <div className="bg-surface p-6 rounded-lg border border-line">
             <h2 className="text-xl font-semibold mb-4">🧪 Manual Tests</h2>
             <div className="space-y-4 text-sm">
               <div>
@@ -81,7 +81,7 @@ export default function TestAuthPage() {
         </div>
 
         {/* Instructions */}
-        <div className="mt-8 bg-yellow-50 border border-yellow-200 p-6 rounded-lg">
+        <div className="mt-8 bg-surface-alt border border-line p-6 rounded-lg">
           <h3 className="text-lg font-semibold mb-2">📋 How to Test</h3>
           <ol className="list-decimal list-inside space-y-2 text-sm">
             <li>Make sure both frontend and backend are running</li>

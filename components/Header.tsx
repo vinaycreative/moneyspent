@@ -49,38 +49,28 @@ export default function Header({
   }
 
   return (
-    <div className="bg-white border-b border-gray-200 h-[60px] flex items-center">
+    <div
+      className="h-[60px] flex items-center bg-surface border-b border-line"
+    >
       <div className="max-w-md mx-auto px-4 w-full">
         <div className="flex items-center justify-between">
-          {/* Left Section */}
           <div className="flex items-center gap-3">
             {showBackButton && (
-              <button
-                onClick={handleBackClick}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5 text-gray-600" />
+              <button onClick={handleBackClick} className="p-2 rounded-lg transition-colors">
+                <ArrowLeft className="w-5 h-5 text-ms-muted" />
               </button>
             )}
             {showMenuButton && (
-              <button
-                onClick={onMenuClick}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <Menu className="w-5 h-5 text-gray-600" />
+              <button onClick={onMenuClick} className="p-2 rounded-lg transition-colors">
+                <Menu className="w-5 h-5 text-ms-muted" />
               </button>
             )}
           </div>
-
-          {/* Center Section - Title */}
           <div className="flex-1 text-left">
-            <h1 className="text-lg font-bold text-gray-900">{getPageTitle()}</h1>
+            <h1 className="text-lg font-bold text-ink">{getPageTitle()}</h1>
           </div>
-
-          {/* Right Section */}
           <div className="flex items-center gap-2">
             {rightAction}
-            {/* Placeholder to maintain centering */}
             {!rightAction && (showBackButton || showMenuButton) && <div className="w-9 h-9"></div>}
           </div>
         </div>

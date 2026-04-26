@@ -16,10 +16,10 @@ const GoogleOneTapComponent = () => {
     <button
       onClick={handleGoogleSignIn}
       disabled={isLoading}
-      className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-white border border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md"
+      className="w-full flex items-center justify-center gap-3 px-6 py-3 rounded-xl font-medium transition-all duration-200 bg-surface border border-line text-ink"
     >
       {isLoading ? (
-        <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+        <div className="w-5 h-5 border-2 rounded-full animate-spin border-line" style={{ borderTopColor: "#4285F4" }}></div>
       ) : (
         <svg className="w-5 h-5" viewBox="0 0 24 24">
           <path

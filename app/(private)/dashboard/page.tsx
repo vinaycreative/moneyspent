@@ -76,10 +76,10 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="h-screen bg-white flex items-center justify-center">
+      <div className="h-screen flex items-center justify-center bg-paper">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto border-ms-accent"></div>
+          <p className="mt-2 text-sm text-ms-muted">Loading…</p>
         </div>
       </div>
     )
@@ -87,9 +87,9 @@ export default function Dashboard() {
 
   if (!user) {
     return (
-      <div className="h-screen bg-white flex items-center justify-center">
+      <div className="h-screen flex items-center justify-center bg-paper">
         <div className="text-center">
-          <p className="text-gray-600">Please sign in to continue</p>
+          <p className="text-sm text-ms-muted">Please sign in to continue</p>
         </div>
       </div>
     )
@@ -113,14 +113,14 @@ export default function Dashboard() {
         <div className="flex items-center justify-between">
           <button
             onClick={goToPreviousDate}
-            className="p-2 rounded-md bg-gray-100 border border-gray-200 hover:bg-gray-200 transition-colors cursor-pointer"
+            className="p-2 rounded-md transition-colors cursor-pointer bg-surface-alt border border-line"
           >
-            <ArrowLeft className="text-gray-600" size={20} />
+            <ArrowLeft size={20} className="text-ms-muted" />
           </button>
 
           <div className="text-center">
-            <div className="text-black font-semibold">{formatDateDisplay(selectedDate)}</div>
-            <div className="text-sm text-gray-500">
+            <div className="font-semibold text-ink">{formatDateDisplay(selectedDate)}</div>
+            <div className="text-sm text-ms-muted">
               {transactionCount} transaction{transactionCount !== 1 ? "s" : ""}
             </div>
           </div>
@@ -128,13 +128,9 @@ export default function Dashboard() {
           <button
             onClick={goToNextDate}
             disabled={isToday()}
-            className={`p-2 rounded-md border border-gray-200 transition-colors cursor-pointer ${
-              isToday()
-                ? "bg-gray-50 text-gray-300 cursor-not-allowed"
-                : "bg-gray-100 hover:bg-gray-200 text-gray-600"
-            }`}
+            className="p-2 rounded-md transition-colors cursor-pointer disabled:opacity-40 bg-surface-alt border border-line"
           >
-            <ArrowRight className="text-gray-600" size={20} />
+            <ArrowRight size={20} className="text-ms-muted" />
           </button>
         </div>
       </section>
@@ -150,7 +146,9 @@ export default function Dashboard() {
         />
         <AddTransaction
           trigger={
-            <button className="w-full bg-black text-white rounded-md py-3 flex items-center justify-center gap-2 font-medium hover:bg-gray-800 transition-colors">
+            <button
+              className="w-full rounded-xl py-3 flex items-center justify-center gap-2 font-semibold transition-opacity bg-ms-accent text-white"
+            >
               <Plus className="w-5 h-5" />
               Add Transaction
             </button>
@@ -161,8 +159,8 @@ export default function Dashboard() {
       {/* Recent Transactions */}
       <section className="px-4 pb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-black">Recent Transactions</h2>
-          <Link href={"/transactions"} className="text-sm text-gray-500 hover:text-gray-700">
+          <h2 className="text-lg font-bold text-ink">Recent Transactions</h2>
+          <Link href={"/transactions"} className="text-sm text-ms-muted">
             View All
           </Link>
         </div>
@@ -172,14 +170,14 @@ export default function Dashboard() {
             {[...Array(3)].map((_, i) => (
               <div
                 key={i}
-                className="flex items-center gap-3 p-3 rounded-lg animate-pulse border border-gray-200"
+                className="flex items-center gap-3 p-3 rounded-xl animate-pulse border border-line"
               >
-                <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
+                <div className="w-10 h-10 rounded-lg bg-surface-alt"></div>
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                  <div className="h-4 rounded w-3/4 bg-surface-alt"></div>
+                  <div className="h-3 rounded w-1/2 bg-surface-alt"></div>
                 </div>
-                <div className="h-4 bg-gray-200 rounded w-16"></div>
+                <div className="h-4 rounded w-16 bg-surface-alt"></div>
               </div>
             ))}
           </div>
@@ -188,7 +186,7 @@ export default function Dashboard() {
             {transactionsForDate.slice(0, 5).map((transaction: { id: string; title: string; occurred_at: string; amount: number; type: string; categories?: { color?: string; icon?: string; name?: string }; accounts?: { name: string } }) => (
               <div
                 key={transaction.id}
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200"
+                className="flex items-center gap-3 p-3 rounded-xl transition-colors border border-line bg-surface"
               >
                 <div
                   className={`w-10 h-10 rounded-lg flex items-center justify-center ${
@@ -199,8 +197,8 @@ export default function Dashboard() {
                 </div>
 
                 <div className="flex-1">
-                  <div className="font-medium text-black">{transaction.title}</div>
-                  <div className="text-xs text-gray-500 flex items-center gap-1">
+                  <div className="font-medium text-ink">{transaction.title}</div>
+                  <div className="text-xs flex items-center gap-1 text-ms-muted">
                     <span className="font-medium">
                       {moment(transaction.occurred_at).tz("Asia/Kolkata").format("DD MMM")}
                     </span>{" "}
@@ -213,14 +211,12 @@ export default function Dashboard() {
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <div
-                    className={`font-medium ${
-                      transaction.type === "expense" ? "text-red-500" : "text-green-500"
-                    }`}
+                    className={`font-medium ${transaction.type === "expense" ? "text-neg" : "text-pos"}`}
                   >
                     {transaction.type === "expense" ? "-" : "+"} ₹{" "}
                     {transaction.amount.toLocaleString()}
                   </div>
-                  <span className="text-[10px] text-gray-500">
+                  <span className="text-[10px] text-ms-muted">
                     {" "}
                     {moment(transaction.occurred_at).tz("Asia/Kolkata").format("LT")}
                   </span>
@@ -229,7 +225,7 @@ export default function Dashboard() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-ms-muted">
             <div className="text-lg font-medium mb-2">No transactions for this date</div>
             <div className="text-sm">Add a transaction to get started</div>
           </div>

@@ -844,24 +844,24 @@ export function CategoryFormContent({
       <div className="grid grid-cols-2 gap-4">
         {/* Category Name */}
         <div className="space-y-2">
-          <Label className="text-gray-800 font-medium">Category Name</Label>
+          <Label className="font-medium text-ink">Category Name</Label>
           <Input
             type="text"
             placeholder="Enter category name"
             value={formData.name}
             onChange={(e) => handleInputChange("name", e.target.value)}
-            className="w-full border-gray-300 bg-white"
+            className="w-full bg-surface border border-line text-ink"
           />
         </div>
 
         {/* Category Type */}
         <div className="space-y-2">
-          <Label className="text-gray-800 font-medium">Type</Label>
+          <Label className="font-medium text-ink">Type</Label>
           <Select
             value={formData.type}
             onValueChange={(value) => handleInputChange("type", value as "expense" | "income")}
           >
-            <SelectTrigger className="w-full border-gray-300 bg-white">
+            <SelectTrigger className="w-full bg-surface border border-line text-ink">
               <SelectValue placeholder="Select type" />
             </SelectTrigger>
             <SelectContent>
@@ -874,15 +874,19 @@ export function CategoryFormContent({
 
       {/* Icon Selection */}
       <div className="space-y-2">
-        <Label className="text-gray-800 font-medium">Icon</Label>
-        <div className="grid grid-cols-8 gap-2 max-h-32 overflow-y-auto border border-gray-200 rounded-lg p-3">
+        <Label className="font-medium text-ink">Icon</Label>
+        <div
+          className="grid grid-cols-8 gap-2 max-h-32 overflow-y-auto rounded-xl p-3 border border-line bg-surface-alt"
+        >
           {iconOptions.map((icon, index) => (
             <button
               key={index}
               onClick={() => handleInputChange("icon", icon)}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg hover:bg-gray-100 transition-colors ${
-                formData.icon === icon ? "bg-purple-100 border-2 border-purple-500" : ""
-              }`}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-lg transition-colors"
+              style={{
+                background: formData.icon === icon ? "color-mix(in oklab, var(--ms-accent) 20%, var(--surface))" : "transparent",
+                border: formData.icon === icon ? "2px solid var(--ms-accent)" : "2px solid transparent",
+              }}
             >
               {icon}
             </button>
@@ -892,20 +896,20 @@ export function CategoryFormContent({
 
       {/* Color Selection */}
       <div className="space-y-2">
-        <Label className="text-gray-800 font-medium">Color</Label>
+        <Label className="font-medium text-ink">Color</Label>
         <div className="grid grid-cols-5 gap-2">
           {colorOptions.map((color) => (
             <button
               key={color.value}
               onClick={() => handleInputChange("color", color.value)}
-              className={`w-12 h-12 rounded-lg flex items-center justify-center transition-all ${
-                formData.color === color.value
-                  ? "ring-2 ring-purple-500 ring-offset-2"
-                  : "hover:scale-105"
-              } ${color.value}`}
+              className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all hover:scale-105 ${color.value}`}
+              style={{
+                outline: formData.color === color.value ? "3px solid var(--ms-accent)" : "none",
+                outlineOffset: 2,
+              }}
             >
               {formData.color === color.value && (
-                <div className="w-4 h-4 bg-white rounded-full"></div>
+                <div className="w-4 h-4 bg-white rounded-full shadow-sm"></div>
               )}
             </button>
           ))}
@@ -914,17 +918,17 @@ export function CategoryFormContent({
 
       {/* Preview */}
       <div className="space-y-2">
-        <Label className="text-gray-800 font-medium">Preview</Label>
-        <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+        <Label className="font-medium text-ink">Preview</Label>
+        <div
+          className="rounded-xl p-4 bg-surface-alt border border-line"
+        >
           <div className="flex items-center gap-3">
-            <div
-              className={`w-10 h-10 rounded-lg flex items-center justify-center ${formData.color} text-white text-lg`}
-            >
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${formData.color} text-white text-lg`}>
               {formData.icon}
             </div>
             <div className="flex-1">
-              <div className="font-medium text-gray-900">{formData.name || "Category Name"}</div>
-              <div className="text-sm text-gray-500 capitalize">{formData.type || "Type"}</div>
+              <div className="font-medium text-ink">{formData.name || "Category Name"}</div>
+              <div className="text-sm capitalize text-ms-muted">{formData.type || "Type"}</div>
             </div>
           </div>
         </div>

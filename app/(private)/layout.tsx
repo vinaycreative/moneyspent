@@ -7,20 +7,28 @@ import { useRouter } from "next/navigation"
 export default function PrivateLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth()
   const router = useRouter()
+
   if (isLoading) {
     return (
-      <div className="h-screen bg-white flex items-center justify-center">
+      <div
+        className="h-screen flex items-center justify-center bg-paper"
+      >
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading...</p>
+          <div
+            className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto border-ms-accent"
+          />
+          <p className="mt-2 text-sm text-ms-muted">
+            Loading…
+          </p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="h-dvh grid border-x border-gray-200 grid-rows-[1fr_70px] bg-white min-w-[320px] max-w-[400px] mx-auto mobile-viewport">
-      {/* <Header title="Money Manager" /> */}
+    <div
+      className="h-dvh grid grid-rows-[1fr_70px] min-w-[320px] max-w-[400px] mx-auto mobile-viewport bg-paper border-l border-r border-line"
+    >
       <main className="overflow-y-auto mobile-scroll scrollbar-hide">{children}</main>
       <BottomNavigation />
     </div>

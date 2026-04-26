@@ -23,24 +23,14 @@ export default function AccountsPage() {
   const [deleteAccountId, setDeleteAccountId] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  // Edit account state
   const [selectedAccount, setSelectedAccount] = useState<ApiAccount | null>(null)
   const [isEditOpen, setIsEditOpen] = useState(false)
 
-  const handleCloseEdit = () => {
-    setSelectedAccount(null)
-    setIsEditOpen(false)
-  }
+  const handleCloseEdit = () => { setSelectedAccount(null); setIsEditOpen(false) }
+  const handleOpenEdit = (account: ApiAccount) => { setSelectedAccount(account); setIsEditOpen(true) }
 
-  const handleOpenEdit = (account: ApiAccount) => {
-    setSelectedAccount(account)
-    setIsEditOpen(true)
-  }
-
-  // Get user's accounts using new architecture
   const { accounts, isLoading: accountsLoading, isError: accountsError } = useAccounts(user?.id || '')
 
-  // Calculate derived values in the component
   const activeAccounts = accounts?.filter((acc: ApiAccount) => !acc.is_archived)
   const hasAccounts = (accounts?.length || 0) > 0
   const totalBalance = activeAccounts?.reduce((sum: number, acc: ApiAccount) => sum + acc.current_balance, 0)
@@ -50,10 +40,10 @@ export default function AccountsPage() {
 
   if (isLoading) {
     return (
-      <div className="h-screen bg-white flex items-center justify-center">
+      <div className="h-screen flex items-center justify-center bg-paper">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto border-ms-accent"></div>
+          <p className="mt-2 text-sm text-ms-muted">Loading…</p>
         </div>
       </div>
     )
@@ -61,21 +51,20 @@ export default function AccountsPage() {
 
   if (!isAuthenticated || !user) {
     return (
-      <div className="h-screen bg-white flex items-center justify-center">
+      <div className="h-screen flex items-center justify-center bg-paper">
         <div className="text-center">
-          <p className="text-gray-600">Please sign in to continue</p>
+          <p className="text-sm text-ms-muted">Please sign in to continue</p>
         </div>
       </div>
     )
   }
 
-  // Handle accounts error state
   if (accountsError) {
     return (
-      <div className="h-screen bg-white flex items-center justify-center">
+      <div className="h-screen flex items-center justify-center bg-paper">
         <div className="text-center">
-          <p className="text-red-600">Failed to load accounts</p>
-          <p className="text-sm text-gray-500 mt-2">Please try refreshing the page</p>
+          <p className="font-medium text-neg">Failed to load accounts</p>
+          <p className="text-sm mt-2 text-ms-muted">Please try refreshing the page</p>
         </div>
       </div>
     )
@@ -83,39 +72,25 @@ export default function AccountsPage() {
 
   const getAccountIcon = (type: string) => {
     switch (type) {
-      case "bank":
-        return Building2
-      case "credit":
-        return CreditCard
-      case "cash":
-        return Wallet
-      case "wallet":
-        return Wallet
-      case "savings":
-        return PiggyBank
-      case "investment":
-        return PiggyBank
-      default:
-        return Building2
+      case "bank": return Building2
+      case "credit": return CreditCard
+      case "cash": return Wallet
+      case "wallet": return Wallet
+      case "savings": return PiggyBank
+      case "investment": return PiggyBank
+      default: return Building2
     }
   }
 
   const getAccountColor = (type: string) => {
     switch (type) {
-      case "bank":
-        return "bg-blue-500"
-      case "credit":
-        return "bg-purple-500"
-      case "cash":
-        return "bg-green-500"
-      case "wallet":
-        return "bg-green-600"
-      case "savings":
-        return "bg-orange-500"
-      case "investment":
-        return "bg-indigo-500"
-      default:
-        return "bg-gray-500"
+      case "bank": return "bg-blue-500"
+      case "credit": return "bg-purple-500"
+      case "cash": return "bg-green-500"
+      case "wallet": return "bg-green-600"
+      case "savings": return "bg-orange-500"
+      case "investment": return "bg-indigo-500"
+      default: return "bg-gray-500"
     }
   }
 
@@ -126,7 +101,6 @@ export default function AccountsPage() {
 
   const handleDeleteConfirm = async () => {
     if (!deleteAccountId) return
-
     try {
       await deleteAccountMutation.mutateAsync(deleteAccountId)
       setShowDeleteConfirm(false)
@@ -141,11 +115,17 @@ export default function AccountsPage() {
       {/* Header */}
       <div className="px-4 mt-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold text-gray-900">Accounts</h1>
+          <h1 className="text-lg font-bold text-ink">Accounts</h1>
           <AddAccount
             trigger={
-              <button className="p-2 rounded-sm cursor-pointer bg-purple-100 hover:bg-purple-200 transition-colors">
-                <Plus className="w-5 h-5 text-purple-600" />
+              <button
+                className="p-2 rounded-xl cursor-pointer transition-colors"
+                style={{
+                  background: "color-mix(in oklab, var(--ms-accent) 15%, var(--surface))",
+                  border: "1px solid color-mix(in oklab, var(--ms-accent) 30%, var(--line))",
+                }}
+              >
+                <Plus className="w-5 h-5 text-ms-accent" />
               </button>
             }
           />
@@ -154,17 +134,20 @@ export default function AccountsPage() {
 
       {/* Total Balance */}
       <div className="px-4">
-        <div className="bg-gradient-to-r from-purple-500 to-blue-500 rounded-md p-6 text-white">
+        <div
+          className="rounded-xl p-6"
+          style={{ background: "linear-gradient(135deg, var(--ms-accent), color-mix(in oklab, var(--ms-accent) 60%, var(--ink)))" }}
+        >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm opacity-90">Total Balance</span>
+            <span className="text-sm text-white/90">Total Balance</span>
             <button
               onClick={() => setShowBalances(!showBalances)}
               className="p-1 rounded hover:bg-white/10 transition-colors"
             >
-              {showBalances ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {showBalances ? <EyeOff className="w-4 h-4 text-white" /> : <Eye className="w-4 h-4 text-white" />}
             </button>
           </div>
-          <div className="text-3xl font-bold">
+          <div className="text-3xl font-bold text-white">
             {accountsLoading ? (
               <div className="animate-pulse bg-white/20 h-9 w-32 rounded"></div>
             ) : showBalances ? (
@@ -173,11 +156,11 @@ export default function AccountsPage() {
               "₹ ****"
             )}
           </div>
-          <div className="text-sm opacity-90 mt-1">
+          <div className="text-sm text-white/80 mt-1">
             {accountsLoading ? (
               <div className="animate-pulse bg-white/20 h-4 w-20 rounded"></div>
             ) : (
-              `${accountCount} accounts`
+              `${accountCount} account${accountCount !== 1 ? "s" : ""}`
             )}
           </div>
         </div>
@@ -185,77 +168,65 @@ export default function AccountsPage() {
 
       {/* Accounts List */}
       <div className="px-4">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">All Accounts</h2>
+        <h2 className="text-base font-bold mb-4 text-ink">All Accounts</h2>
 
         {accountsLoading ? (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {[...Array(3)].map((_, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 animate-pulse"
-              >
-                <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
+              <div key={i} className="flex items-center gap-4 p-4 rounded-xl animate-pulse border border-line">
+                <div className="w-12 h-12 rounded-xl bg-surface-alt"></div>
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                  <div className="h-4 rounded w-3/4 bg-surface-alt"></div>
+                  <div className="h-3 rounded w-1/2 bg-surface-alt"></div>
                 </div>
-                <div className="h-6 bg-gray-200 rounded w-20"></div>
+                <div className="h-6 rounded w-20 bg-surface-alt"></div>
               </div>
             ))}
           </div>
         ) : hasAccounts ? (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {accounts?.map((account: ApiAccount) => {
               const Icon = getAccountIcon(account.type)
               const color = getAccountColor(account.type)
-
               return (
                 <div
                   key={account.id}
-                  className="flex items-center gap-4 p-4 rounded-md border border-gray-200 hover:border-gray-300 transition-colors"
+                  className="flex items-center gap-4 p-4 rounded-xl transition-colors bg-surface border border-line"
                 >
-                  <div
-                    className={`w-12 h-12 rounded-lg flex items-center justify-center ${color} text-white`}
-                  >
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color} text-white`}>
                     <Icon className="w-6 h-6" />
                   </div>
 
                   <div className="flex-1">
-                    <div className="font-medium text-black">{account.name}</div>
-                    {/* account.account_number && (
-                      <div className="text-sm text-gray-500">{account.account_number}</div>
-                    ) */}
-                    <div className="text-xs text-gray-400 capitalize">
+                    <div className="font-medium text-ink">{account.name}</div>
+                    <div className="text-xs capitalize text-ms-muted">
                       {account.type.replace("_", " ")}
                     </div>
                   </div>
 
                   <div className="text-right">
                     <div
-                      className={`font-bold text-lg ${
-                        account.current_balance >= 0 ? "text-green-600" : "text-red-500"
-                      }`}
+                      className={`font-bold text-lg ${account.current_balance >= 0 ? "text-pos" : "text-neg"}`}
                     >
-                      {showBalances ? `₹ ${account.current_balance}` : "₹ ****"}
+                      {showBalances ? `₹ ${account.current_balance.toLocaleString()}` : "₹ ****"}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-ms-muted">
                       {account.current_balance >= 0 ? "Available" : "Due"}
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
                   <div className="flex items-center gap-1">
                     <button
-                      className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                      className="p-2 rounded-lg transition-colors"
                       onClick={() => handleOpenEdit(account)}
                     >
-                      <MoreVertical className="w-4 h-4 text-gray-500" />
+                      <MoreVertical className="w-4 h-4 text-ms-muted" />
                     </button>
                     <button
                       onClick={() => handleDeleteClick(account.id)}
-                      className="p-2 rounded-lg hover:bg-red-50 transition-colors"
+                      className="p-2 rounded-lg transition-colors"
                     >
-                      <Trash2 className="w-4 h-4 text-red-500" />
+                      <Trash2 className="w-4 h-4 text-neg" />
                     </button>
                   </div>
                 </div>
@@ -263,7 +234,7 @@ export default function AccountsPage() {
             })}
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-ms-muted">
             <div className="text-lg font-medium mb-2">No accounts yet</div>
             <div className="text-sm">Add your first account to get started</div>
           </div>
@@ -271,21 +242,22 @@ export default function AccountsPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="px-4">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
+      <div className="px-4 pb-6">
+        <h2 className="text-base font-bold mb-4 text-ink">Quick Actions</h2>
         <div className="grid grid-cols-2 gap-3">
           <AddAccount
             trigger={
-              <button className="p-4 cursor-pointer rounded-md border border-gray-200 text-center hover:bg-gray-50 transition-colors">
+              <button
+                className="p-4 cursor-pointer rounded-xl text-center transition-colors border border-line bg-surface"
+              >
                 <div className="text-2xl mb-2">🏦</div>
-                <div className="text-sm font-medium text-black">Add Account</div>
+                <div className="text-sm font-medium text-ink">Add Account</div>
               </button>
             }
           />
         </div>
       </div>
 
-      {/* Delete Confirmation Sheet */}
       <DeleteConfirmationSheet
         isOpen={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
@@ -304,27 +276,23 @@ export default function AccountsPage() {
               accountToDelete && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Type:</span>
-                    <span className="font-medium text-gray-900 capitalize">
+                    <span className="text-sm text-ms-muted">Type:</span>
+                    <span className="font-medium capitalize text-ink">
                       {accountToDelete.type}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Balance:</span>
+                    <span className="text-sm text-ms-muted">Balance:</span>
                     <span
-                      className={`font-medium ${
-                        accountToDelete.current_balance >= 0 ? "text-green-600" : "text-red-600"
-                      }`}
+                      className={`font-medium ${accountToDelete.current_balance >= 0 ? "text-pos" : "text-neg"}`}
                     >
                       ₹ {accountToDelete.current_balance.toLocaleString()}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Status:</span>
+                    <span className="text-sm text-ms-muted">Status:</span>
                     <span
-                      className={`font-medium ${
-                        accountToDelete.current_balance >= 0 ? "text-green-600" : "text-red-600"
-                      }`}
+                      className={`font-medium ${accountToDelete.current_balance >= 0 ? "text-pos" : "text-neg"}`}
                     >
                       {accountToDelete.current_balance >= 0 ? "Available" : "Due"}
                     </span>
@@ -336,7 +304,6 @@ export default function AccountsPage() {
         }
       />
 
-      {/* Edit Account Form */}
       {selectedAccount && (
         <EditAccount
           trigger={<div style={{ display: "none" }}></div>}

@@ -221,18 +221,18 @@ export function EditTransactionModal({ transaction, children }: EditTransactionM
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-md w-full mx-4 p-0 bg-white rounded-xl border-0 shadow-2xl">
+      <DialogContent className="max-w-md w-full mx-4 p-0 bg-paper rounded-xl border border-line shadow-2xl">
         <DialogTitle className="sr-only">Edit Transaction</DialogTitle>
 
         {isDeleteMode ? (
           // Delete Confirmation
           <div className="p-6">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Trash2 className="w-8 h-8 text-red-600" />
+              <div className="w-16 h-16 bg-neg/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="w-8 h-8 text-neg" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Delete Transaction</h2>
-              <p className="text-gray-600">
+              <h2 className="text-xl font-bold text-ink mb-2">Delete Transaction</h2>
+              <p className="text-ms-muted">
                 Are you sure you want to delete &quot;{transaction.title}&quot;? This action cannot be
                 undone.
               </p>
@@ -242,13 +242,13 @@ export function EditTransactionModal({ transaction, children }: EditTransactionM
               <button
                 onClick={handleDelete}
                 disabled={deleteTransaction.isPending}
-                className="w-full bg-red-500 text-white rounded-lg py-3 font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
+                className="w-full bg-neg text-white rounded-lg py-3 font-medium hover:bg-neg/90 transition-colors disabled:opacity-50"
               >
                 {deleteTransaction.isPending ? "Deleting..." : "Delete Transaction"}
               </button>
               <button
                 onClick={() => setIsDeleteMode(false)}
-                className="w-full bg-gray-100 text-gray-700 rounded-lg py-3 font-medium hover:bg-gray-200 transition-colors"
+                className="w-full bg-surface-alt text-ink rounded-lg py-3 font-medium hover:bg-surface transition-colors border border-line"
               >
                 Cancel
               </button>
@@ -259,10 +259,10 @@ export function EditTransactionModal({ transaction, children }: EditTransactionM
           <div className="p-6">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
-              <h1 className="text-xl font-bold text-gray-600">Edit Transaction</h1>
+              <h1 className="text-xl font-bold text-ink">Edit Transaction</h1>
               <button
                 onClick={() => setIsDeleteMode(true)}
-                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                className="p-2 text-neg hover:bg-neg/10 rounded-lg transition-colors"
               >
                 <Trash2 className="w-5 h-5" />
               </button>
@@ -284,31 +284,31 @@ export function EditTransactionModal({ transaction, children }: EditTransactionM
 
             {/* Transaction Title */}
             <div className="space-y-2 mb-4">
-              <Label className="text-gray-800 font-medium">Transaction Title</Label>
+              <Label className="text-ink font-medium">Transaction Title</Label>
               <Input
                 type="text"
                 placeholder="Enter transaction title"
                 value={formData.title}
                 onChange={(e) => handleInputChange("title", e.target.value)}
-                className="w-full border-gray-300 bg-white"
+                className="w-full border-line bg-surface text-ink"
               />
             </div>
 
             {/* Amount */}
             <div className="space-y-2 mb-4">
-              <Label className="text-gray-800 font-medium">Amount</Label>
+              <Label className="text-ink font-medium">Amount</Label>
               <Input
                 type="number"
                 placeholder="Enter amount"
                 value={formData.amount}
                 onChange={(e) => handleInputChange("amount", e.target.value)}
-                className="w-full border-gray-300 bg-white"
+                className="w-full border-line bg-surface text-ink"
               />
             </div>
 
             {/* Category */}
             <div className="space-y-2 mb-4">
-              <Label className="text-gray-800 font-medium">Category</Label>
+              <Label className="text-ink font-medium">Category</Label>
               <Select
                 value={formData.category_id}
                 onValueChange={(value) => handleInputChange("category_id", value)}
@@ -328,7 +328,7 @@ export function EditTransactionModal({ transaction, children }: EditTransactionM
 
             {/* Account */}
             <div className="space-y-2 mb-4">
-              <Label className="text-gray-800 font-medium">Account</Label>
+              <Label className="text-ink font-medium">Account</Label>
               <Select
                 value={formData.account_id}
                 onValueChange={(value) => handleInputChange("account_id", value)}
@@ -348,7 +348,7 @@ export function EditTransactionModal({ transaction, children }: EditTransactionM
 
             {/* Date Picker */}
             <div className="space-y-2 mb-4">
-              <Label className="text-gray-800 font-medium">Date</Label>
+              <Label className="text-ink font-medium">Date</Label>
               <div className="relative">
                 <Input
                   type="text"
@@ -356,7 +356,7 @@ export function EditTransactionModal({ transaction, children }: EditTransactionM
                   value={moment(formData.transaction_date).tz("Asia/Kolkata").format("lll")}
                   onClick={() => setShowDatePicker(!showDatePicker)}
                   readOnly
-                  className="w-full border-gray-300 bg-white cursor-pointer"
+                  className="w-full border-line bg-surface text-ink cursor-pointer"
                 />
                 <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               </div>
@@ -364,7 +364,7 @@ export function EditTransactionModal({ transaction, children }: EditTransactionM
               {showDatePicker && (
                 <div
                   ref={datePickerRef}
-                  className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-[999] p-3"
+                  className="absolute top-full left-0 right-0 mt-1 bg-surface border border-line rounded-lg shadow-lg z-[999] p-3"
                 >
                   <div className="grid grid-cols-7 gap-1 text-xs">
                     {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
@@ -388,7 +388,7 @@ export function EditTransactionModal({ transaction, children }: EditTransactionM
                   </div>
                   <button
                     onClick={() => handleDateSelect(new Date())}
-                    className="w-full mt-2 py-2 text-sm font-medium text-purple-600 hover:bg-purple-50 rounded"
+                    className="w-full mt-2 py-2 text-sm font-medium text-ms-accent hover:bg-ms-accent/10 rounded"
                   >
                     Today
                   </button>
@@ -398,36 +398,36 @@ export function EditTransactionModal({ transaction, children }: EditTransactionM
 
             {/* Description */}
             <div className="space-y-2 mb-6">
-              <Label className="text-gray-800 font-medium">Description (Optional)</Label>
+              <Label className="text-ink font-medium">Description (Optional)</Label>
               <Input
                 type="text"
                 placeholder="Enter description"
                 value={formData.description}
                 onChange={(e) => handleInputChange("description", e.target.value)}
-                className="w-full border-gray-300 bg-white"
+                className="w-full border-line bg-surface text-ink"
               />
             </div>
 
             {/* Transaction Preview */}
             <div className="mb-6">
-              <Label className="text-gray-800 font-medium mb-3 block">Preview</Label>
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+              <Label className="text-ink font-medium mb-3 block">Preview</Label>
+              <div className="bg-surface-alt rounded-xl p-4 border border-line">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <div className="font-medium text-black">
+                    <div className="font-medium text-ink">
                       {formData.title || "Transaction Title"}
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-ms-muted">
                       {selectedCategory?.name || "Category"} • {selectedAccount?.name || "Account"}
                     </div>
-                    <div className="text-xs text-gray-400">
+                    <div className="text-xs text-ms-muted">
                       {moment(formData.transaction_date).tz("Asia/Kolkata").format("lll")}
                     </div>
                   </div>
                   <div className="text-right">
                     <div
                       className={`font-bold text-lg ${
-                        activeTab === "expense" ? "text-red-500" : "text-green-600"
+                        activeTab === "expense" ? "text-neg" : "text-pos"
                       }`}
                     >
                       {activeTab === "expense" ? "-" : "+"} ₹ {parseFloat(formData.amount) || 0}
@@ -442,13 +442,13 @@ export function EditTransactionModal({ transaction, children }: EditTransactionM
               <button
                 onClick={handleUpdate}
                 disabled={updateTransaction.isPending}
-                className="w-full bg-purple-500 text-white rounded-lg py-3 font-medium hover:bg-purple-600 transition-colors disabled:opacity-50"
+                className="w-full bg-ms-accent text-white rounded-lg py-3 font-medium hover:bg-ms-accent/90 transition-colors disabled:opacity-50"
               >
                 {updateTransaction.isPending ? "Updating..." : "Update Transaction"}
               </button>
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-full bg-gray-100 text-gray-700 rounded-lg py-3 font-medium hover:bg-gray-200 transition-colors"
+                className="w-full bg-surface-alt text-ink rounded-lg py-3 font-medium hover:bg-surface transition-colors border border-line"
               >
                 Cancel
               </button>

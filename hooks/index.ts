@@ -20,3 +20,6 @@ export * from "./useViewCategoriesDrawer"
 export * from "./useAddEditCategoryDrawer"
 export * from "./useAddTransactionDrawer"
 export * from "./useEditTransactionDrawer"
+
+// Theme hook
+export * from "./useTheme"

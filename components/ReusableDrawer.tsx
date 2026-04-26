@@ -31,28 +31,35 @@ export const ReusableDrawer = memo(function ReusableDrawer({
     <Drawer.Root open={isOpen} onOpenChange={onOpenChange}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[9998]" />
-        <Drawer.Content className="bg-white flex flex-col rounded-t-[10px] h-[96%] mt-24 fixed bottom-0 left-0 right-0 z-[9998]">
-          {/* Header - Fixed */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
-            <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-            <button
-              onClick={onCancel}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              <X className="w-5 h-5 text-gray-500" />
+        <Drawer.Content
+          className="flex flex-col rounded-t-[14px] h-[96%] mt-24 fixed bottom-0 left-0 right-0 z-[9998] min-w-[320px] max-w-[400px] mx-auto bg-surface"
+        >
+          {/* Drag handle */}
+          <div className="pt-3 flex justify-center">
+            <div className="w-10 h-1 rounded-full bg-line-strong" />
+          </div>
+          {/* Header */}
+          <div
+            className="flex items-center justify-between px-6 py-4 flex-shrink-0 border-b border-line"
+          >
+            <h2 className="text-base font-semibold text-ink">{title}</h2>
+            <button onClick={onCancel} className="p-2 rounded-lg transition-colors">
+              <X className="w-5 h-5 text-ms-muted" />
             </button>
           </div>
 
-          {/* Body - Scrollable */}
-          <div className="flex-1 overflow-auto">{children}</div>
+          {/* Body */}
+          <div className="flex-1 overflow-auto bg-surface-alt">{children}</div>
 
-          {/* Action - Fixed */}
+          {/* Footer */}
           {submitTitle && (
-            <div className="px-6 py-4 border-t border-gray-200 flex-shrink-0">
+            <div
+              className="px-6 py-4 flex-shrink-0 border-t border-line bg-surface"
+            >
               <button
                 onClick={onSubmit}
                 disabled={submitDisabled}
-                className="w-full bg-gray-800 text-white py-4 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-gray-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                className="w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed bg-ink text-paper"
               >
                 {submitIcon && <span>{submitIcon}</span>}
                 {submitTitle}

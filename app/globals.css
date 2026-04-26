@@ -37,79 +37,130 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  
+  /* Custom MoneySpent tokens mapping */
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-ink: var(--ink);
+  --color-ms-muted: var(--ms-muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ms-accent: var(--ms-accent);
+  --color-pos: var(--pos);
+  --color-neg: var(--neg);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+/* ── Light mode ── */
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.13 0.028 261.692);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.13 0.028 261.692);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.13 0.028 261.692);
-  --primary: oklch(0.21 0.034 264.665);
-  --primary-foreground: oklch(0.985 0.002 247.839);
-  --secondary: oklch(0.967 0.003 264.542);
-  --secondary-foreground: oklch(0.21 0.034 264.665);
-  --muted: oklch(0.967 0.003 264.542);
-  --muted-foreground: oklch(0.551 0.027 264.364);
-  --accent: oklch(0.967 0.003 264.542);
-  --accent-foreground: oklch(0.21 0.034 264.665);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.928 0.006 264.531);
-  --input: oklch(0.928 0.006 264.531);
-  --ring: oklch(0.707 0.022 261.325);
+
+  /* Shadcn/Radix semantic vars — mapped to MoneySpent palette */
+  --background:         #faf9f5;
+  --foreground:         #161714;
+  --card:               #ffffff;
+  --card-foreground:    #161714;
+  --popover:            #ffffff;
+  --popover-foreground: #161714;
+  --primary:            #161714;
+  --primary-foreground: #faf9f5;
+  --secondary:          #f1efe8;
+  --secondary-foreground: #161714;
+  --muted:              #f1efe8;
+  --muted-foreground:   #767469;
+  --accent:             #f1efe8;
+  --accent-foreground:  #161714;
+  --destructive:        #c93a3a;
+  --border:             #ece9df;
+  --input:              #ece9df;
+  --ring:               #0f8a55;
+
+  /* Custom MoneySpent tokens */
+  --paper:              #faf9f5;
+  --surface:            #ffffff;
+  --surface-alt:        #f1efe8;
+  --ink:                #161714;
+  --ms-muted:           #767469;
+  --line:               #ece9df;
+  --line-strong:        #ddd9cc;
+  --ms-accent:          #0f8a55;
+  --pos:                #0f8a55;
+  --neg:                #c93a3a;
+  --card-shadow:        0 1px 0 rgba(20,20,14,.025), 0 2px 6px -2px rgba(20,20,14,.04);
+
+  /* Charts */
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0.002 247.839);
-  --sidebar-foreground: oklch(0.13 0.028 261.692);
-  --sidebar-primary: oklch(0.21 0.034 264.665);
-  --sidebar-primary-foreground: oklch(0.985 0.002 247.839);
-  --sidebar-accent: oklch(0.967 0.003 264.542);
-  --sidebar-accent-foreground: oklch(0.21 0.034 264.665);
-  --sidebar-border: oklch(0.928 0.006 264.531);
-  --sidebar-ring: oklch(0.707 0.022 261.325);
+
+  /* Sidebar */
+  --sidebar:                  #f1efe8;
+  --sidebar-foreground:       #161714;
+  --sidebar-primary:          #161714;
+  --sidebar-primary-foreground: #faf9f5;
+  --sidebar-accent:           #ece9df;
+  --sidebar-accent-foreground: #161714;
+  --sidebar-border:           #ece9df;
+  --sidebar-ring:             #0f8a55;
 }
 
+/* ── Dark mode ── */
 .dark {
-  --background: oklch(0.13 0.028 261.692);
-  --foreground: oklch(0.985 0.002 247.839);
-  --card: oklch(0.21 0.034 264.665);
-  --card-foreground: oklch(0.985 0.002 247.839);
-  --popover: oklch(0.21 0.034 264.665);
-  --popover-foreground: oklch(0.985 0.002 247.839);
-  --primary: oklch(0.928 0.006 264.531);
-  --primary-foreground: oklch(0.21 0.034 264.665);
-  --secondary: oklch(0.278 0.033 256.848);
-  --secondary-foreground: oklch(0.985 0.002 247.839);
-  --muted: oklch(0.278 0.033 256.848);
-  --muted-foreground: oklch(0.707 0.022 261.325);
-  --accent: oklch(0.278 0.033 256.848);
-  --accent-foreground: oklch(0.985 0.002 247.839);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
+  --background:         #0d0e0c;
+  --foreground:         #f1efe8;
+  --card:               #15171a;
+  --card-foreground:    #f1efe8;
+  --popover:            #15171a;
+  --popover-foreground: #f1efe8;
+  --primary:            #f1efe8;
+  --primary-foreground: #0d0e0c;
+  --secondary:          #1d2024;
+  --secondary-foreground: #f1efe8;
+  --muted:              #1d2024;
+  --muted-foreground:   #898981;
+  --accent:             #1d2024;
+  --accent-foreground:  #f1efe8;
+  --destructive:        #ee7d96;
+  --border:             #25282d;
+  --input:              #25282d;
+  --ring:               #3ab87f;
+
+  /* Custom MoneySpent tokens */
+  --paper:              #0d0e0c;
+  --surface:            #15171a;
+  --surface-alt:        #1d2024;
+  --ink:                #f1efe8;
+  --ms-muted:           #898981;
+  --line:               #25282d;
+  --line-strong:        #34383e;
+  --ms-accent:          #3ab87f;
+  --pos:                #3ab87f;
+  --neg:                #ee7d96;
+  --card-shadow:        0 1px 0 rgba(0,0,0,.2), 0 2px 6px -2px rgba(0,0,0,.4);
+
+  /* Charts */
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.21 0.034 264.665);
-  --sidebar-foreground: oklch(0.985 0.002 247.839);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0.002 247.839);
-  --sidebar-accent: oklch(0.278 0.033 256.848);
-  --sidebar-accent-foreground: oklch(0.985 0.002 247.839);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+
+  /* Sidebar */
+  --sidebar:                  #15171a;
+  --sidebar-foreground:       #f1efe8;
+  --sidebar-primary:          #3ab87f;
+  --sidebar-primary-foreground: #0d0e0c;
+  --sidebar-accent:           #1d2024;
+  --sidebar-accent-foreground: #f1efe8;
+  --sidebar-border:           #25282d;
+  --sidebar-ring:             #3ab87f;
 }
 
 @layer base {
@@ -121,9 +172,34 @@
   }
 }
 
-/* Mobile keyboard handling improvements */
+/* ── Animations (MoneySpent design system) ── */
+@keyframes bar-rise {
+  from { transform: scaleY(0); opacity: 0; }
+  to   { transform: scaleY(1); opacity: 1; }
+}
+@keyframes cell-in {
+  from { transform: scale(.7); opacity: 0; }
+  to   { transform: scale(1);  opacity: 1; }
+}
+@keyframes dash-in {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes pop {
+  0%   { transform: scale(0); opacity: 0; }
+  70%  { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes scan {
+  0%, 100% { top: 22%; }
+  50%       { top: 78%; }
+}
+@keyframes fade-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Mobile utilities ── */
 @layer utilities {
-  /* Prevent zoom on input focus on iOS */
   input[type="text"],
   input[type="number"],
   input[type="email"],
@@ -139,28 +215,24 @@
     appearance: none;
   }
 
-  /* Improve mobile scrolling */
   .mobile-scroll {
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
   }
 
-  /* Hide scrollbar but keep scrolling functionality */
   .scrollbar-hide {
-    -ms-overflow-style: none; /* Internet Explorer 10+ */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
   .scrollbar-hide::-webkit-scrollbar {
-    display: none; /* Safari and Chrome */
+    display: none;
   }
 
-  /* Ensure proper viewport height on mobile */
   .mobile-viewport {
     min-height: 100vh;
-    min-height: 100dvh; /* Dynamic viewport height for mobile */
+    min-height: 100dvh;
   }
 
-  /* Prevent body scroll when keyboard is visible */
   .keyboard-visible {
     position: fixed;
     width: 100%;
@@ -168,7 +240,6 @@
   }
 }
 
-/* iOS specific fixes */
 @supports (-webkit-touch-callout: none) {
   .mobile-viewport {
     min-height: -webkit-fill-available;

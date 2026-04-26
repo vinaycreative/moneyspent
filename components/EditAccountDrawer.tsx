@@ -92,7 +92,7 @@ export function EditAccountDrawer({
         <div className="space-y-6 p-6">
           {/* Account Type Selection */}
           <div>
-            <Label className="text-gray-800 font-medium mb-3 block">Account Type</Label>
+            <Label className="text-ink font-medium mb-3 block">Account Type</Label>
             <div className="grid grid-cols-2 gap-3">
               {accountTypes.map((type) => {
                 const Icon = type.icon
@@ -104,8 +104,8 @@ export function EditAccountDrawer({
                     onClick={() => handleInputChange("type", type.value)}
                     className={`p-4 rounded-xl border-2 transition-all ${
                       isSelected
-                        ? "border-purple-500 bg-purple-50"
-                        : "border-gray-200 hover:border-gray-300"
+                        ? "border-ms-accent bg-ms-accent/10"
+                        : "border-line bg-surface hover:border-ms-muted"
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -115,7 +115,7 @@ export function EditAccountDrawer({
                         <Icon className="w-4 h-4" />
                       </div>
                       <div className="text-left">
-                        <div className="text-sm font-medium text-gray-900">{type.label}</div>
+                        <div className="text-sm font-medium text-ink">{type.label}</div>
                       </div>
                     </div>
                   </button>
@@ -127,48 +127,48 @@ export function EditAccountDrawer({
           <div className="grid grid-cols-2 gap-4">
           {/* Account Name */}
           <div className="space-y-2">
-            <Label className="text-gray-800 font-medium">Account Name</Label>
+            <Label className="text-ink font-medium">Account Name</Label>
             <Input
               type="text"
               placeholder="Enter account name"
               value={formData.name}
               onChange={(e) => handleInputChange("name", e.target.value)}
-              className="w-full border-gray-300 bg-white"
+              className="w-full border-line bg-surface text-ink"
             />
           </div>
 
           {/* Account Number */}
           <div className="space-y-2">
-            <Label className="text-gray-800 font-medium">Account Number (Optional)</Label>
+            <Label className="text-ink font-medium">Account Number (Optional)</Label>
             <Input
               type="text"
               placeholder="Enter account number"
               value={formData.account_number}
               onChange={(e) => handleInputChange("account_number", e.target.value)}
-              className="w-full border-gray-300 bg-white"
+              className="w-full border-line bg-surface text-ink"
             />
           </div>
 
           {/* Balance */}
           <div className="space-y-2">
-            <Label className="text-gray-800 font-medium">Current Balance</Label>
+            <Label className="text-ink font-medium">Current Balance</Label>
             <Input
               type="number"
               placeholder="Enter balance"
               value={formData.balance}
               onChange={(e) => handleInputChange("balance", e.target.value)}
-              className="w-full border-gray-300 bg-white"
+              className="w-full border-line bg-surface text-ink"
             />
           </div>
 
           {/* Currency */}
           <div className="space-y-2">
-            <Label className="text-gray-800 font-medium">Currency</Label>
+            <Label className="text-ink font-medium">Currency</Label>
             <Select
               value={formData.currency}
               onValueChange={(value) => handleInputChange("currency", value)}
             >
-              <SelectTrigger className="w-full border-gray-300 bg-white">
+              <SelectTrigger className="w-full border-line bg-surface text-ink">
                 <SelectValue placeholder="Select currency" />
               </SelectTrigger>
               <SelectContent>
@@ -184,8 +184,8 @@ export function EditAccountDrawer({
 
           {/* Account Preview */}
           <div>
-            <Label className="text-gray-800 font-medium mb-3 block">Preview</Label>
-            <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+            <Label className="text-ink font-medium mb-3 block">Preview</Label>
+            <div className="bg-surface-alt rounded-xl p-4 border border-line">
               <div className="flex items-center gap-4">
                 <div
                   className={`w-12 h-12 rounded-lg flex items-center justify-center ${
@@ -195,16 +195,16 @@ export function EditAccountDrawer({
                   {selectedType && <selectedType.icon className="w-6 h-6" />}
                 </div>
                 <div className="flex-1">
-                  <div className="font-medium text-black">{formData.name || "Account Name"}</div>
+                  <div className="font-medium text-ink">{formData.name || "Account Name"}</div>
                   {formData.account_number && (
-                    <div className="text-sm text-gray-500">{formData.account_number}</div>
+                    <div className="text-sm text-ms-muted">{formData.account_number}</div>
                   )}
-                  <div className="text-xs text-gray-400 capitalize">
+                  <div className="text-xs text-ms-muted capitalize">
                     {formData.type.replace("_", " ")} • {selectedCurrency?.label}
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold text-lg text-gray-900">
+                  <div className="font-bold text-lg text-ink">
                     {selectedCurrency?.value === "INR" ? "₹" : "$"}{" "}
                     {parseFloat(formData.balance) || 0}
                   </div>
