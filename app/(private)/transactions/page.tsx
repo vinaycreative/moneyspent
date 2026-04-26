@@ -1,548 +1,518 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
-import type { ApiAccount } from "@/types/schemas/account.schema"
-
-// Define transaction with relations type
-type TransactionWithRelations = {
-  id: string
-  title: string
-  description: string | null
-  amount: number
-  type: "expense" | "income" | "transfer"
-  occurred_at: string
-  created_at: string
-  categories?: { name: string; color?: string; icon?: string } | null
-  accounts?: { name: string; type: string } | null
-  category?: { name: string; color?: string; icon?: string } | null
-  account?: { name: string; type: string } | null
-}
 import moment from "moment-timezone"
-import { Calendar, ChevronDown, TrendingUp, TrendingDown, Search, Trash2 } from "lucide-react"
-import { useAddTransactionDrawer } from "@/hooks"
-import { Plus } from "lucide-react"
-import { useAuth } from "@/hooks"
-import { useTransactions, useDeleteTransactionMutation, useAccounts } from "@/hooks"
-import { DeleteConfirmationSheet } from "@/components/DeleteConfirmationSheet"
+import { 
+  Search, 
+  TrendingUp, 
+  TrendingDown, 
+  Filter as FilterIcon,
+  Plus,
+  X,
+  Calendar,
+  Check
+} from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { useAuth, useTransactions, useAccounts } from "@/hooks"
+import { CalendarView } from "@/components/CalendarView"
 import { AddTransaction } from "@/form/AddTransaction"
 import { EditTransaction } from "@/form/EditTransaction"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Drawer } from "vaul"
+
+type ViewMode = "list" | "calendar"
 
 export default function Transactions() {
   const { user, isLoading: authLoading } = useAuth()
-  const { openDrawer } = useAddTransactionDrawer()
-
-  const [selectedTransaction, setSelectedTransaction] = useState<TransactionWithRelations | null>(null)
-  const [isEditOpen, setIsEditOpen] = useState(false)
-
-  const handleCloseEdit = () => {
-    setSelectedTransaction(null)
-    setIsEditOpen(false)
-  }
-
-  const handleOpenEdit = (transaction: TransactionWithRelations) => {
-    setSelectedTransaction(transaction)
-    setIsEditOpen(true)
-  }
-
-  const [selectedDateRange, setSelectedDateRange] = useState("all")
-  const [showDateFilter, setShowDateFilter] = useState(false)
-  const [customStartDate, setCustomStartDate] = useState("")
-  const [customEndDate, setCustomEndDate] = useState("")
+  const [viewMode, setViewMode] = useState<ViewMode>("list")
+  const [selectedDate, setSelectedDate] = useState(new Date())
   const [searchQuery, setSearchQuery] = useState("")
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("")
-  const [deleteTransactionId, setDeleteTransactionId] = useState<string | null>(null)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  
+  // Filters State
+  const [activeType, setActiveType] = useState<"all" | "expense" | "income">("all")
   const [selectedAccountId, setSelectedAccountId] = useState<string>("all")
-  const [selectedTransactionType, setSelectedTransactionType] = useState<
-    "expense" | "income" | "all"
-  >("all")
+  const [dateRange, setDateRange] = useState<string>("all")
+  const [customStart, setCustomStart] = useState("")
+  const [customEnd, setCustomEnd] = useState("")
 
   const { accounts } = useAccounts(user?.id || "")
 
+  // Build Transaction Params for API
   const transactionParams = useMemo(() => {
-    const params: Record<string, unknown> = {}
-    if (selectedDateRange === "today") {
-      params.startDate = new Date().toISOString().split("T")[0]
-      params.endDate = new Date().toISOString().split("T")[0]
-    } else if (selectedDateRange === "week") {
-      const today = new Date()
-      const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()))
-      params.startDate = startOfWeek.toISOString().split("T")[0]
-      params.endDate = new Date().toISOString().split("T")[0]
-    } else if (selectedDateRange === "month") {
-      const today = new Date()
-      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-      params.startDate = startOfMonth.toISOString().split("T")[0]
-      params.endDate = new Date().toISOString().split("T")[0]
-    } else if (selectedDateRange === "year") {
-      const today = new Date()
-      const startOfYear = new Date(today.getFullYear(), 0, 1)
-      params.startDate = startOfYear.toISOString().split("T")[0]
-      params.endDate = new Date().toISOString().split("T")[0]
-    } else if (selectedDateRange === "custom" && customStartDate && customEndDate) {
-      params.startDate = customStartDate
-      params.endDate = customEndDate
+    const params: Record<string, any> = { limit: 1000 }
+    
+    if (dateRange === "today") {
+      params.startDate = moment().format("YYYY-MM-DD")
+      params.endDate = moment().format("YYYY-MM-DD")
+    } else if (dateRange === "week") {
+      params.startDate = moment().startOf("week").format("YYYY-MM-DD")
+      params.endDate = moment().format("YYYY-MM-DD")
+    } else if (dateRange === "month") {
+      params.startDate = moment().startOf("month").format("YYYY-MM-DD")
+      params.endDate = moment().format("YYYY-MM-DD")
+    } else if (dateRange === "year") {
+      params.startDate = moment().startOf("year").format("YYYY-MM-DD")
+      params.endDate = moment().format("YYYY-MM-DD")
+    } else if (dateRange === "custom" && customStart && customEnd) {
+      params.startDate = customStart
+      params.endDate = customEnd
     }
-    if (selectedAccountId && selectedAccountId !== "all") params.accountId = selectedAccountId
-    if (selectedTransactionType && selectedTransactionType !== "all") params.type = selectedTransactionType
-    return params
-  }, [selectedDateRange, customStartDate, customEndDate, selectedAccountId, selectedTransactionType])
 
-  const {
-    transactions: filteredTransactions,
-    totalExpenses,
-    totalIncome,
-    isLoading: transactionsLoading,
+    if (selectedAccountId !== "all") params.accountId = selectedAccountId
+    if (activeType !== "all") params.type = activeType
+
+    return params
+  }, [dateRange, customStart, customEnd, selectedAccountId, activeType])
+
+  // Get transactions
+  const { 
+    transactions, 
+    totalExpenses, 
+    totalIncome, 
+    isLoading: transactionsLoading 
   } = useTransactions(transactionParams, !!user?.id)
 
-  const deleteTransaction = useDeleteTransactionMutation()
+  const [selectedTransaction, setSelectedTransaction] = useState<any>(null)
+  const [isEditOpen, setIsEditOpen] = useState(false)
 
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearchQuery(searchQuery), 300)
-    return () => clearTimeout(timer)
-  }, [searchQuery])
-
-  const searchFilteredTransactions = useMemo(() => {
-    if (!debouncedSearchQuery.trim()) return filteredTransactions
-    const query = debouncedSearchQuery.toLowerCase().trim()
-    return filteredTransactions?.filter((t: TransactionWithRelations) =>
-      t.title.toLowerCase().includes(query) ||
-      t.categories?.name?.toLowerCase().includes(query) ||
-      t.amount.toString().includes(query)
+  // Filter list by Search Query
+  const filteredTransactions = useMemo(() => {
+    if (!transactions) return []
+    if (!searchQuery) return transactions
+    const q = searchQuery.toLowerCase()
+    return transactions.filter(t => 
+      t.title.toLowerCase().includes(q) || 
+      t.categories?.name?.toLowerCase().includes(q) ||
+      t.category?.name?.toLowerCase().includes(q)
     )
-  }, [filteredTransactions, debouncedSearchQuery])
+  }, [transactions, searchQuery])
 
-  const sortedTransactions = useMemo(() => {
-    return searchFilteredTransactions?.sort((a: TransactionWithRelations, b: TransactionWithRelations) => {
-      const dateA = new Date(a.occurred_at).getTime()
-      const dateB = new Date(b.occurred_at).getTime()
-      if (dateA !== dateB) return dateB - dateA
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  // Group transactions for List View
+  const groupedTransactions = useMemo(() => {
+    const groups: Record<string, any[]> = {}
+    filteredTransactions.forEach(t => {
+      const dateKey = moment(t.occurred_at).tz("Asia/Kolkata").format("YYYY-MM-DD")
+      if (!groups[dateKey]) groups[dateKey] = []
+      groups[dateKey].push(t)
     })
-  }, [searchFilteredTransactions])
+    return groups
+  }, [filteredTransactions])
+
+  // Transactions for the selected date in Calendar View
+  const transactionsForSelectedDate = useMemo(() => {
+    if (!transactions) return []
+    return transactions.filter(t => 
+      moment(t.occurred_at).tz("Asia/Kolkata").isSame(moment(selectedDate), 'day')
+    )
+  }, [transactions, selectedDate])
 
   if (authLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-paper">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto border-ms-accent"></div>
-          <p className="mt-2 text-sm text-ms-muted">Loading…</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!user) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-paper">
-        <div className="text-center">
-          <p className="text-sm text-ms-muted">Please sign in to continue</p>
-        </div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ms-accent"></div>
       </div>
     )
   }
 
   const getDateRangeLabel = () => {
-    switch (selectedDateRange) {
+    switch (dateRange) {
+      case "all": return "All Time"
       case "today": return "Today"
       case "week": return "This Week"
       case "month": return "This Month"
       case "year": return "This Year"
-      case "custom": return "Custom Range"
-      default: return "All Time"
+      case "custom": return "Custom"
+      default: return "Filter"
     }
   }
-
-  const handleDeleteClick = (transactionId: string) => {
-    setDeleteTransactionId(transactionId)
-    setShowDeleteConfirm(true)
-  }
-
-  const handleDeleteConfirm = async () => {
-    if (!deleteTransactionId) return
-    try {
-      await deleteTransaction.mutateAsync(deleteTransactionId)
-      setShowDeleteConfirm(false)
-      setDeleteTransactionId(null)
-    } catch (error) {
-      console.error("Failed to delete transaction:", error)
-    }
-  }
-
-  const transactionToDelete = sortedTransactions?.find(
-    (t: TransactionWithRelations) => t.id === deleteTransactionId
-  )
 
   return (
-    <div className="max-w-md mx-auto h-full flex flex-col gap-4">
+    <div className="max-w-md mx-auto h-full flex flex-col mobile-viewport bg-paper overflow-hidden">
       {/* Header */}
-      <div className="px-4 mt-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold text-ink">Transactions</h1>
-          <AddTransaction
-            trigger={
-              <button
-                onClick={openDrawer}
-                className="p-2 rounded-lg transition-colors"
-                style={{
-                  background: "color-mix(in oklab, var(--ms-accent) 15%, var(--surface))",
-                  border: "1px solid color-mix(in oklab, var(--ms-accent) 30%, var(--line))",
-                }}
-                disabled={transactionsLoading}
-              >
-                <Plus className="w-5 h-5 text-ms-accent" />
-              </button>
-            }
-          />
-        </div>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="px-4">
-        <div className="grid grid-cols-2 gap-3">
-          <div
-            className="rounded-xl p-4"
-            style={{
-              background: "color-mix(in oklab, var(--neg) 10%, var(--surface))",
-              border: "1px solid color-mix(in oklab, var(--neg) 20%, var(--line))",
-            }}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingDown className="w-4 h-4 text-neg" />
-              <div className="text-sm font-medium text-neg">Total Expenses</div>
-            </div>
-            {transactionsLoading ? (
-              <div className="animate-pulse h-6 w-20 rounded" style={{ background: "color-mix(in oklab, var(--neg) 20%, var(--surface))" }}></div>
-            ) : (
-              <div className="text-xl font-bold text-neg">
-                ₹ {totalExpenses.toLocaleString()}
-              </div>
-            )}
+      <header className="px-4 pt-8 pb-3 space-y-4">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-ink tracking-tight">Spending</h1>
+            <p className="text-[10px] text-ms-muted font-bold mt-0.5 uppercase tracking-wider opacity-70">
+              {getDateRangeLabel()} · ₹{totalExpenses.toLocaleString()} spent
+            </p>
           </div>
-          <div
-            className="rounded-xl p-4"
-            style={{
-              background: "color-mix(in oklab, var(--pos) 10%, var(--surface))",
-              border: "1px solid color-mix(in oklab, var(--pos) 20%, var(--line))",
-            }}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-4 h-4 text-pos" />
-              <div className="text-sm font-medium text-pos">Total Income</div>
-            </div>
-            {transactionsLoading ? (
-              <div className="animate-pulse h-6 w-20 rounded" style={{ background: "color-mix(in oklab, var(--pos) 20%, var(--surface))" }}></div>
-            ) : (
-              <div className="text-xl font-bold text-pos">
-                ₹ {totalIncome.toLocaleString()}
-              </div>
-            )}
+          <div className="flex items-center gap-2">
+             <button 
+               onClick={() => setIsSearchOpen(!isSearchOpen)}
+               className="w-9 h-9 rounded-full bg-surface-alt border border-line flex items-center justify-center text-ink transition-transform active:scale-95"
+             >
+               <Search size={16} />
+             </button>
+             <AddTransaction
+               trigger={
+                 <button className="w-9 h-9 rounded-full bg-ms-warning text-white flex items-center justify-center shadow-lg shadow-ms-warning/20 transition-transform active:scale-95">
+                   <Plus size={20} />
+                 </button>
+               }
+             />
           </div>
         </div>
-      </div>
 
-      {/* Account Filter */}
-      <div className="px-4">
-        <Select value={selectedAccountId} onValueChange={(value) => setSelectedAccountId(value)}>
-          <SelectTrigger className="w-full bg-surface border border-line text-ink">
-            <SelectValue placeholder="All Accounts" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Accounts</SelectLabel>
-              <SelectItem value="all">All Accounts</SelectItem>
-              {accounts?.map((account: ApiAccount) => (
-                <SelectItem key={account.id} value={account.id}>
-                  {account.name}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Transaction Type Filter */}
-      <div className="px-4">
-        <div className="flex gap-2">
-          {(["all", "expense", "income"] as const).map((type) => (
-            <button
-              key={type}
-              onClick={() => setSelectedTransactionType(type)}
-              className="flex-1 px-3 py-2 rounded-xl text-sm font-medium transition-colors"
-              style={{
-                background: selectedTransactionType === type
-                  ? type === "expense" ? "color-mix(in oklab, var(--neg) 15%, var(--surface))"
-                  : type === "income" ? "color-mix(in oklab, var(--pos) 15%, var(--surface))"
-                  : "color-mix(in oklab, var(--ms-accent) 15%, var(--surface))"
-                  : "var(--surface-alt)",
-                border: `1px solid ${selectedTransactionType === type
-                  ? type === "expense" ? "color-mix(in oklab, var(--neg) 30%, var(--line))"
-                  : type === "income" ? "color-mix(in oklab, var(--pos) 30%, var(--line))"
-                  : "color-mix(in oklab, var(--ms-accent) 30%, var(--line))"
-                  : "var(--line)"}`,
-                color: selectedTransactionType === type
-                  ? type === "expense" ? "var(--neg)"
-                  : type === "income" ? "var(--pos)"
-                  : "var(--ms-accent)"
-                  : "var(--ms-muted)",
-              }}
-              disabled={transactionsLoading}
+        {/* Search Bar */}
+        <AnimatePresence>
+          {isSearchOpen && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
             >
-              {type === "expense" && <TrendingDown className="w-3.5 h-3.5 inline mr-1" />}
-              {type === "income" && <TrendingUp className="w-3.5 h-3.5 inline mr-1" />}
-              {type.charAt(0).toUpperCase() + type.slice(1)}
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ms-muted" />
+                <input
+                  autoFocus
+                  type="text"
+                  placeholder="Search transactions..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-10 py-2.5 rounded-xl text-sm focus:outline-none bg-surface-alt border border-line text-ink"
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-ms-muted">
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-2 gap-2.5">
+          <div className="bg-surface-alt border border-line/50 rounded-2xl p-3 shadow-sm">
+            <div className="text-[8px] font-bold text-ms-muted uppercase tracking-[0.1em] mb-0.5 opacity-60">Spent</div>
+            <div className="text-base font-bold text-ink">
+              -₹{totalExpenses.toLocaleString()}
+            </div>
+          </div>
+          <div className="bg-surface-alt border border-line/50 rounded-2xl p-3 shadow-sm">
+            <div className="text-[8px] font-bold text-ms-muted uppercase tracking-[0.1em] mb-0.5 opacity-60">Earned</div>
+            <div className="text-base font-bold text-pos">
+              +₹{totalIncome.toLocaleString()}
+            </div>
+          </div>
+        </div>
+
+        {/* View Switcher */}
+        <div className="flex p-1 bg-surface-alt border border-line rounded-xl">
+          {(["list", "calendar"] as const).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-bold capitalize transition-all ${
+                viewMode === mode 
+                  ? "bg-surface text-ink shadow-sm border border-line" 
+                  : "text-ms-muted hover:text-ink"
+              }`}
+            >
+              {mode}
             </button>
           ))}
         </div>
-      </div>
 
-      {/* Date Filter */}
-      <div className="px-4">
-        <div className="relative">
-          <button
-            onClick={() => setShowDateFilter(!showDateFilter)}
-            className="w-full flex items-center justify-between px-4 py-2 rounded-xl transition-colors border border-line bg-surface text-ink"
-            disabled={transactionsLoading}
+        {/* Quick Filter Chips */}
+        <div className="flex gap-2 overflow-x-auto pb-0.5 no-scrollbar items-center">
+          <button 
+            onClick={() => setActiveType("all")}
+            className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-colors whitespace-nowrap ${
+              activeType === "all" ? "bg-ink text-paper border-ink" : "bg-surface border-line text-ms-muted"
+            }`}
           >
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-ms-muted" />
-              <span className="text-sm">{getDateRangeLabel()}</span>
-            </div>
-            <ChevronDown
-              className={`w-4 h-4 transition-transform text-ms-muted ${showDateFilter ? "rotate-180" : ""}`}
-            />
+            All
           </button>
+          <button 
+            onClick={() => setActiveType("expense")}
+            className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-colors whitespace-nowrap flex items-center gap-1 ${
+              activeType === "expense" ? "bg-ink text-paper border-ink" : "bg-surface border-line text-ms-muted"
+            }`}
+          >
+            <TrendingDown size={11} /> Spend
+          </button>
+          <button 
+            onClick={() => setActiveType("income")}
+            className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-colors whitespace-nowrap flex items-center gap-1 ${
+              activeType === "income" ? "bg-ink text-paper border-ink" : "bg-surface border-line text-ms-muted"
+            }`}
+          >
+            <TrendingUp size={11} /> Income
+          </button>
+          
+          <div className="w-px h-3 bg-line self-center mx-1" />
+          
+          <button 
+            onClick={() => setIsFilterOpen(true)}
+            className={`px-3 py-1 rounded-full text-[10px] font-bold border whitespace-nowrap flex items-center gap-1 transition-colors ${
+              (selectedAccountId !== "all" || dateRange !== "all") ? "bg-ms-warning text-white border-ms-warning" : "bg-surface border-line text-ms-muted"
+            }`}
+          >
+            <FilterIcon size={11} /> Filter
+          </button>
+        </div>
+      </header>
 
-          {showDateFilter && (
-            <div
-              className="absolute top-full left-0 right-0 mt-1 rounded-xl shadow-lg z-10 p-3 bg-surface border border-line"
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto px-4 pb-20 no-scrollbar">
+        <AnimatePresence mode="wait">
+          {viewMode === "list" && (
+            <motion.div
+              key="list"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-6 mt-1"
             >
-              <div className="space-y-1">
-                {["all", "today", "week", "month", "year"].map((range) => (
-                  <button
-                    key={range}
-                    onClick={() => { setSelectedDateRange(range); setShowDateFilter(false) }}
-                    className="w-full text-left px-3 py-2 rounded-lg text-sm transition-colors"
-                    style={{
-                      background: selectedDateRange === range ? "color-mix(in oklab, var(--ms-accent) 15%, var(--surface))" : "transparent",
-                      color: selectedDateRange === range ? "var(--ms-accent)" : "var(--ink)",
-                    }}
-                  >
-                    {range === "all" ? "All Time" : range === "today" ? "Today" : range === "week" ? "This Week" : range === "month" ? "This Month" : "This Year"}
-                  </button>
-                ))}
-                <div style={{ borderTop: "1px solid var(--line)", paddingTop: 12, marginTop: 4 }}>
-                  <div className="text-sm font-medium mb-2 text-ms-muted">Custom Range</div>
-                  <div className="space-y-2">
-                    <input
-                      type="date"
-                      value={customStartDate}
-                      onChange={(e) => setCustomStartDate(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg text-sm border border-line bg-surface-alt text-ink"
-                      disabled={transactionsLoading}
-                    />
-                    <input
-                      type="date"
-                      value={customEndDate}
-                      onChange={(e) => setCustomEndDate(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg text-sm border border-line bg-surface-alt text-ink"
-                      disabled={transactionsLoading}
-                    />
-                    <button
-                      onClick={() => { if (customStartDate && customEndDate) { setSelectedDateRange("custom"); setShowDateFilter(false) } }}
-                      className="w-full px-3 py-2 rounded-lg text-sm font-semibold bg-ms-accent text-white"
-                      disabled={transactionsLoading}
+              {Object.keys(groupedTransactions).length > 0 ? (
+                Object.keys(groupedTransactions).sort().reverse().map((dateKey) => {
+                  const date = moment(dateKey)
+                  const isToday = date.isSame(moment(), 'day')
+                  const isYesterday = date.isSame(moment().subtract(1, 'day'), 'day')
+                  const label = isToday ? "TODAY" : isYesterday ? "YESTERDAY" : date.format("ddd").toUpperCase()
+                  const fullDate = date.format("MMM D")
+                  const dayTotal = groupedTransactions[dateKey].reduce((sum, t) => 
+                    t.type === 'expense' ? sum - t.amount : sum + t.amount, 0
+                  )
+
+                  return (
+                    <div key={dateKey} className="space-y-2">
+                      <div className="flex justify-between items-end px-1">
+                        <div className="text-[9px] font-bold text-ms-muted tracking-[0.1em]">
+                          {label} · {fullDate}
+                        </div>
+                        <div className={`text-[9px] font-bold tracking-tight ${dayTotal < 0 ? "text-ink" : "text-pos"}`}>
+                          {dayTotal < 0 ? "-" : "+"}₹{Math.abs(dayTotal).toLocaleString()}
+                        </div>
+                      </div>
+                      <div className="bg-surface border border-line rounded-2xl overflow-hidden shadow-sm divide-y divide-line/50">
+                        {groupedTransactions[dateKey].map((t) => (
+                          <div 
+                            key={t.id} 
+                            onClick={() => { setSelectedTransaction(t); setIsEditOpen(true) }}
+                            className="flex items-center gap-3 p-3 active:bg-surface-alt transition-colors"
+                          >
+                            <div 
+                              className="w-10 h-10 rounded-xl flex items-center justify-center text-base shadow-sm"
+                              style={{ backgroundColor: `${t.categories?.color || t.category?.color}20` }}
+                            >
+                              {t.categories?.icon || t.category?.icon || "💰"}
+                            </div>
+                            <div className="flex-1">
+                              <div className="font-bold text-sm text-ink leading-tight mb-0.5">{t.title}</div>
+                              <div className="text-[10px] text-ms-muted font-medium opacity-70">
+                                {t.categories?.name || t.category?.name} · {t.accounts?.name || t.account?.name}
+                              </div>
+                            </div>
+                            <div className={`font-bold text-sm ${t.type === 'expense' ? "text-ink" : "text-pos"}`}>
+                              {t.type === 'expense' ? "-" : "+"}₹{t.amount.toLocaleString()}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })
+              ) : (
+                <div className="flex flex-col items-center justify-center py-16 text-ms-muted opacity-40">
+                  <Search size={40} className="mb-3" />
+                  <p className="text-xs font-medium">No transactions found</p>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {viewMode === "calendar" && (
+            <motion.div
+              key="calendar"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-5 mt-1"
+            >
+              <CalendarView 
+                transactions={transactions || []} 
+                selectedDate={selectedDate}
+                onDateSelect={setSelectedDate}
+              />
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-end px-1">
+                  <div className="text-[9px] font-bold text-ms-muted tracking-[0.1em]">
+                    {moment(selectedDate).format("ddd · MMM D").toUpperCase()}
+                  </div>
+                </div>
+                <div className="bg-surface border border-line rounded-2xl overflow-hidden shadow-sm divide-y divide-line/50">
+                  {transactionsForSelectedDate.length > 0 ? (
+                    transactionsForSelectedDate.map((t) => (
+                      <div 
+                        key={t.id} 
+                        onClick={() => { setSelectedTransaction(t); setIsEditOpen(true) }}
+                        className="flex items-center gap-3 p-3 active:bg-surface-alt transition-colors"
+                      >
+                        <div 
+                          className="w-10 h-10 rounded-xl flex items-center justify-center text-base shadow-sm"
+                          style={{ backgroundColor: `${t.categories?.color || t.category?.color}20` }}
+                        >
+                          {t.categories?.icon || t.category?.icon || "💰"}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-bold text-sm text-ink leading-tight mb-0.5">{t.title}</div>
+                          <div className="text-[10px] text-ms-muted font-medium opacity-70">
+                            {t.categories?.name || t.category?.name} · {t.accounts?.name || t.account?.name}
+                          </div>
+                        </div>
+                        <div className={`font-bold text-sm ${t.type === 'expense' ? "text-ink" : "text-pos"}`}>
+                          {t.type === 'expense' ? "-" : "+"}₹{t.amount.toLocaleString()}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center text-xs text-ms-muted font-medium">
+                      No transactions on this day
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
+
+      {/* Filter Modal */}
+      <Drawer.Root open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/40 z-50" />
+          <Drawer.Content className="bg-paper flex flex-col rounded-t-[32px] h-[85vh] mt-24 fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto focus:outline-none">
+            <div className="p-4 bg-paper rounded-t-[32px] flex-1 overflow-y-auto no-scrollbar">
+              <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-line mb-8" />
+              <div className="px-2">
+                <Drawer.Title className="text-2xl font-bold text-ink mb-6">Filter</Drawer.Title>
+                
+                {/* Account Filter */}
+                <section className="mb-8">
+                  <h4 className="text-[10px] font-bold text-ms-muted uppercase tracking-wider mb-3 px-1">Accounts</h4>
+                  <div className="flex flex-wrap gap-2">
+                    <button 
+                      onClick={() => setSelectedAccountId("all")}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                        selectedAccountId === "all" ? "bg-ink text-paper border-ink" : "bg-surface-alt border-line text-ms-muted"
+                      }`}
                     >
-                      Apply Custom Range
+                      All
+                    </button>
+                    {accounts?.map(acc => (
+                      <button 
+                        key={acc.id}
+                        onClick={() => setSelectedAccountId(acc.id)}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                          selectedAccountId === acc.id ? "bg-ink text-paper border-ink" : "bg-surface-alt border-line text-ms-muted"
+                        }`}
+                      >
+                        {acc.name}
+                      </button>
+                    ))}
+                  </div>
+                </section>
+
+                {/* Date Presets */}
+                <section className="mb-8">
+                  <h4 className="text-[10px] font-bold text-ms-muted uppercase tracking-wider mb-3 px-1">Time Period</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {["all", "today", "week", "month", "year"].map((preset) => (
+                      <button
+                        key={preset}
+                        onClick={() => setDateRange(preset)}
+                        className={`px-4 py-3 rounded-2xl text-xs font-bold transition-all border flex items-center justify-between ${
+                          dateRange === preset ? "bg-ms-warning/10 border-ms-warning text-ms-warning" : "bg-surface-alt border-line text-ms-muted"
+                        }`}
+                      >
+                        <span className="capitalize">{preset === "all" ? "All Time" : preset}</span>
+                        {dateRange === preset && <Check size={14} />}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setDateRange("custom")}
+                      className={`px-4 py-3 rounded-2xl text-xs font-bold transition-all border flex items-center justify-between ${
+                        dateRange === "custom" ? "bg-ms-warning/10 border-ms-warning text-ms-warning" : "bg-surface-alt border-line text-ms-muted"
+                      }`}
+                    >
+                      <span>Custom Range</span>
+                      {dateRange === "custom" && <Calendar size={14} />}
                     </button>
                   </div>
-                </div>
+                </section>
+
+                {/* Custom Date Inputs */}
+                <AnimatePresence>
+                  {dateRange === "custom" && (
+                    <motion.section 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="space-y-3 mb-8 overflow-hidden"
+                    >
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-ms-muted uppercase px-1">Start Date</label>
+                        <input 
+                          type="date" 
+                          value={customStart}
+                          onChange={(e) => setCustomStart(e.target.value)}
+                          className="w-full bg-surface-alt border border-line rounded-2xl p-3 text-sm text-ink focus:border-ms-warning outline-none"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-ms-muted uppercase px-1">End Date</label>
+                        <input 
+                          type="date" 
+                          value={customEnd}
+                          onChange={(e) => setCustomEnd(e.target.value)}
+                          className="w-full bg-surface-alt border border-line rounded-2xl p-3 text-sm text-ink focus:border-ms-warning outline-none"
+                        />
+                      </div>
+                    </motion.section>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* Search Bar */}
-      <div className="px-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ms-muted" />
-          <input
-            type="text"
-            placeholder="Search transactions..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-xl text-sm focus:outline-none bg-surface border border-line text-ink"
-            disabled={transactionsLoading}
-          />
-        </div>
-      </div>
-
-      {/* Transactions List */}
-      <div className="px-4 pb-6">
-        <h2 className="text-base font-bold mb-4 flex items-center gap-2 text-ink">
-          {selectedAccountId !== "all" ? sortedTransactions?.length : "All"} Transaction
-          {sortedTransactions?.length !== 1 ? "s" : ""}{" "}
-          {selectedAccountId === "all" && (
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-md ml-auto text-ms-muted bg-surface-alt border border-line">
-              Total: {sortedTransactions?.length}
-            </span>
-          )}
-          {selectedAccountId !== "all" && accounts && (
-            <span className="text-sm font-normal text-ms-muted">
-              from {accounts?.find((a: ApiAccount) => a.id === selectedAccountId)?.name}
-            </span>
-          )}
-          {selectedTransactionType !== "all" && (
-            <span className="text-sm font-normal text-ms-muted">
-              ({selectedTransactionType === "expense" ? "expenses" : "income"})
-            </span>
-          )}
-          {debouncedSearchQuery && ` matching "${debouncedSearchQuery}"`}
-        </h2>
-
-        {transactionsLoading ? (
-          <div className="space-y-2">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="flex items-center gap-3 p-3 rounded-xl animate-pulse border border-line">
-                <div className="w-10 h-10 rounded-lg bg-surface-alt"></div>
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 rounded w-3/4 bg-surface-alt"></div>
-                  <div className="h-3 rounded w-1/2 bg-surface-alt"></div>
-                </div>
-                <div className="h-4 rounded w-16 bg-surface-alt"></div>
-              </div>
-            ))}
-          </div>
-        ) : sortedTransactions?.length && sortedTransactions?.length > 0 ? (
-          <div className="space-y-2">
-            {sortedTransactions?.map((transaction: TransactionWithRelations) => (
-              <div
-                key={transaction.id}
-                className="flex items-center gap-3 p-3 rounded-xl transition-colors cursor-pointer bg-surface border border-line"
-                onClick={() => !transactionsLoading && handleOpenEdit(transaction)}
+            
+            {/* Action Buttons */}
+            <div className="p-6 bg-paper border-t border-line flex gap-3">
+              <button 
+                onClick={() => {
+                  setSelectedAccountId("all")
+                  setDateRange("all")
+                  setActiveType("all")
+                  setIsFilterOpen(false)
+                }}
+                className="flex-1 py-4 rounded-2xl text-sm font-bold text-ms-muted bg-surface-alt hover:bg-line transition-colors"
               >
-                <div
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center ${transaction.categories?.color || "bg-gray-400"} text-white font-bold`}
-                >
-                  {transaction.categories?.icon || "💰"}
-                </div>
-
-                <div className="flex-1">
-                  <div className="font-medium text-ink">
-                    {transaction.title || transaction.description}
-                  </div>
-                  <div className="text-xs flex items-center gap-1 text-ms-muted">
-                    <span className="font-medium">
-                      {moment(transaction.occurred_at).tz("Asia/Kolkata").format("DD MMM")}
-                    </span>{" "}
-                    -
-                    <span className="font-medium">{transaction.categories?.name || "Unknown"}</span>
-                    -<span className="font-medium">{transaction.accounts?.name}</span>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end gap-1">
-                  <div
-                    className={`font-medium ${transaction.type === "expense" ? "text-neg" : "text-pos"}`}
-                  >
-                    {transaction.type === "expense" ? "-" : "+"} ₹{" "}
-                    {transaction.amount.toLocaleString()}
-                  </div>
-                  <span className="text-[10px] text-ms-muted">
-                    {moment(transaction.occurred_at).tz("Asia/Kolkata").format("LT")}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); !transactionsLoading && handleDeleteClick(transaction.id) }}
-                    className="p-2 rounded-lg transition-colors bg-transparent"
-                    disabled={transactionsLoading}
-                  >
-                    <Trash2 className="w-4 h-4 text-neg" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8 text-ms-muted">
-            <div className="text-lg font-medium mb-2">
-              {searchQuery ? "No matching transactions" : "No transactions found"}
+                Reset
+              </button>
+              <button 
+                onClick={() => setIsFilterOpen(false)}
+                className="flex-1 py-4 rounded-2xl text-sm font-bold text-white bg-ms-warning shadow-lg shadow-ms-warning/20 active:scale-95 transition-transform"
+              >
+                Apply
+              </button>
             </div>
-            <div className="text-sm">
-              {searchQuery
-                ? "Try adjusting your search terms or date range"
-                : selectedAccountId || selectedTransactionType !== "all"
-                ? "Try adjusting your date range, filters, or add a new transaction"
-                : "Try adjusting your date range or add a new transaction"}
-            </div>
-          </div>
-        )}
-      </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
 
+      {/* Edit Drawer */}
       {selectedTransaction && (
         <EditTransaction
           trigger={<div style={{ display: "none" }}></div>}
           transaction={selectedTransaction}
-          onClose={handleCloseEdit}
           isOpen={isEditOpen}
           onOpenChange={setIsEditOpen}
         />
       )}
-
-      <DeleteConfirmationSheet
-        isOpen={showDeleteConfirm}
-        onOpenChange={setShowDeleteConfirm}
-        title="Delete Transaction"
-        description="Are you sure you want to delete"
-        itemName={transactionToDelete?.title || transactionToDelete?.description || ""}
-        onConfirm={handleDeleteConfirm}
-        onCancel={() => setShowDeleteConfirm(false)}
-        isPending={deleteTransaction.isPending}
-        confirmText="Delete Transaction"
-        additionalDetails={
-          transactionToDelete && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-ms-muted">Amount:</span>
-                <span
-                  className={`font-medium ${transactionToDelete?.type === "expense" ? "text-neg" : "text-pos"}`}
-                >
-                  {transactionToDelete.type === "expense" ? "-" : "+"} ₹{" "}
-                  {transactionToDelete.amount.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-ms-muted">Date:</span>
-                <span className="font-medium text-ink">
-                  {moment(transactionToDelete.occurred_at).tz("Asia/Kolkata").format("lll")}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-ms-muted">Category:</span>
-                <span className="font-medium text-ink">
-                  {(transactionToDelete as any)?.category?.name || (transactionToDelete as any)?.categories?.name || "Uncategorized"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-ms-muted">Account:</span>
-                <span className="font-medium text-ink">
-                  {(transactionToDelete as any)?.account?.name || (transactionToDelete as any)?.accounts?.name || "Unknown"}
-                </span>
-              </div>
-            </div>
-          )
-        }
-      />
     </div>
   )
 }
