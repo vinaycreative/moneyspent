@@ -1,75 +1,95 @@
 "use client"
 
-import { TrendingUp, TrendingDown } from "lucide-react"
+import { Calendar, TrendingDown } from "lucide-react"
 
 interface DashboardStatsProps {
-  totalExpenses: number
-  totalIncome: number
-  netSavings: number
-  transactionCount: number
+  selectedSpent: number
+  selectedCount: number
+  selectedDate: Date
+  weekSpent: number
+  monthSpent: number
   isLoading: boolean
 }
 
 export function DashboardStats({
-  totalExpenses,
-  totalIncome,
-  netSavings,
-  transactionCount,
+  selectedSpent,
+  selectedCount,
+  selectedDate,
+  weekSpent,
+  monthSpent,
   isLoading,
 }: DashboardStatsProps) {
+  const isToday = new Date().toDateString() === selectedDate.toDateString()
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-4 animate-pulse">
+        <div className="h-32 bg-surface-alt rounded-2xl w-full" />
+        <div className="grid grid-cols-2 gap-3">
+          <div className="h-24 bg-surface-alt rounded-2xl" />
+          <div className="h-24 bg-surface-alt rounded-2xl" />
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="grid grid-cols-2 gap-3">
-      {/* Total Spent */}
-      <div className="bg-neg/10 border border-neg/20 rounded-xl px-3 py-3.5">
-        <div className="flex items-center gap-2 mb-2 text-neg">
-          <TrendingDown className="w-4 h-4" />
-          <span className="text-xs font-medium">
-            Total Spent
+    <div className="flex flex-col gap-3">
+      {/* Selected Day Spend Card */}
+      <div className="bg-surface border border-line rounded-3xl p-5 shadow-sm relative overflow-hidden">
+        <div className="flex justify-between items-center mb-6">
+          <span className="text-[10px] font-bold tracking-widest text-ms-muted uppercase">
+            Spent {isToday ? "Today" : "on this day"}
           </span>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-alt border border-line">
+            <Calendar className="w-3 h-3 text-ms-muted" />
+            <span className="text-[10px] font-medium text-ms-muted">
+              {isToday ? "Today" : selectedDate.toLocaleDateString("en-US", { month: 'short', day: 'numeric' })}
+            </span>
+          </div>
         </div>
-        <div
-          className="text-2xl font-bold flex items-center gap-1 text-neg"
-          style={{ fontFeatureSettings: '"tnum" 1' }}
-        >
-          ₹{" "}
-          {isLoading ? (
-            <div
-              className="animate-pulse h-6 w-16 rounded bg-neg/20"
-            />
-          ) : (
-            totalExpenses.toLocaleString()
-          )}
+
+        <div className="flex items-baseline gap-2 mb-2">
+          <h1 className="text-5xl font-bold text-ink">₹{selectedSpent.toLocaleString()}</h1>
         </div>
-        <div className="text-xs mt-1 text-ms-muted">
-          {transactionCount > 0
-            ? `${transactionCount} transaction${transactionCount !== 1 ? "s" : ""}`
-            : "No transactions yet"}
+
+        <div className="flex justify-between items-center mt-4">
+          <span className="text-xs text-ms-muted font-medium">
+            {selectedCount} transaction{selectedCount !== 1 ? "s" : ""}
+          </span>
         </div>
       </div>
 
-      {/* Total Income */}
-      <div className="bg-pos/10 border border-pos/20 rounded-xl px-3 py-3.5">
-        <div className="flex items-center gap-2 mb-2 text-pos">
-          <TrendingUp className="w-4 h-4" />
-          <span className="text-xs font-medium">
-            Total Income
-          </span>
+      {/* Grid for Week and Month */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* This Week */}
+        <div className="bg-surface border border-line rounded-2xl p-4 flex flex-col justify-between">
+          <div>
+            <span className="text-[9px] font-bold tracking-widest text-ms-muted uppercase block mb-3">
+              This Week
+            </span>
+            <div className="text-xl font-bold text-ink">
+              ₹{weekSpent.toLocaleString()}
+            </div>
+          </div>
+          <div className="text-[10px] font-medium text-ms-muted mt-3">
+            Last 7 days
+          </div>
         </div>
-        <div
-          className="text-2xl font-bold flex items-center gap-1 text-pos"
-          style={{ fontFeatureSettings: '"tnum" 1' }}
-        >
-          ₹{" "}
-          {isLoading ? (
-            <div
-              className="animate-pulse h-6 w-16 rounded bg-pos/20"
-            />
-          ) : (
-            totalIncome.toLocaleString()
-          )}
-        </div>
-        <div className="text-xs mt-1 text-ms-muted">
-          {totalIncome > 0 ? "Income received" : "No income yet"}
+
+        {/* This Month */}
+        <div className="bg-surface border border-line rounded-2xl p-4 flex flex-col justify-between">
+          <div>
+            <span className="text-[9px] font-bold tracking-widest text-ms-muted uppercase block mb-3">
+              This Month
+            </span>
+            <div className="text-xl font-bold text-ink">
+              ₹{monthSpent.toLocaleString()}
+            </div>
+          </div>
+          <div className="text-[10px] font-medium text-ms-muted mt-3">
+            Current month
+          </div>
         </div>
       </div>
     </div>

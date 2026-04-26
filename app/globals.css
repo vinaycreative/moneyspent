@@ -49,6 +49,7 @@
   --color-ms-accent: var(--ms-accent);
   --color-pos: var(--pos);
   --color-neg: var(--neg);
+  --color-ms-warning: var(--ms-warning);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -91,6 +92,7 @@
   --ms-accent:          #0f8a55;
   --pos:                #0f8a55;
   --neg:                #c93a3a;
+  --ms-warning:          #f4a261;
   --card-shadow:        0 1px 0 rgba(20,20,14,.025), 0 2px 6px -2px rgba(20,20,14,.04);
 
   /* Charts */
@@ -143,6 +145,7 @@
   --ms-accent:          #3ab87f;
   --pos:                #3ab87f;
   --neg:                #ee7d96;
+  --ms-warning:          #f4a261;
   --card-shadow:        0 1px 0 rgba(0,0,0,.2), 0 2px 6px -2px rgba(0,0,0,.4);
 
   /* Charts */
