@@ -13,13 +13,13 @@ export const CustomInput = forwardRef<HTMLInputElement, CustomInputProps>(
   ({ id, label, placeholder, className, inputClassName, ...props }, ref) => {
     return (
       <div className={cn("flex flex-col gap-1.5", className)}>
-        <label htmlFor={id} className="text-sm text-gray-800 font-medium">
+        <label htmlFor={id} className="text-sm text-ink font-medium">
           {label}
         </label>
         <input
           ref={ref}
           className={cn(
-            "w-full text-sm border bg-white border-gray-300 rounded-sm py-2.5 px-4 focus:outline-none focus:ring-1 focus:ring-black",
+            "w-full text-sm border bg-surface border-line text-ink rounded-xl py-2.5 px-4 placeholder:text-ms-muted focus:outline-none focus:ring-1 focus:ring-ink/30",
             "mobile-scroll", // Add mobile scrolling utility
             inputClassName
           )}

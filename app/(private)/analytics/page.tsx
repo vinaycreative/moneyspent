@@ -1,436 +1,338 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
-import {
-  Filter,
-  ChevronDown,
-  TrendingUp,
-  TrendingDown,
-  PieChart,
-  BarChart3,
-  Target,
-  AlertCircle,
-  CheckCircle,
-  ArrowUpRight,
-  ArrowDownRight,
-  IndianRupee,
-} from "lucide-react"
+import { SlidersHorizontal, TrendingUp, TrendingDown, Check, ArrowRight } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Drawer } from "vaul"
 import { useAuth, useAnalytics } from "@/hooks"
+import moment from "moment"
 
 export default function Analytics() {
   const router = useRouter()
   const { user, isLoading: authLoading } = useAuth()
-  const [selectedDateRange, setSelectedDateRange] = useState("month")
+
+  const [selectedDateRange, setSelectedDateRange] = useState<
+    "all" | "today" | "week" | "month" | "year" | "custom"
+  >("all")
   const [showDateFilter, setShowDateFilter] = useState(false)
   const [customStartDate, setCustomStartDate] = useState("")
   const [customEndDate, setCustomEndDate] = useState("")
+  const [showAllCategories, setShowAllCategories] = useState(false)
 
   const {
     expenseCategories,
-    monthlyTrend,
-    insights,
     totalExpenses,
     totalIncome,
     netSavings,
+    monthlyTrend,
     isLoading: analyticsLoading,
   } = useAnalytics({
     userId: user?.id || "",
-    dateRange: selectedDateRange as 'today' | 'week' | 'month' | 'year' | 'custom',
+    dateRange: selectedDateRange,
     customStartDate: customStartDate || undefined,
     customEndDate: customEndDate || undefined,
     enabled: !!user?.id,
   })
 
-  const summaryLoading = analyticsLoading
+  // Build trend bars from the already-filtered monthlyTrend
+  const trendBars = useMemo(() => {
+    const filtered = monthlyTrend.filter((m) => m.amount > 0)
+    const source = filtered.length > 0 ? filtered : monthlyTrend
+    const max = Math.max(...source.map((m) => m.amount), 1)
+    const currentMonth = moment().format("MMM")
+    return source.map((m) => ({
+      ...m,
+      isCurrent: m.month === currentMonth,
+      pct: m.amount > 0 ? Math.max(5, (m.amount / max) * 100) : 3,
+    }))
+  }, [monthlyTrend])
+
+  const RANGE_LABELS: Record<string, string> = {
+    all: "All Time", today: "Today", week: "This Week",
+    month: "This Month", year: "This Year", custom: "Custom Range",
+  }
+
+  const visibleCategories = showAllCategories
+    ? expenseCategories
+    : expenseCategories.slice(0, 4)
 
   if (authLoading) {
     return (
-      <div className="h-screen flex items-center justify-center" className="h-screen flex items-center justify-center bg-paper">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto border-ms-accent"></div>
-          <p className="mt-2 text-sm" className="text-ms-muted">Loading…</p>
-        </div>
+      <div className="h-screen flex items-center justify-center bg-paper">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ms-accent" />
       </div>
     )
   }
 
-  if (!user) {
-    return (
-      <div className="h-screen flex items-center justify-center" className="h-screen flex items-center justify-center bg-paper">
-        <div className="text-center">
-          <p className="text-sm" className="text-ms-muted">Please sign in to continue</p>
-        </div>
-      </div>
-    )
-  }
-
-  const getDateRangeLabel = () => {
-    switch (selectedDateRange) {
-      case "today": return "Today"
-      case "week": return "This Week"
-      case "month": return "This Month"
-      case "year": return "This Year"
-      case "custom": return "Custom Range"
-      default: return "This Month"
-    }
-  }
+  if (!user) return null
 
   return (
-    <div className="max-w-md mx-auto h-full flex flex-col gap-4">
-      {/* Header + Date Filter Toggle */}
-      <div className="px-4 mt-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold text-ink">Analytics</h1>
+    <>
+      <div className="max-w-md mx-auto min-h-screen bg-paper pt-6 pb-28">
+
+        {/* Header */}
+        <header className="px-5 pb-4 flex items-start justify-between">
+          <div>
+            <p className="text-xs text-ms-muted font-medium mb-0.5">
+              {moment().format("MMMM D")}
+            </p>
+            <h1 className="text-3xl font-bold text-ink tracking-tight">Analytics</h1>
+          </div>
           <button
-            onClick={() => setShowDateFilter(!showDateFilter)}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-colors bg-surface-alt border border-line text-ink"
+            onClick={() => setShowDateFilter(true)}
+            className={`mt-1 w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-95 ${
+              selectedDateRange !== "month"
+                ? "bg-ms-accent text-white shadow-lg"
+                : "bg-surface border border-line text-ink"
+            }`}
           >
-            <Filter className="w-4 h-4" className="text-ms-muted" />
-            <span>{getDateRangeLabel()}</span>
-            <ChevronDown className="w-4 h-4" className="text-ms-muted" />
+            <SlidersHorizontal size={16} />
           </button>
-        </div>
+        </header>
 
-        {showDateFilter && (
-          <div
-            className="mt-3 p-4 rounded-xl shadow-lg bg-surface border border-line"
-          >
-            <div className="space-y-1">
-              {["today", "week", "month", "year"].map((range) => (
-                <button
-                  key={range}
-                  onClick={() => { setSelectedDateRange(range); setShowDateFilter(false) }}
-                  className="w-full text-left px-3 py-2 rounded-lg text-sm transition-colors"
-                  style={{
-                    background: selectedDateRange === range ? "color-mix(in oklab, var(--ms-accent) 15%, var(--surface))" : "transparent",
-                    color: selectedDateRange === range ? "var(--ms-accent)" : "var(--ink)",
-                  }}
-                >
-                  {range === "today" ? "Today" : range === "week" ? "This Week" : range === "month" ? "This Month" : "This Year"}
-                </button>
-              ))}
-              <div className="border-t border-line pt-3 mt-1">
-                <div className="text-sm font-medium mb-2" className="text-ms-muted">Custom Range</div>
+        <div className="px-5 flex flex-col gap-5">
+
+          {/* Summary Cards */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Spent */}
+            <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm">
+              <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted mb-1.5">Spent</p>
+              {analyticsLoading
+                ? <div className="h-7 w-20 rounded-lg bg-surface-alt animate-pulse" />
+                : <p className="text-xl font-bold text-ink leading-none">₹{totalExpenses.toLocaleString("en-IN")}</p>
+              }
+            </div>
+
+            {/* Income */}
+            <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm">
+              <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted mb-1.5">Income</p>
+              {analyticsLoading
+                ? <div className="h-7 w-20 rounded-lg bg-surface-alt animate-pulse" />
+                : <p className="text-xl font-bold text-pos leading-none">₹{totalIncome.toLocaleString("en-IN")}</p>
+              }
+            </div>
+
+            {/* Savings - full width */}
+            <div className="col-span-2 bg-surface border border-line rounded-2xl p-4 shadow-sm flex items-center justify-between">
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted mb-1.5">Save</p>
+                {analyticsLoading
+                  ? <div className="h-7 w-28 rounded-lg bg-surface-alt animate-pulse" />
+                  : <p className={`text-xl font-bold leading-none ${netSavings >= 0 ? "text-pos" : "text-neg"}`}>
+                      ₹{Math.abs(netSavings).toLocaleString("en-IN")}
+                    </p>
+                }
+              </div>
+              <div className="w-9 h-9 rounded-full bg-surface-alt flex items-center justify-center">
+                {netSavings >= 0
+                  ? <TrendingUp className="w-4 h-4 text-pos" />
+                  : <TrendingDown className="w-4 h-4 text-neg" />
+                }
+              </div>
+            </div>
+          </div>
+
+          {/* Top Categories */}
+          <div>
+            <div className="mb-3">
+              <h2 className="text-base font-bold text-ink">Top Categories</h2>
+              <p className="text-[11px] text-ms-muted font-medium mt-0.5">Breakdown of your expenses</p>
+            </div>
+
+            {analyticsLoading ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-surface border border-line rounded-2xl p-4 animate-pulse">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-11 h-11 rounded-2xl bg-surface-alt shrink-0" />
+                      <div className="flex-1 h-4 rounded bg-surface-alt" />
+                      <div className="h-4 w-16 rounded bg-surface-alt" />
+                    </div>
+                    <div className="h-1.5 rounded-full bg-surface-alt" />
+                  </div>
+                ))}
+              </div>
+            ) : expenseCategories.length > 0 ? (
+              <>
                 <div className="space-y-2">
-                  <input
-                    type="date"
-                    value={customStartDate}
-                    onChange={(e) => setCustomStartDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg text-sm border border-line bg-surface-alt text-ink"
-                  />
-                  <input
-                    type="date"
-                    value={customEndDate}
-                    onChange={(e) => setCustomEndDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg text-sm border border-line bg-surface-alt text-ink"
-                  />
+                  <AnimatePresence>
+                    {visibleCategories.map((cat: any, idx: number) => (
+                      <motion.button
+                        key={cat.category}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ delay: idx * 0.04 }}
+                        onClick={() => router.push(`/analytics/${encodeURIComponent(cat.category.toLowerCase())}`)}
+                        className="w-full bg-surface border border-line rounded-2xl p-4 shadow-sm active:bg-surface-alt transition-colors text-left"
+                      >
+                        {/* Row 1: Icon + Name + Amount */}
+                        <div className="flex items-center gap-3 mb-2.5">
+                          <div className="w-11 h-11 rounded-2xl bg-surface-alt flex items-center justify-center text-xl shrink-0">
+                            {cat.icon || "💰"}
+                          </div>
+                          <p className="flex-1 text-sm font-semibold text-ink capitalize">
+                            {cat.category.replace(/_/g, " ")}
+                          </p>
+                          <p className="text-sm font-bold text-ink">
+                            ₹ {Number(cat.amount).toLocaleString("en-IN")}
+                          </p>
+                        </div>
+
+                        {/* Row 2: Progress + Meta */}
+                        <div className="ml-14">
+                          <div className="h-1.5 rounded-full bg-surface-alt overflow-hidden mb-1.5">
+                            <div
+                              className="h-full rounded-full bg-pos transition-all duration-700"
+                              style={{ width: `${Math.max(3, cat.percentage)}%` }}
+                            />
+                          </div>
+                          <div className="flex justify-between">
+                            <p className="text-[10px] text-ms-muted font-medium">
+                              {cat.count ?? "-"} transaction{(cat.count ?? 0) !== 1 ? "s" : ""}
+                            </p>
+                            <p className="text-[10px] text-ms-muted font-medium">
+                              {Number(cat.percentage ?? 0).toFixed(1)}%
+                            </p>
+                          </div>
+                        </div>
+                      </motion.button>
+                    ))}
+                  </AnimatePresence>
+                </div>
+
+                {/* See more / less */}
+                {expenseCategories.length > 4 && (
                   <button
-                    onClick={() => { if (customStartDate && customEndDate) { setSelectedDateRange("custom"); setShowDateFilter(false) } }}
-                    className="w-full px-3 py-2 rounded-lg text-sm font-semibold bg-ms-accent text-white"
+                    onClick={() => setShowAllCategories(!showAllCategories)}
+                    className="mt-2 w-full py-4 rounded-2xl bg-surface border border-line text-sm font-semibold text-ms-muted flex items-center justify-center gap-2 active:bg-surface-alt transition-colors"
                   >
-                    Apply Custom Range
+                    {showAllCategories ? "Show less" : "See more"}
+                    <ArrowRight size={14} className={`transition-transform ${showAllCategories ? "rotate-180" : ""}`} />
                   </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 gap-3 px-4">
-        <div
-          className="rounded-xl p-4 bg-neg/10 border border-neg/20"
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingDown className="w-4 h-4 text-neg" />
-            <div className="text-xs font-medium text-neg">Expenses</div>
-          </div>
-          {summaryLoading ? (
-            <div className="animate-pulse h-6 w-16 rounded bg-neg/20"></div>
-          ) : (
-            <div className="text-lg font-bold text-neg">
-              ₹ {totalExpenses.toLocaleString()}
-            </div>
-          )}
-        </div>
-        <div
-          className="rounded-xl p-4 bg-pos/10 border border-pos/20"
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="w-4 h-4 text-pos" />
-            <div className="text-xs font-medium text-pos">Income</div>
-          </div>
-          {summaryLoading ? (
-            <div className="animate-pulse h-6 w-16 rounded bg-pos/20"></div>
-          ) : (
-            <div className="text-lg font-bold text-pos">
-              ₹ {totalIncome.toLocaleString()}
-            </div>
-          )}
-        </div>
-        <div
-          className="rounded-xl col-span-2 p-4"
-          style={{
-            background: netSavings >= 0
-              ? "color-mix(in oklab, var(--ms-accent) 10%, var(--surface))"
-              : "color-mix(in oklab, var(--neg) 10%, var(--surface))",
-            border: `1px solid ${netSavings >= 0
-              ? "color-mix(in oklab, var(--ms-accent) 25%, var(--line))"
-              : "color-mix(in oklab, var(--neg) 25%, var(--line))"}`,
-          }}
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <IndianRupee className="w-4 h-4" className={netSavings >= 0 ? "text-ms-accent" : "text-neg"} />
-            <div className="text-xs font-medium" className={netSavings >= 0 ? "text-ms-accent" : "text-neg"}>
-              Savings
-            </div>
-          </div>
-          {summaryLoading ? (
-            <div className="animate-pulse h-6 w-16 rounded bg-surface-alt"></div>
-          ) : (
-            <div className="text-lg font-bold" className={netSavings >= 0 ? "text-ms-accent" : "text-neg"}>
-              ₹ {Math.abs(netSavings).toLocaleString()}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Analytics Content */}
-      <div className="px-4 space-y-4 pb-6">
-        {/* Category Breakdown */}
-        <div
-          className="rounded-xl p-5 bg-surface border border-line"
-        >
-          <div className="flex items-center gap-3 mb-5">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center bg-ms-accent/15"
-            >
-              <PieChart className="w-5 h-5 text-ms-accent" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-ink">Spending by Category</h2>
-              <p className="text-sm" className="text-ms-muted">Breakdown of your expenses</p>
-            </div>
-          </div>
-
-          {analyticsLoading ? (
-            <div className="space-y-3">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="flex items-center gap-3 animate-pulse">
-                  <div className="w-8 h-8 rounded-lg bg-surface-alt"></div>
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 rounded w-1/3 bg-surface-alt"></div>
-                    <div className="h-2 rounded w-full bg-surface-alt"></div>
-                  </div>
-                  <div className="h-4 rounded w-16 bg-surface-alt"></div>
-                </div>
-              ))}
-            </div>
-          ) : expenseCategories.length > 0 ? (
-            <div className="space-y-3 max-h-[400px] overflow-y-auto">
-              {expenseCategories.map((category: { category: string; amount: number; percentage: number; count: number; color: string; icon: string }) => (
-                <div
-                  key={category.category}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-colors border border-line"
-                  onClick={() => router.push(`/analytics/${encodeURIComponent(category.category.toLowerCase())}`)}
-                >
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${category.color} text-white text-sm`}>
-                    {category.icon}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-ink">{category.category}</span>
-                      <span className="text-sm font-medium text-ink">
-                        ₹ {category.amount.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-2 rounded-full bg-surface-alt">
-                        <div
-                          className="h-2 rounded-full transition-all duration-300"
-                          className="bg-ms-accent" style={{ width: `${category.percentage}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-xs min-w-[40px]" className="text-ms-muted">
-                        {category.percentage.toFixed(1)}%
-                      </span>
-                    </div>
-                    <div className="text-xs mt-0.5" className="text-ms-muted">
-                      {category.count} transaction{category.count !== 1 ? "s" : ""}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8" className="text-ms-muted">
-              <div
-                className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 bg-surface-alt"
-              >
-                <PieChart className="w-8 h-8" className="text-ms-muted" />
-              </div>
-              <div className="text-sm font-medium mb-1">No expenses in this period</div>
-              <div className="text-xs">Add some transactions to see your spending breakdown</div>
-            </div>
-          )}
-        </div>
-
-        {/* Monthly Trend */}
-        <div
-          className="rounded-xl p-5 bg-surface border border-line"
-        >
-          <div className="flex items-center gap-3 mb-5">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center bg-ms-accent/15"
-            >
-              <BarChart3 className="w-5 h-5 text-ms-accent" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-ink">Monthly Spending Trend</h2>
-              <p className="text-sm" className="text-ms-muted">Last 6 months overview</p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {monthlyTrend && monthlyTrend.map((month, index) => {
-              const maxAmount = Math.max(...monthlyTrend.map((m) => m.amount))
-              const percentage = maxAmount > 0 ? (month.amount / maxAmount) * 100 : 0
-              const isCurrentMonth = index === monthlyTrend.length - 1
-              return (
-                <div key={`${month.month}-${index}`} className="flex items-center gap-4">
-                  <div className="w-12 text-sm font-medium" className="text-ms-muted">
-                    {month.month}
-                    {isCurrentMonth && <span className="text-ms-accent">*</span>}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 h-3 rounded-full bg-surface-alt">
-                        <div
-                          className="h-3 rounded-full transition-all duration-300"
-                          className="bg-ms-accent" style={{ width: `${percentage}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm font-medium w-20 text-right text-ink">
-                        ₹ {month.amount.toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-            <div className="text-xs" className="text-ms-muted">* Current month</div>
-          </div>
-        </div>
-
-        {/* Insights */}
-        <div
-          className="rounded-xl p-5 bg-surface border border-line"
-        >
-          <div className="flex items-center gap-3 mb-5">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center bg-ms-accent/15"
-            >
-              <Target className="w-5 h-5 text-ms-accent" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-ink">Smart Insights</h2>
-              <p className="text-sm" className="text-ms-muted">Key financial insights</p>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {insights.topCategory && (
-              <div
-                className="flex items-center gap-3 p-4 rounded-xl"
-                className="bg-ms-accent/10 border border-ms-accent/20"
-              >
-                <div className="w-10 h-10 rounded-full flex items-center justify-center" className="bg-ms-accent/15">
-                  <span className="text-lg">💰</span>
-                </div>
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-ink">Top Spending Category</div>
-                  <div className="text-xs" className="text-ms-muted">
-                    {insights.topCategory.category} - ₹ {insights.topCategory.amount.toLocaleString()}
-                  </div>
-                </div>
-                <ArrowUpRight className="w-4 h-4" className="text-ms-accent" />
+                )}
+              </>
+            ) : (
+              <div className="bg-surface border border-line rounded-2xl py-12 flex flex-col items-center justify-center">
+                <p className="text-sm font-medium text-ink">No expenses yet</p>
+                <p className="text-xs text-ms-muted mt-1">Add transactions to see breakdown</p>
               </div>
             )}
+          </div>
 
-            <div
-              className="flex items-center gap-3 p-4 rounded-xl bg-ms-accent/10 border border-ms-accent/20"
-            >
-              <div className="w-10 h-10 rounded-full flex items-center justify-center" className="bg-ms-accent/15">
-                <span className="text-lg">📊</span>
-              </div>
-              <div className="flex-1">
-                <div className="text-sm font-medium text-ink">Average Daily Spending</div>
-                <div className="text-xs" className="text-ms-muted">
-                  ₹ {Math.round(insights.avgDailySpending).toLocaleString()} per day
-                </div>
-              </div>
-              <ArrowDownRight className="w-4 h-4" className="text-ms-muted" />
+          {/* Spending Trend */}
+          <div>
+            <div className="mb-3">
+              <h2 className="text-base font-bold text-ink">Spending Trend</h2>
+              <p className="text-[11px] text-ms-muted font-medium mt-0.5">{RANGE_LABELS[selectedDateRange]}</p>
             </div>
 
-            <div
-              className="flex items-center gap-3 p-4 rounded-xl bg-pos/10 border border-pos/20"
-            >
-              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-pos/15">
-                <span className="text-lg">📈</span>
-              </div>
-              <div className="flex-1">
-                <div className="text-sm font-medium text-ink">Transaction Activity</div>
-                <div className="text-xs" className="text-ms-muted">
-                  {insights.transactionCount} transaction{insights.transactionCount !== 1 ? "s" : ""} this period
-                </div>
-              </div>
-              <CheckCircle className="w-4 h-4 text-pos" />
-            </div>
-
-            {insights.mostActiveDay && (
-              <div
-                className="flex items-center gap-3 p-4 rounded-xl bg-surface-alt border border-line"
-              >
-                <div className="w-10 h-10 rounded-full flex items-center justify-center bg-surface">
-                  <span className="text-lg">📅</span>
-                </div>
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-ink">Most Active Day</div>
-                  <div className="text-xs" className="text-ms-muted">
-                    {insights.mostActiveDay} - Most transactions on this day
+            <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm space-y-2">
+              {trendBars.map((bar, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <span className={`text-[11px] font-bold w-8 shrink-0 ${bar.isCurrent ? "text-ink" : "text-ms-muted"}`}>
+                    {bar.month}{bar.isCurrent ? "*" : ""}
+                  </span>
+                  <div className="flex-1 h-2 rounded-full bg-surface-alt overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-pos transition-all duration-700"
+                      style={{ width: `${bar.pct}%` }}
+                    />
                   </div>
+                  <span className={`text-[11px] font-bold w-16 text-right shrink-0 ${bar.isCurrent ? "text-ink" : "text-ms-muted"}`}>
+                    {bar.amount > 0
+                      ? bar.amount >= 1000
+                        ? `₹ ${(bar.amount / 1000).toFixed(1)}k`
+                        : `₹ ${bar.amount}`
+                      : "—"}
+                  </span>
                 </div>
-                <CheckCircle className="w-4 h-4" className="text-ms-muted" />
-              </div>
-            )}
-
-            <div
-              className={`flex items-center gap-3 p-4 rounded-xl ${netSavings >= 0 ? "bg-pos/10 border border-pos/20" : "bg-neg/10 border border-neg/20"}`}
-            >
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${netSavings >= 0 ? "bg-pos/15" : "bg-neg/15"}`}>
-                <span className="text-lg">{netSavings >= 0 ? "✅" : "⚠️"}</span>
-              </div>
-              <div className="flex-1">
-                <div className="text-sm font-medium text-ink">
-                  {netSavings >= 0 ? "Positive Savings" : "Negative Savings"}
-                </div>
-                <div className="text-xs" className="text-ms-muted">
-                  {netSavings >= 0
-                    ? `You're saving ${insights.savingsRate.toFixed(1)}% of your income`
-                    : "Consider reducing expenses to improve savings"}
-                </div>
-              </div>
-              {netSavings >= 0 ? (
-                <CheckCircle className="w-4 h-4 text-pos" />
-              ) : (
-                <AlertCircle className="w-4 h-4 text-neg" />
-              )}
+              ))}
+              <p className="text-[10px] text-ms-muted pt-1">* Current month</p>
             </div>
           </div>
+
         </div>
       </div>
-    </div>
+
+      {/* Date Filter Drawer */}
+      <Drawer.Root open={showDateFilter} onOpenChange={setShowDateFilter}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/30 z-50" />
+          <Drawer.Content className="bg-paper flex flex-col rounded-t-[28px] fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto focus:outline-none shadow-2xl">
+            <div className="p-5">
+              <div className="mx-auto w-10 h-1 rounded-full bg-line mb-6" />
+              <Drawer.Title className="text-xl font-bold text-ink mb-5 px-1">Time Period</Drawer.Title>
+
+              <div className="grid grid-cols-2 gap-2.5 mb-4">
+                {(["all", "today", "week", "month", "year", "custom"] as const).map((preset) => {
+                  const active = selectedDateRange === preset
+                  return (
+                    <button
+                      key={preset}
+                      onClick={() => setSelectedDateRange(preset)}
+                      className={`py-4 rounded-2xl text-sm font-semibold flex items-center justify-between px-4 border transition-all ${
+                        active
+                          ? "bg-surface-alt border-line text-ink font-bold"
+                          : "bg-surface border-line text-ink"
+                      }`}
+                    >
+                      <span>{RANGE_LABELS[preset]}</span>
+                      {active && <Check size={13} />}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <AnimatePresence>
+                {selectedDateRange === "custom" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden space-y-3 mb-2"
+                  >
+                    <div>
+                      <label className="text-[10px] font-bold text-ms-muted uppercase tracking-widest block mb-1.5 px-1">Start Date</label>
+                      <input
+                        type="date"
+                        value={customStartDate}
+                        onChange={(e) => setCustomStartDate(e.target.value)}
+                        className="w-full bg-surface-alt border border-line rounded-2xl px-4 py-3 text-sm text-ink outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-ms-muted uppercase tracking-widest block mb-1.5 px-1">End Date</label>
+                      <input
+                        type="date"
+                        value={customEndDate}
+                        onChange={(e) => setCustomEndDate(e.target.value)}
+                        className="w-full bg-surface-alt border border-line rounded-2xl px-4 py-3 text-sm text-ink outline-none"
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="px-5 pb-8 pt-3 border-t border-line flex gap-3">
+              <button
+                onClick={() => { setSelectedDateRange("month"); setShowDateFilter(false) }}
+                className="flex-1 py-4 rounded-2xl text-sm font-semibold text-ink bg-surface-alt border border-line active:scale-95 transition-transform"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => setShowDateFilter(false)}
+                className="flex-1 py-4 rounded-2xl text-sm font-bold text-paper bg-ink active:scale-95 transition-transform"
+              >
+                Apply
+              </button>
+            </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
+    </>
   )
 }

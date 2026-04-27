@@ -67,9 +67,9 @@ export const EditCategory = ({ trigger, category }: EditCategoryProps) => {
         }}
       >
         <div className="text-center py-8">
-          <FolderOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Default Category</h3>
-          <p className="text-gray-600">
+          <FolderOpen className="w-16 h-16 text-ms-muted mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-ink mb-2">Default Category</h3>
+          <p className="text-ms-muted">
             This is a default category and cannot be edited. You can create your own custom categories instead.
           </p>
         </div>
@@ -799,14 +799,14 @@ export const EditCategory = ({ trigger, category }: EditCategoryProps) => {
 
         {/* Category Type */}
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="type" className="text-sm text-gray-800 font-medium">
+          <label htmlFor="type" className="text-sm text-ink font-medium">
             Type
           </label>
           <Select
             value={formData.type}
             onValueChange={(value) => handleInputChange("type", value as "expense" | "income")}
           >
-            <SelectTrigger className="w-full border-gray-300 bg-white">
+            <SelectTrigger className="w-full border-line bg-surface text-ink">
               <SelectValue placeholder="Select type" />
             </SelectTrigger>
             <SelectContent>
@@ -818,18 +818,18 @@ export const EditCategory = ({ trigger, category }: EditCategoryProps) => {
 
         {/* Icon Selection */}
         <div className="flex flex-col gap-1.5 col-span-2">
-          <label htmlFor="icon" className="text-sm text-gray-800 font-medium">
+          <label htmlFor="icon" className="text-sm text-ink font-medium">
             Icon
           </label>
-          <div className="grid grid-cols-8 gap-2 max-h-32 overflow-y-auto border border-gray-200 rounded-md p-3">
+          <div className="grid grid-cols-8 gap-2 max-h-32 overflow-y-auto border border-line rounded-xl p-3 bg-surface">
             {iconOptions.map((icon, index) => (
               <button
                 key={index}
                 type="button"
                 onClick={() => handleInputChange("icon", icon)}
                 className={cn(
-                  "w-8 h-8 rounded-lg flex items-center justify-center text-lg hover:bg-gray-100 transition-colors",
-                  formData.icon === icon ? "bg-purple-100 border-2 border-purple-500" : ""
+                  "w-8 h-8 rounded-lg flex items-center justify-center text-lg hover:bg-surface-alt transition-colors",
+                  formData.icon === icon ? "bg-surface-alt border-2 border-ms-accent" : ""
                 )}
               >
                 {icon}
@@ -840,7 +840,7 @@ export const EditCategory = ({ trigger, category }: EditCategoryProps) => {
 
         {/* Color Selection */}
         <div className="flex flex-col gap-1.5 col-span-2">
-          <label htmlFor="color" className="text-sm text-gray-800 font-medium">
+          <label htmlFor="color" className="text-sm text-ink font-medium">
             Color
           </label>
           <div className="grid grid-cols-8 gap-2">
@@ -853,12 +853,12 @@ export const EditCategory = ({ trigger, category }: EditCategoryProps) => {
                   "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
                   color.bgClass,
                   formData.color === color.value
-                    ? "ring-2 ring-purple-500 ring-offset-2"
+                    ? "ring-2 ring-ms-accent ring-offset-2"
                     : "hover:scale-105"
                 )}
               >
                 {formData.color === color.value && (
-                  <div className="w-4 h-4 bg-white rounded-full"></div>
+                  <div className="w-3 h-3 bg-white rounded-full shadow" />
                 )}
               </button>
             ))}
@@ -867,20 +867,20 @@ export const EditCategory = ({ trigger, category }: EditCategoryProps) => {
 
         {/* Preview */}
         <div className="space-y-2 col-span-2">
-          <Label className="text-gray-800 font-medium">Preview</Label>
-          <div className="bg-gray-50 rounded-md p-4 border border-gray-200">
+          <Label className="text-ink font-medium">Preview</Label>
+          <div className="bg-surface-alt rounded-xl p-4 border border-line">
             <div className="flex items-center gap-3">
               <div
                 className={cn(
-                  "w-10 h-10 rounded-md flex items-center justify-center text-white text-lg",
+                  "w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg",
                   getColorBgClass(formData.color)
                 )}
               >
                 {formData.icon}
               </div>
               <div className="flex-1">
-                <div className="font-medium text-gray-900">{formData.name || "Category Name"}</div>
-                <div className="text-sm text-gray-500 capitalize">{formData.type || "Type"}</div>
+                <div className="font-medium text-ink">{formData.name || "Category Name"}</div>
+                <div className="text-sm text-ms-muted capitalize">{formData.type || "Type"}</div>
               </div>
             </div>
           </div>

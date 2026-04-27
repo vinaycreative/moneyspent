@@ -1,15 +1,17 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo } from "react"
 import moment from "moment-timezone"
 import { 
   Search, 
   TrendingUp, 
   TrendingDown, 
-  Filter as FilterIcon,
+  SlidersHorizontal,
   Plus,
   X,
   Calendar,
+  LayoutList,
+  LayoutGrid,
   Check
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -26,7 +28,6 @@ export default function Transactions() {
   const [viewMode, setViewMode] = useState<ViewMode>("list")
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [searchQuery, setSearchQuery] = useState("")
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   
   // Filters State
@@ -83,8 +84,8 @@ export default function Transactions() {
     const q = searchQuery.toLowerCase()
     return transactions.filter(t => 
       t.title.toLowerCase().includes(q) || 
-      t.categories?.name?.toLowerCase().includes(q) ||
-      t.category?.name?.toLowerCase().includes(q)
+      (t as any).categories?.name?.toLowerCase().includes(q) ||
+      (t as any).accounts?.name?.toLowerCase().includes(q)
     )
   }, [transactions, searchQuery])
 
@@ -107,6 +108,8 @@ export default function Transactions() {
     )
   }, [transactions, selectedDate])
 
+  const hasActiveFilters = selectedAccountId !== "all" || dateRange !== "all"
+
   if (authLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-paper">
@@ -115,150 +118,131 @@ export default function Transactions() {
     )
   }
 
-  const getDateRangeLabel = () => {
-    switch (dateRange) {
-      case "all": return "All Time"
-      case "today": return "Today"
-      case "week": return "This Week"
-      case "month": return "This Month"
-      case "year": return "This Year"
-      case "custom": return "Custom"
-      default: return "Filter"
-    }
-  }
-
   return (
-    <div className="max-w-md mx-auto h-full flex flex-col mobile-viewport bg-paper overflow-hidden">
+    <div className="max-w-md mx-auto h-full flex flex-col pt-6 mobile-viewport bg-paper overflow-hidden">
       {/* Header */}
-      <header className="px-4 pt-8 pb-3 space-y-4">
+      <header className="px-5 pb-4 space-y-4">
+        {/* Top Row: Date + Filter Icon */}
+        <div className="flex justify-between items-start">
+          <div>
+            <p className="text-xs text-ms-muted font-medium mb-0.5">
+              {moment().format("dddd, MMM D")}
+            </p>
+            <h1 className="text-3xl font-bold text-ink tracking-tight">Spending</h1>
+          </div>
+          <div className="flex items-center gap-2 mt-1">
+            <AddTransaction
+              trigger={
+                <button className="w-9 h-9 rounded-full bg-ms-warning text-white flex items-center justify-center shadow-lg shadow-ms-warning/20 transition-transform active:scale-95">
+                  <Plus size={20} />
+                </button>
+              }
+            />
+            <button 
+              onClick={() => setIsFilterOpen(true)}
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-95 relative ${
+                hasActiveFilters 
+                  ? "bg-ms-warning text-white shadow-lg shadow-ms-warning/20" 
+                  : "bg-surface border border-line text-ink"
+              }`}
+            >
+              <SlidersHorizontal size={16} />
+              {hasActiveFilters && (
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500 border border-paper" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm">
+            <div className="text-[9px] font-bold text-ms-muted uppercase tracking-[0.12em] mb-1.5">Spent</div>
+            <div className="text-xl font-bold text-neg leading-none">
+              - ₹{totalExpenses.toLocaleString()}
+            </div>
+          </div>
+          <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm">
+            <div className="text-[9px] font-bold text-ms-muted uppercase tracking-[0.12em] mb-1.5">Earned</div>
+            <div className="text-xl font-bold text-pos leading-none">
+              ₹{totalIncome.toLocaleString()}
+            </div>
+          </div>
+        </div>
+
+        {/* Section Title + View Switchers */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-ink tracking-tight">Spending</h1>
-            <p className="text-[10px] text-ms-muted font-bold mt-0.5 uppercase tracking-wider opacity-70">
-              {getDateRangeLabel()} · ₹{totalExpenses.toLocaleString()} spent
+            <h2 className="text-base font-bold text-ink">All Transactions</h2>
+            <p className="text-[11px] text-ms-muted font-medium mt-0.5">
+              Found {filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? "s" : ""}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-             <button 
-               onClick={() => setIsSearchOpen(!isSearchOpen)}
-               className="w-9 h-9 rounded-full bg-surface-alt border border-line flex items-center justify-center text-ink transition-transform active:scale-95"
-             >
-               <Search size={16} />
-             </button>
-             <AddTransaction
-               trigger={
-                 <button className="w-9 h-9 rounded-full bg-ms-warning text-white flex items-center justify-center shadow-lg shadow-ms-warning/20 transition-transform active:scale-95">
-                   <Plus size={20} />
-                 </button>
-               }
-             />
+          {/* View Toggle Icons */}
+          <div className="flex items-center gap-1 bg-surface border border-line rounded-xl p-1 shadow-sm">
+            <button
+              onClick={() => { setActiveType("expense"); setViewMode("list") }}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+                activeType === "expense" && viewMode === "list"
+                  ? "bg-neg/10 text-neg" 
+                  : "text-ms-muted hover:text-ink"
+              }`}
+            >
+              <TrendingDown size={15} />
+            </button>
+            <button
+              onClick={() => { setActiveType("income"); setViewMode("list") }}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+                activeType === "income" && viewMode === "list"
+                  ? "bg-pos/10 text-pos" 
+                  : "text-ms-muted hover:text-ink"
+              }`}
+            >
+              <TrendingUp size={15} />
+            </button>
+            <button
+              onClick={() => { setActiveType("all"); setViewMode("list") }}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+                viewMode === "list" && activeType === "all"
+                  ? "bg-surface-alt text-ink" 
+                  : "text-ms-muted hover:text-ink"
+              }`}
+            >
+              <LayoutList size={15} />
+            </button>
+            <button
+              onClick={() => setViewMode("calendar")}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+                viewMode === "calendar"
+                  ? "bg-surface-alt text-ink" 
+                  : "text-ms-muted hover:text-ink"
+              }`}
+            >
+              <LayoutGrid size={15} />
+            </button>
           </div>
         </div>
 
         {/* Search Bar */}
-        <AnimatePresence>
-          {isSearchOpen && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ms-muted" />
-                <input
-                  autoFocus
-                  type="text"
-                  placeholder="Search transactions..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-10 py-2.5 rounded-xl text-sm focus:outline-none bg-surface-alt border border-line text-ink"
-                />
-                {searchQuery && (
-                  <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-ms-muted">
-                    <X size={14} />
-                  </button>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-2 gap-2.5">
-          <div className="bg-surface-alt border border-line/50 rounded-2xl p-3 shadow-sm">
-            <div className="text-[8px] font-bold text-ms-muted uppercase tracking-[0.1em] mb-0.5 opacity-60">Spent</div>
-            <div className="text-base font-bold text-ink">
-              -₹{totalExpenses.toLocaleString()}
-            </div>
-          </div>
-          <div className="bg-surface-alt border border-line/50 rounded-2xl p-3 shadow-sm">
-            <div className="text-[8px] font-bold text-ms-muted uppercase tracking-[0.1em] mb-0.5 opacity-60">Earned</div>
-            <div className="text-base font-bold text-pos">
-              +₹{totalIncome.toLocaleString()}
-            </div>
-          </div>
-        </div>
-
-        {/* View Switcher */}
-        <div className="flex p-1 bg-surface-alt border border-line rounded-xl">
-          {(["list", "calendar"] as const).map((mode) => (
-            <button
-              key={mode}
-              onClick={() => setViewMode(mode)}
-              className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-bold capitalize transition-all ${
-                viewMode === mode 
-                  ? "bg-surface text-ink shadow-sm border border-line" 
-                  : "text-ms-muted hover:text-ink"
-              }`}
-            >
-              {mode}
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ms-muted" />
+          <input
+            type="text"
+            placeholder="Search transactions..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-11 pr-10 py-3 rounded-2xl text-sm focus:outline-none bg-surface border border-line text-ink placeholder:text-ms-muted shadow-sm"
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-ms-muted">
+              <X size={14} />
             </button>
-          ))}
-        </div>
-
-        {/* Quick Filter Chips */}
-        <div className="flex gap-2 overflow-x-auto pb-0.5 no-scrollbar items-center">
-          <button 
-            onClick={() => setActiveType("all")}
-            className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-colors whitespace-nowrap ${
-              activeType === "all" ? "bg-ink text-paper border-ink" : "bg-surface border-line text-ms-muted"
-            }`}
-          >
-            All
-          </button>
-          <button 
-            onClick={() => setActiveType("expense")}
-            className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-colors whitespace-nowrap flex items-center gap-1 ${
-              activeType === "expense" ? "bg-ink text-paper border-ink" : "bg-surface border-line text-ms-muted"
-            }`}
-          >
-            <TrendingDown size={11} /> Spend
-          </button>
-          <button 
-            onClick={() => setActiveType("income")}
-            className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-colors whitespace-nowrap flex items-center gap-1 ${
-              activeType === "income" ? "bg-ink text-paper border-ink" : "bg-surface border-line text-ms-muted"
-            }`}
-          >
-            <TrendingUp size={11} /> Income
-          </button>
-          
-          <div className="w-px h-3 bg-line self-center mx-1" />
-          
-          <button 
-            onClick={() => setIsFilterOpen(true)}
-            className={`px-3 py-1 rounded-full text-[10px] font-bold border whitespace-nowrap flex items-center gap-1 transition-colors ${
-              (selectedAccountId !== "all" || dateRange !== "all") ? "bg-ms-warning text-white border-ms-warning" : "bg-surface border-line text-ms-muted"
-            }`}
-          >
-            <FilterIcon size={11} /> Filter
-          </button>
+          )}
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto px-4 pb-20 no-scrollbar">
+      <main className="flex-1 overflow-y-auto px-5 pb-24 no-scrollbar">
         <AnimatePresence mode="wait">
           {viewMode === "list" && (
             <motion.div
@@ -266,57 +250,67 @@ export default function Transactions() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="space-y-6 mt-1"
             >
-              {Object.keys(groupedTransactions).length > 0 ? (
-                Object.keys(groupedTransactions).sort().reverse().map((dateKey) => {
-                  const date = moment(dateKey)
-                  const isToday = date.isSame(moment(), 'day')
-                  const isYesterday = date.isSame(moment().subtract(1, 'day'), 'day')
-                  const label = isToday ? "TODAY" : isYesterday ? "YESTERDAY" : date.format("ddd").toUpperCase()
-                  const fullDate = date.format("MMM D")
-                  const dayTotal = groupedTransactions[dateKey].reduce((sum, t) => 
-                    t.type === 'expense' ? sum - t.amount : sum + t.amount, 0
-                  )
+              {transactionsLoading ? (
+                <div className="flex flex-col items-center justify-center py-16 text-ms-muted opacity-40">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ms-accent mb-3" />
+                  <p className="text-xs font-medium">Loading transactions...</p>
+                </div>
+              ) : Object.keys(groupedTransactions).length > 0 ? (
+                <div className="bg-surface border border-line rounded-2xl overflow-hidden shadow-sm">
+                  {Object.keys(groupedTransactions).sort().reverse().map((dateKey, groupIdx) => {
+                    const date = moment(dateKey)
+                    const isToday = date.isSame(moment(), 'day')
+                    const isYesterday = date.isSame(moment().subtract(1, 'day'), 'day')
 
-                  return (
-                    <div key={dateKey} className="space-y-2">
-                      <div className="flex justify-between items-end px-1">
-                        <div className="text-[9px] font-bold text-ms-muted tracking-[0.1em]">
-                          {label} · {fullDate}
+                    return (
+                      <div key={dateKey}>
+                        {/* Date Separator */}
+                        <div className="px-4 py-2 bg-surface-alt border-b border-line">
+                          <span className="text-[10px] font-bold text-ms-muted tracking-wide uppercase">
+                            {isToday ? "Today" : isYesterday ? "Yesterday" : date.format("DD MMM")}
+                            {" · "}
+                            {date.format("ddd")}
+                          </span>
                         </div>
-                        <div className={`text-[9px] font-bold tracking-tight ${dayTotal < 0 ? "text-ink" : "text-pos"}`}>
-                          {dayTotal < 0 ? "-" : "+"}₹{Math.abs(dayTotal).toLocaleString()}
-                        </div>
-                      </div>
-                      <div className="bg-surface border border-line rounded-2xl overflow-hidden shadow-sm divide-y divide-line/50">
-                        {groupedTransactions[dateKey].map((t) => (
+                        {/* Transactions for this date */}
+                        {groupedTransactions[dateKey].map((t, idx) => (
                           <div 
                             key={t.id} 
                             onClick={() => { setSelectedTransaction(t); setIsEditOpen(true) }}
-                            className="flex items-center gap-3 p-3 active:bg-surface-alt transition-colors"
+                            className={`flex items-center gap-3 px-4 py-3.5 active:bg-surface-alt transition-colors cursor-pointer ${
+                              idx < groupedTransactions[dateKey].length - 1 ? "border-b border-line" : ""
+                            }`}
                           >
+                            {/* Icon */}
                             <div 
-                              className="w-10 h-10 rounded-xl flex items-center justify-center text-base shadow-sm"
-                              style={{ backgroundColor: `${t.categories?.color || t.category?.color}20` }}
+                              className="w-11 h-11 rounded-2xl flex items-center justify-center text-lg flex-shrink-0"
+                              style={{ backgroundColor: `${(t as any).categories?.color || "#888"}20` }}
                             >
-                              {t.categories?.icon || t.category?.icon || "💰"}
+                              {(t as any).categories?.icon || "💰"}
                             </div>
-                            <div className="flex-1">
-                              <div className="font-bold text-sm text-ink leading-tight mb-0.5">{t.title}</div>
-                              <div className="text-[10px] text-ms-muted font-medium opacity-70">
-                                {t.categories?.name || t.category?.name} · {t.accounts?.name || t.account?.name}
+                            {/* Details */}
+                            <div className="flex-1 min-w-0">
+                              <div className="font-semibold text-sm text-ink leading-tight truncate">{t.title}</div>
+                              <div className="text-[11px] text-ms-muted font-medium mt-0.5">
+                                {date.format("DD MMM")} · {(t as any).categories?.name} · {(t as any).accounts?.name}
                               </div>
                             </div>
-                            <div className={`font-bold text-sm ${t.type === 'expense' ? "text-ink" : "text-pos"}`}>
-                              {t.type === 'expense' ? "-" : "+"}₹{t.amount.toLocaleString()}
+                            {/* Amount + Time */}
+                            <div className="text-right flex-shrink-0">
+                              <div className={`font-bold text-sm ${t.type === 'expense' ? "text-neg" : "text-pos"}`}>
+                                {t.type === 'expense' ? "- " : "+ "}{t.amount.toLocaleString()} ₹
+                              </div>
+                              <div className="text-[10px] text-ms-muted font-medium mt-0.5">
+                                {moment(t.occurred_at).tz("Asia/Kolkata").format("hh:mm a")}
+                              </div>
                             </div>
                           </div>
                         ))}
                       </div>
-                    </div>
-                  )
-                })
+                    )
+                  })}
+                </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-16 text-ms-muted opacity-40">
                   <Search size={40} className="mb-3" />
@@ -332,7 +326,7 @@ export default function Transactions() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="space-y-5 mt-1"
+              className="space-y-5"
             >
               <CalendarView 
                 transactions={transactions || []} 
@@ -340,148 +334,153 @@ export default function Transactions() {
                 onDateSelect={setSelectedDate}
               />
 
-              <div className="space-y-2">
-                <div className="flex justify-between items-end px-1">
-                  <div className="text-[9px] font-bold text-ms-muted tracking-[0.1em]">
-                    {moment(selectedDate).format("ddd · MMM D").toUpperCase()}
-                  </div>
-                </div>
-                <div className="bg-surface border border-line rounded-2xl overflow-hidden shadow-sm divide-y divide-line/50">
-                  {transactionsForSelectedDate.length > 0 ? (
-                    transactionsForSelectedDate.map((t) => (
+              {/* Transactions for selected date */}
+              <div>
+                <h3 className="text-base font-bold text-ink mb-3">Transactions</h3>
+                {transactionsForSelectedDate.length > 0 ? (
+                  <div className="bg-surface border border-line rounded-2xl overflow-hidden shadow-sm">
+                    {transactionsForSelectedDate.map((t) => (
                       <div 
                         key={t.id} 
                         onClick={() => { setSelectedTransaction(t); setIsEditOpen(true) }}
-                        className="flex items-center gap-3 p-3 active:bg-surface-alt transition-colors"
+                        className="flex items-center gap-3 px-4 py-3.5 active:bg-surface-alt/50 transition-colors cursor-pointer"
                       >
                         <div 
-                          className="w-10 h-10 rounded-xl flex items-center justify-center text-base shadow-sm"
-                          style={{ backgroundColor: `${t.categories?.color || t.category?.color}20` }}
+                          className="w-11 h-11 rounded-2xl flex items-center justify-center text-lg flex-shrink-0"
+                          style={{ backgroundColor: `${(t as any).categories?.color || "#888"}20` }}
                         >
-                          {t.categories?.icon || t.category?.icon || "💰"}
+                          {(t as any).categories?.icon || "💰"}
                         </div>
-                        <div className="flex-1">
-                          <div className="font-bold text-sm text-ink leading-tight mb-0.5">{t.title}</div>
-                          <div className="text-[10px] text-ms-muted font-medium opacity-70">
-                            {t.categories?.name || t.category?.name} · {t.accounts?.name || t.account?.name}
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-sm text-ink leading-tight truncate">{t.title}</div>
+                          <div className="text-[11px] text-ms-muted font-medium mt-0.5">
+                            {moment(t.occurred_at).tz("Asia/Kolkata").format("DD MMM")} · {(t as any).categories?.name} · {(t as any).accounts?.name}
                           </div>
                         </div>
-                        <div className={`font-bold text-sm ${t.type === 'expense' ? "text-ink" : "text-pos"}`}>
-                          {t.type === 'expense' ? "-" : "+"}₹{t.amount.toLocaleString()}
+                        <div className="text-right flex-shrink-0">
+                          <div className={`font-bold text-sm ${t.type === 'expense' ? "text-neg" : "text-pos"}`}>
+                            {t.type === 'expense' ? "- " : "+ "}{t.amount.toLocaleString()} ₹
+                          </div>
+                          <div className="text-[10px] text-ms-muted font-medium mt-0.5">
+                            {moment(t.occurred_at).tz("Asia/Kolkata").format("hh:mm a")}
+                          </div>
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="p-8 text-center text-xs text-ms-muted font-medium">
-                      No transactions on this day
-                    </div>
-                  )}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-surface border border-line rounded-2xl p-8 text-center shadow-sm">
+                    <p className="text-xs text-ms-muted font-medium">No transactions on this day</p>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </main>
 
-      {/* Filter Modal */}
+      {/* Filter Drawer */}
       <Drawer.Root open={isFilterOpen} onOpenChange={setIsFilterOpen}>
         <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-black/40 z-50" />
-          <Drawer.Content className="bg-paper flex flex-col rounded-t-[32px] h-[85vh] mt-24 fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto focus:outline-none">
-            <div className="p-4 bg-paper rounded-t-[32px] flex-1 overflow-y-auto no-scrollbar">
-              <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-line mb-8" />
-              <div className="px-2">
-                <Drawer.Title className="text-2xl font-bold text-ink mb-6">Filter</Drawer.Title>
-                
-                {/* Account Filter */}
-                <section className="mb-8">
-                  <h4 className="text-[10px] font-bold text-ms-muted uppercase tracking-wider mb-3 px-1">Accounts</h4>
-                  <div className="flex flex-wrap gap-2">
+          <Drawer.Overlay className="fixed inset-0 bg-black/30 z-50" />
+          <Drawer.Content className="bg-paper flex flex-col rounded-t-[28px] fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto focus:outline-none shadow-2xl">
+            <div className="p-5 flex-1 overflow-y-auto no-scrollbar">
+              {/* Handle */}
+              <div className="mx-auto w-10 h-1 flex-shrink-0 rounded-full bg-line mb-6" />
+              
+              <Drawer.Title className="text-xl font-bold text-ink mb-6 px-1">Filters</Drawer.Title>
+
+              {/* Account Filter */}
+              <section className="mb-6">
+                <h4 className="text-[10px] font-bold text-ms-muted uppercase tracking-[0.12em] mb-3 px-1">Accounts</h4>
+                <div className="flex flex-wrap gap-2">
+                  <button 
+                    onClick={() => setSelectedAccountId("all")}
+                    className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all border ${
+                      selectedAccountId === "all" 
+                        ? "bg-ink text-paper border-ink" 
+                        : "bg-surface-alt border-line text-ink"
+                    }`}
+                  >
+                    All
+                  </button>
+                  {accounts?.map((acc: any) => (
                     <button 
-                      onClick={() => setSelectedAccountId("all")}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
-                        selectedAccountId === "all" ? "bg-ink text-paper border-ink" : "bg-surface-alt border-line text-ms-muted"
+                      key={acc.id}
+                      onClick={() => setSelectedAccountId(acc.id)}
+                      className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all border ${
+                        selectedAccountId === acc.id 
+                          ? "bg-ink text-paper border-ink" 
+                          : "bg-surface-alt border-line text-ink"
                       }`}
                     >
-                      All
+                      {acc.name}
                     </button>
-                    {accounts?.map(acc => (
-                      <button 
-                        key={acc.id}
-                        onClick={() => setSelectedAccountId(acc.id)}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
-                          selectedAccountId === acc.id ? "bg-ink text-paper border-ink" : "bg-surface-alt border-line text-ms-muted"
-                        }`}
-                      >
-                        {acc.name}
-                      </button>
-                    ))}
-                  </div>
-                </section>
+                  ))}
+                </div>
+              </section>
 
-                {/* Date Presets */}
-                <section className="mb-8">
-                  <h4 className="text-[10px] font-bold text-ms-muted uppercase tracking-wider mb-3 px-1">Time Period</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    {["all", "today", "week", "month", "year"].map((preset) => (
-                      <button
-                        key={preset}
-                        onClick={() => setDateRange(preset)}
-                        className={`px-4 py-3 rounded-2xl text-xs font-bold transition-all border flex items-center justify-between ${
-                          dateRange === preset ? "bg-ms-warning/10 border-ms-warning text-ms-warning" : "bg-surface-alt border-line text-ms-muted"
-                        }`}
-                      >
-                        <span className="capitalize">{preset === "all" ? "All Time" : preset}</span>
-                        {dateRange === preset && <Check size={14} />}
-                      </button>
-                    ))}
+              {/* Date Presets */}
+              <section className="mb-6">
+                <h4 className="text-[10px] font-bold text-ms-muted uppercase tracking-[0.12em] mb-3 px-1">Time Period</h4>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {[
+                    { key: "all", label: "All time" },
+                    { key: "today", label: "Today" },
+                    { key: "week", label: "Week" },
+                    { key: "month", label: "Month" },
+                    { key: "year", label: "Year" },
+                    { key: "custom", label: "Custom Range" },
+                  ].map(({ key, label }) => (
                     <button
-                      onClick={() => setDateRange("custom")}
-                      className={`px-4 py-3 rounded-2xl text-xs font-bold transition-all border flex items-center justify-between ${
-                        dateRange === "custom" ? "bg-ms-warning/10 border-ms-warning text-ms-warning" : "bg-surface-alt border-line text-ms-muted"
+                      key={key}
+                      onClick={() => setDateRange(key)}
+                      className={`py-4 rounded-2xl text-sm font-semibold transition-all border ${
+                        dateRange === key 
+                          ? "bg-surface-alt border-line text-ink font-bold" 
+                          : "bg-surface border-line text-ink"
                       }`}
                     >
-                      <span>Custom Range</span>
-                      {dateRange === "custom" && <Calendar size={14} />}
+                      {label}
                     </button>
-                  </div>
-                </section>
+                  ))}
+                </div>
+              </section>
 
-                {/* Custom Date Inputs */}
-                <AnimatePresence>
-                  {dateRange === "custom" && (
-                    <motion.section 
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="space-y-3 mb-8 overflow-hidden"
-                    >
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-ms-muted uppercase px-1">Start Date</label>
-                        <input 
-                          type="date" 
-                          value={customStart}
-                          onChange={(e) => setCustomStart(e.target.value)}
-                          className="w-full bg-surface-alt border border-line rounded-2xl p-3 text-sm text-ink focus:border-ms-warning outline-none"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-ms-muted uppercase px-1">End Date</label>
-                        <input 
-                          type="date" 
-                          value={customEnd}
-                          onChange={(e) => setCustomEnd(e.target.value)}
-                          className="w-full bg-surface-alt border border-line rounded-2xl p-3 text-sm text-ink focus:border-ms-warning outline-none"
-                        />
-                      </div>
-                    </motion.section>
-                  )}
-                </AnimatePresence>
-              </div>
+              {/* Custom Date Inputs */}
+              <AnimatePresence>
+                {dateRange === "custom" && (
+                  <motion.section 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-3 mb-6 overflow-hidden"
+                  >
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-ms-muted uppercase px-1">Start Date</label>
+                      <input 
+                        type="date" 
+                        value={customStart}
+                        onChange={(e) => setCustomStart(e.target.value)}
+                        className="w-full bg-surface-alt border border-line rounded-2xl p-3 text-sm text-ink focus:border-ms-warning outline-none"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-ms-muted uppercase px-1">End Date</label>
+                      <input 
+                        type="date" 
+                        value={customEnd}
+                        onChange={(e) => setCustomEnd(e.target.value)}
+                        className="w-full bg-surface-alt border border-line rounded-2xl p-3 text-sm text-ink focus:border-ms-warning outline-none"
+                      />
+                    </div>
+                  </motion.section>
+                )}
+              </AnimatePresence>
             </div>
             
             {/* Action Buttons */}
-            <div className="p-6 bg-paper border-t border-line flex gap-3">
+            <div className="px-5 pb-8 pt-4 flex gap-3 border-t border-line">
               <button 
                 onClick={() => {
                   setSelectedAccountId("all")
@@ -489,13 +488,13 @@ export default function Transactions() {
                   setActiveType("all")
                   setIsFilterOpen(false)
                 }}
-                className="flex-1 py-4 rounded-2xl text-sm font-bold text-ms-muted bg-surface-alt hover:bg-line transition-colors"
+                className="flex-1 py-4 rounded-2xl text-sm font-semibold text-ink bg-surface-alt border border-line active:scale-95 transition-transform"
               >
-                Reset
+                Cancel
               </button>
               <button 
                 onClick={() => setIsFilterOpen(false)}
-                className="flex-1 py-4 rounded-2xl text-sm font-bold text-white bg-ms-warning shadow-lg shadow-ms-warning/20 active:scale-95 transition-transform"
+                className="flex-1 py-4 rounded-2xl text-sm font-bold text-white bg-ink active:scale-98 transition-transform"
               >
                 Apply
               </button>

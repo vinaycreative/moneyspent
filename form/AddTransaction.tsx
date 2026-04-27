@@ -1,26 +1,12 @@
-import React from "react"
-import { CustomInput } from "@/components/CustomInput"
-import CustomDrawer from "@/components/CustomDrawer"
-import { Plus } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { DateTimePicker } from "@/components/DateTimePicker"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
+import React, { useEffect } from "react"
+import { Drawer } from "vaul"
+import { motion, AnimatePresence } from "framer-motion"
+import { Plus, Building2, CreditCard, Wallet, ArrowDownRight, ArrowUpRight } from "lucide-react"
 import { useCategories } from "@/hooks/useCategories"
 import { useAuth } from "@/hooks"
 import { useAccounts } from "@/hooks/useAccounts"
-import { AiTwotoneBank } from "react-icons/ai"
-import { BsCreditCard2Front } from "react-icons/bs"
-import { HiOutlineCash } from "react-icons/hi"
 import { useAddTransactionDrawer } from "@/hooks"
 import { AddCategory } from "./AddCategory"
-import { Button } from "@/components/ui/button"
 import { AddAccount } from "./AddAccount"
 
 export interface TransactionFormData {
@@ -33,7 +19,18 @@ export interface TransactionFormData {
   account: string
 }
 
-export const AddTransaction = ({ trigger }: { trigger: React.ReactNode }) => {
+interface AddTransactionProps {
+  trigger: React.ReactNode
+  defaultType?: "expense" | "income"
+}
+
+const accountIcon = (type: string) => {
+  if (type === "credit") return <CreditCard size={15} />
+  if (type === "cash" || type === "wallet") return <Wallet size={15} />
+  return <Building2 size={15} />
+}
+
+export const AddTransaction = ({ trigger, defaultType }: AddTransactionProps) => {
   const { user } = useAuth()
   const {
     isOpen,
@@ -48,223 +45,260 @@ export const AddTransaction = ({ trigger }: { trigger: React.ReactNode }) => {
     isLoading,
   } = useAddTransactionDrawer()
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData({ ...formData, [name]: value })
-  }
-
-  const transactionType = [
-    {
-      id: "expense",
-      label: "Expense",
-      value: "expense",
-    },
-    {
-      id: "income",
-      label: "Income",
-      value: "income",
-    },
-  ]
-
-  // Get categories and accounts
   const { data: categories, isLoading: categoriesLoading } = useCategories(
-    user?.id || "",
-    undefined,
-    !!user?.id
+    user?.id || "", undefined, !!user?.id
   )
+  const { accounts, isLoading: accountsLoading } = useAccounts(user?.id!)
 
-  const { accounts, isLoading: accountsLoading, isError: accountsError } = useAccounts(user?.id!)
-
-  // Filter categories by type
   const filteredCategories = categories?.filter((cat: any) => cat.type === activeTab) || []
 
-  const handleFormSubmit = async () => {
-    try {
-      await handleSubmit()
-      // The drawer will be closed automatically by the hook after successful submission
-    } catch (error) {
-      console.error("Failed to create transaction:", error)
-    }
+  // Set default type when drawer opens
+  const handleOpen = () => {
+    if (defaultType) setActiveTab(defaultType)
+    openDrawer()
   }
 
+  // When defaultType changes while open, update tab
+  useEffect(() => {
+    if (isOpen && defaultType) setActiveTab(defaultType)
+  }, [defaultType, isOpen])
+
+  const handleFormSubmit = async () => {
+    try { await handleSubmit() }
+    catch (error) { console.error("Failed to create transaction:", error) }
+  }
+
+  const isExpense = activeTab === "expense"
+
   return (
-    <CustomDrawer
-      trigger={trigger}
-      title="Add Transaction"
-      SubmitIcon={Plus}
-      submitTitle="Add"
-      submitDisabled={isSubmitDisabled}
-      submitLoading={isLoading}
-      onSubmit={handleFormSubmit}
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (open) {
-          openDrawer()
-        } else {
-          closeDrawer()
-        }
-      }}
-    >
-      <div className="grid grid-cols-2 gap-2">
-        <div className="col-span-2 border-b border-gray-200 pb-4 grid grid-cols-2 gap-2">
-          {/* custom checkbox for income and expense */}
-          {transactionType.map((type, index) => (
-            <div
-              key={index}
-              className={cn(
-                `flex items-center justify-center gap-2 border rounded-sm p-2 cursor-pointer transition-all duration-300`,
-                {
-                  "bg-green-50 text-green-600 border border-green-600 font-medium":
-                    type.id === "income" && activeTab === "income",
-                  "bg-red-50 border-red-600 text-red-600 font-medium":
-                    type.id === "expense" && activeTab === "expense",
-                }
-              )}
-              onClick={() => {
-                setActiveTab(type.id as "expense" | "income")
-                setFormData({ ...formData, category: "" })
-              }}
-            >
-              {type.label}
+    <>
+      <div onClick={handleOpen}>{trigger}</div>
+
+      <Drawer.Root open={isOpen} onOpenChange={(open) => (open ? handleOpen() : closeDrawer())}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/30 z-50" />
+          <Drawer.Content className="bg-paper flex flex-col rounded-t-[28px] fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto focus:outline-none shadow-2xl max-h-[92vh]">
+
+            {/* Handle */}
+            <div className="pt-4 pb-1 flex justify-center shrink-0">
+              <div className="w-10 h-1 rounded-full bg-line" />
             </div>
-          ))}
-        </div>
 
-        <CustomInput
-          id="amount"
-          label="Amount"
-          name="amount"
-          placeholder="Enter amount"
-          type="number"
-          value={formData.amount}
-          inputMode="numeric"
-          onChange={handleInputChange}
-          required
-        />
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="date" className="text-sm text-gray-800 font-medium">
-            Date
-          </label>
-          <DateTimePicker
-            id="date"
-            name="date"
-            date={formData.date}
-            onDateChange={(date) => setFormData({ ...formData, date })}
-            placeholder="Select date"
-            required={true}
-          />
-        </div>
-        <CustomInput
-          id="title"
-          label="Title"
-          name="title"
-          placeholder="Enter transaction title"
-          type="text"
-          value={formData.title}
-          onChange={handleInputChange}
-          className="col-span-2"
-          required
-        />
-        <CustomInput
-          id="description"
-          label="Description (Optional)"
-          name="description"
-          placeholder="Enter description"
-          type="text"
-          value={formData.description}
-          onChange={handleInputChange}
-          className="col-span-2"
-        />
+            {/* Header */}
+            <div className="px-5 pb-3 shrink-0">
+              <Drawer.Title className="text-xl font-bold text-ink">Add Transaction</Drawer.Title>
+              <p className="text-[11px] text-ms-muted font-medium mt-0.5">Log your expense or income</p>
+            </div>
 
-        {/* Category Field */}
-        <div className="flex flex-col gap-1.5 col-span-2">
-          <div className="flex items-center justify-between">
-            <Label className="text-sm text-gray-800 font-medium">
-              Category <span className="text-red-500">*</span>
-            </Label>
-            <AddCategory
-              trigger={
-                <button className="text-gray-500 cursor-pointer text-xs flex items-center gap-1">
-                  <Plus size={14} /> add Category
-                </button>
-              }
-            />
-          </div>
-          <Select
-            value={formData.category}
-            onValueChange={(value) => setFormData({ ...formData, category: value })}
-            disabled={categoriesLoading}
-            required
-          >
-            <SelectTrigger className={cn("w-full border-gray-300 bg-white")}>
-              <SelectValue
-                placeholder={categoriesLoading ? "Loading categories..." : "Select category"}
-              />
-            </SelectTrigger>
-            <SelectContent>
-              {categoriesLoading ? (
-                <SelectItem value="loading" disabled>
-                  Loading categories...
-                </SelectItem>
-              ) : filteredCategories.length > 0 ? (
-                filteredCategories.map((category: any) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    <div className="flex items-center gap-2">
-                      <span>{category.icon}</span>
-                      <span>{category.name}</span>
-                    </div>
-                  </SelectItem>
-                ))
-              ) : (
-                <SelectItem value="no-categories" disabled>
-                  No categories available
-                </SelectItem>
-              )}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex flex-col gap-1.5 col-span-2">
-          <div className="flex items-center justify-between">
-            <Label className="text-sm text-gray-800 font-medium">
-              Account <span className="text-red-500">*</span>
-            </Label>
-            <AddAccount
-              trigger={
-                <button className="text-gray-500 cursor-pointer text-xs flex items-center gap-1">
-                  <Plus size={14} /> add Account
-                </button>
-              }
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {accountsLoading ? (
-              <div className="col-span-2 flex items-center justify-center py-4">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
-              </div>
-            ) : (
-              accounts?.map((account: any) => {
-                return (
-                  <div
-                    key={account.id}
-                    className={cn(
-                      "bg-white border border-gray-300 rounded-sm p-2 flex items-center justify-center gap-2 cursor-pointer hover:border-gray-600 transition-all duration-300",
-                      {
-                        "bg-gray-900 text-white border-gray-900": formData.account === account.id,
+            {/* Scrollable body */}
+            <div className="px-5 overflow-y-auto flex-1 space-y-5 pb-4">
+
+              {/* Type Tabs */}
+              <div className="grid grid-cols-2 gap-2">
+                {(["expense", "income"] as const).map((type) => {
+                  const active = activeTab === type
+                  const isExp = type === "expense"
+                  return (
+                    <button
+                      key={type}
+                      onClick={() => {
+                        setActiveTab(type)
+                        setFormData({ ...formData, category: "" })
+                      }}
+                      className={`flex items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-bold border transition-all ${
+                        active
+                          ? isExp
+                            ? "bg-neg/10 text-neg border-neg/30"
+                            : "bg-pos/10 text-pos border-pos/30"
+                          : "bg-surface border-line text-ms-muted"
+                      }`}
+                    >
+                      {isExp
+                        ? <ArrowDownRight size={15} className={active ? "text-neg" : "text-ms-muted"} />
+                        : <ArrowUpRight size={15} className={active ? "text-pos" : "text-ms-muted"} />
                       }
-                    )}
-                    onClick={() => setFormData({ ...formData, account: account.id })}
-                  >
-                    {account.type === "bank" && <AiTwotoneBank size={18} />}
-                    {account.type === "credit" && <BsCreditCard2Front size={18} />}
-                    {account.type === "cash" && <HiOutlineCash size={18} />}
-                    <span>{account.name}</span>
+                      {isExp ? "Expense" : "Income"}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Amount */}
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted mb-2">Amount</p>
+                <div className={`flex items-center bg-surface border rounded-2xl px-4 focus-within:border-ink/40 transition-colors ${
+                  isExpense ? "border-neg/25" : "border-pos/25"
+                }`}>
+                  <span className={`text-lg font-bold mr-2 ${isExpense ? "text-neg" : "text-pos"}`}>₹</span>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={formData.amount}
+                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                    inputMode="decimal"
+                    className="flex-1 bg-transparent py-4 text-xl font-bold text-ink placeholder:text-ms-muted outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Title */}
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted mb-2">Title</p>
+                <input
+                  type="text"
+                  placeholder="What did you spend on?"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="w-full bg-surface border border-line rounded-2xl px-4 py-3.5 text-sm text-ink placeholder:text-ms-muted outline-none focus:border-ink/40 transition-colors"
+                />
+              </div>
+
+              {/* Date */}
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted mb-2">Date</p>
+                <input
+                  type="datetime-local"
+                  value={formData.date ? new Date(formData.date.getTime() - formData.date.getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ""}
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value ? new Date(e.target.value) : undefined })}
+                  className="w-full bg-surface border border-line rounded-2xl px-4 py-3.5 text-sm text-ink outline-none focus:border-ink/40 transition-colors"
+                />
+              </div>
+
+              {/* Category */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted">Category</p>
+                  <AddCategory
+                    trigger={
+                      <button className="text-[10px] font-semibold text-ms-muted flex items-center gap-0.5 active:opacity-70">
+                        <Plus size={11} /> New
+                      </button>
+                    }
+                  />
+                </div>
+
+                {categoriesLoading ? (
+                  <div className="grid grid-cols-4 gap-2">
+                    {[1,2,3,4].map(i => <div key={i} className="h-16 rounded-2xl bg-surface-alt animate-pulse" />)}
                   </div>
-                )
-              })
-            )}
-          </div>
-        </div>
-      </div>
-    </CustomDrawer>
+                ) : filteredCategories.length > 0 ? (
+                  <div className="grid grid-cols-4 gap-2">
+                    {filteredCategories.map((cat: any) => {
+                      const selected = formData.category === cat.id
+                      return (
+                        <button
+                          key={cat.id}
+                          onClick={() => setFormData({ ...formData, category: cat.id })}
+                          className={`flex flex-col items-center gap-1.5 py-3 rounded-2xl border text-center transition-all active:scale-95 ${
+                            selected
+                              ? "bg-surface-alt border-ink/20"
+                              : "bg-surface border-line"
+                          }`}
+                        >
+                          <span className="text-xl leading-none">{cat.icon}</span>
+                          <span className={`text-[10px] font-semibold leading-tight truncate w-full text-center px-1 ${
+                            selected ? "text-ink" : "text-ms-muted"
+                          }`}>{cat.name}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="bg-surface border border-line rounded-2xl py-6 text-center">
+                    <p className="text-xs text-ms-muted">No categories yet</p>
+                    <AddCategory
+                      trigger={
+                        <button className="mt-2 text-xs font-semibold text-ms-accent flex items-center gap-1 mx-auto">
+                          <Plus size={12} /> Add category
+                        </button>
+                      }
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Account */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted">Account</p>
+                  <AddAccount
+                    trigger={
+                      <button className="text-[10px] font-semibold text-ms-muted flex items-center gap-0.5 active:opacity-70">
+                        <Plus size={11} /> New
+                      </button>
+                    }
+                  />
+                </div>
+
+                {accountsLoading ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    {[1,2].map(i => <div key={i} className="h-12 rounded-2xl bg-surface-alt animate-pulse" />)}
+                  </div>
+                ) : (accounts?.length ?? 0) > 0 ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    {accounts?.map((acc: any) => {
+                      const selected = formData.account === acc.id
+                      return (
+                        <button
+                          key={acc.id}
+                          onClick={() => setFormData({ ...formData, account: acc.id })}
+                          className={`flex items-center gap-2 px-3 py-3 rounded-2xl border transition-all active:scale-95 ${
+                            selected
+                              ? "bg-ink text-paper border-ink"
+                              : "bg-surface border-line text-ink"
+                          }`}
+                        >
+                          <span className={selected ? "text-paper" : "text-ms-muted"}>
+                            {accountIcon(acc.type)}
+                          </span>
+                          <span className="text-sm font-semibold truncate">{acc.name}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="bg-surface border border-line rounded-2xl py-6 text-center">
+                    <p className="text-xs text-ms-muted">No accounts yet</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Description (optional) */}
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted mb-2">Note (optional)</p>
+                <input
+                  type="text"
+                  placeholder="Add a note…"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full bg-surface border border-line rounded-2xl px-4 py-3.5 text-sm text-ink placeholder:text-ms-muted outline-none focus:border-ink/40 transition-colors"
+                />
+              </div>
+
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 pt-3 pb-8 border-t border-line shrink-0 flex gap-3">
+              <button
+                onClick={closeDrawer}
+                className="flex-1 py-4 rounded-2xl text-sm font-semibold text-ink bg-surface-alt border border-line active:scale-95 transition-transform"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleFormSubmit}
+                disabled={isSubmitDisabled || isLoading}
+                className={`flex-1 py-4 rounded-2xl text-sm font-bold text-paper active:scale-95 transition-all disabled:opacity-40 ${
+                  isExpense ? "bg-neg" : "bg-pos"
+                }`}
+              >
+                {isLoading ? "Saving…" : isExpense ? "Add Expense" : "Add Income"}
+              </button>
+            </div>
+
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
+    </>
   )
 }

@@ -3,32 +3,24 @@
 import React, { useState } from "react"
 import {
   User,
-  HelpCircle,
   LogOut,
   ChevronRight,
   Globe,
-  DollarSign,
+  IndianRupee,
   Tag,
   Info,
   Plus,
-  Moon,
   Sun,
+  Moon,
 } from "lucide-react"
 import { useAuth } from "@/hooks"
 import { useTheme, ACCENTS } from "@/hooks/useTheme"
 import CustomDrawer from "@/components/CustomDrawer"
 import { AddCategory } from "@/form/AddCategory"
-import { useViewCategoriesDrawer, useAddEditCategoryDrawer } from "@/hooks"
+import { useViewCategoriesDrawer, useAddEditCategoryDrawer, useTransactions } from "@/hooks"
 import { useRouter } from "next/navigation"
 import ViewAllCategories from "@/components/ViewAllCategories"
-
-interface SettingItem {
-  id: string
-  title: string
-  subtitle: string
-  icon: React.ComponentType<{ className?: string }>
-  action: "navigate" | "modal" | "logout"
-}
+import { useMemo } from "react"
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth()
@@ -36,136 +28,177 @@ export default function SettingsPage() {
   const [currency] = useState("INR")
   const { isOpen: isViewOpen, openDrawer: openViewDrawer, closeDrawer: closeViewDrawer } = useViewCategoriesDrawer()
   useAddEditCategoryDrawer()
-
   const router = useRouter()
 
-  const handleAction = async (item: SettingItem) => {
-    switch (item.action) {
-      case "modal":
-        if (item.id === "categories") openViewDrawer()
+  // Derive stats from transaction data
+  const { transactions, totalExpenses } = useTransactions({}, !!user?.id)
+
+  const stats = useMemo(() => {
+    const txList = transactions ?? []
+    // Logged = unique days with at least one transaction
+    const uniqueDays = new Set(txList.map((t: any) => t.occurred_at?.slice(0, 10))).size
+    // Streak = consecutive days ending today
+    const sorted = [...new Set(txList.map((t: any) => t.occurred_at?.slice(0, 10)))]
+      .filter(Boolean)
+      .sort()
+      .reverse()
+    let streak = 0
+    let cursor = new Date()
+    cursor.setHours(0, 0, 0, 0)
+    for (const day of sorted) {
+      const d = new Date(day as string)
+      d.setHours(0, 0, 0, 0)
+      if (d.getTime() === cursor.getTime()) {
+        streak++
+        cursor.setDate(cursor.getDate() - 1)
+      } else {
         break
-      case "logout":
-        try {
-          await signOut()
-          router.push("/")
-        } catch (error) {
-          console.error("Logout failed:", error)
-          router.push("/")
-        }
-        break
-      case "navigate":
-        break
+      }
+    }
+    // Saved = difference between income and expenses
+    const totalIncome = txList
+      .filter((t: any) => t.type === "income")
+      .reduce((s: number, t: any) => s + t.amount, 0)
+    const saved = totalIncome - totalExpenses
+
+    return { logged: uniqueDays, streak, saved }
+  }, [transactions, totalExpenses])
+
+  const formatSaved = (n: number) => {
+    if (Math.abs(n) >= 1000) return `₹${Math.round(Math.abs(n) / 1000)}k`
+    return `₹${Math.abs(n)}`
+  }
+
+  const handleLogout = async () => {
+    try {
+      await signOut()
+      router.push("/")
+    } catch {
+      router.push("/")
     }
   }
 
-  const settingsItems: SettingItem[] = [
-    { id: "profile", title: "Profile", subtitle: "Manage your personal information", icon: User, action: "navigate" },
-    { id: "categories", title: "Categories", subtitle: "Manage transaction categories", icon: Tag, action: "modal" },
-    { id: "currency", title: "Currency", subtitle: `Current: ${currency}`, icon: DollarSign, action: "navigate" },
-    { id: "language", title: "Language", subtitle: "English (US)", icon: Globe, action: "navigate" },
-    { id: "help", title: "Help & Support", subtitle: "Get help and contact support", icon: HelpCircle, action: "navigate" },
-    { id: "about", title: "About Us", subtitle: "App version and information", icon: Info, action: "navigate" },
+  const avatarLetter = user?.name
+    ? user.name.charAt(0).toUpperCase()
+    : user?.email?.charAt(0).toUpperCase() ?? "U"
+
+  const settingsItems = [
+    {
+      id: "profile",
+      title: "Profile",
+      subtitle: "Manage your profile information",
+      icon: User,
+      onClick: () => {},
+    },
+    {
+      id: "categories",
+      title: "Categories",
+      subtitle: "Manage transaction categories",
+      icon: Tag,
+      onClick: openViewDrawer,
+    },
+    {
+      id: "currency",
+      title: "Currency",
+      subtitle: `Current: ${currency}`,
+      icon: IndianRupee,
+      onClick: () => {},
+    },
+    {
+      id: "language",
+      title: "Language",
+      subtitle: "English (US)",
+      icon: Globe,
+      onClick: () => {},
+    },
+    {
+      id: "about",
+      title: "About Us",
+      subtitle: "App version and information",
+      icon: Info,
+      onClick: () => {},
+    },
   ]
 
   return (
-    <div className="max-w-md mx-auto h-full flex flex-col gap-4 mobile-viewport">
-      {/* Header */}
-      <header className="px-4 mt-4">
-        <h1 className="text-lg font-bold text-ink">Settings</h1>
-      </header>
+    <div className="max-w-md mx-auto min-h-screen bg-paper pb-28">
+      <div className="px-5 pt-10 flex flex-col gap-6">
 
-      {/* Profile Section */}
-      <section className="px-4">
-        <div
-          className="rounded-xl p-4 bg-surface border border-line"
-        >
-          <div className="flex items-center gap-4">
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold"
-              style={{ background: "linear-gradient(135deg, var(--ms-accent), color-mix(in oklab, var(--ms-accent) 60%, var(--ink)))" }}
-            >
-              {user?.name
-                ? user.name.charAt(0).toUpperCase()
-                : user?.email?.charAt(0).toUpperCase() || "U"}
-            </div>
-            <div className="flex-1">
-              <div className="font-bold text-ink">{user?.name || "User"}</div>
-              <div className="text-sm text-ms-muted">{user?.email}</div>
-              <div className="text-xs text-ms-muted">
-                {user?.created_at
-                  ? "Member since " + new Date(user.created_at).toLocaleDateString()
-                  : "New member"}
-              </div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-ms-muted" />
+        {/* Profile Hero */}
+        <div className="flex flex-col items-center pt-2 pb-1">
+          {/* Avatar */}
+          <div
+            className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-black text-white mb-4 shadow-lg"
+            style={{ background: "var(--ms-accent)" }}
+          >
+            {avatarLetter}
+          </div>
+          <h1 className="text-xl font-bold text-ink tracking-tight">{user?.name || "User"}</h1>
+          <p className="text-sm text-ms-muted mt-0.5">{user?.email}</p>
+        </div>
+
+        {/* Stats Row */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-surface border border-line rounded-2xl p-4 text-center shadow-sm">
+            <p className="text-xl font-black text-ink">{stats.logged}</p>
+            <p className="text-[10px] text-ms-muted font-medium mt-1">Logged</p>
+          </div>
+          <div className="bg-surface border border-line rounded-2xl p-4 text-center shadow-sm">
+            <p className="text-xl font-black text-ink">{stats.streak}</p>
+            <p className="text-[10px] text-ms-muted font-medium mt-1">Streak</p>
+          </div>
+          <div className="bg-surface border border-line rounded-2xl p-4 text-center shadow-sm">
+            <p className="text-xl font-black text-ink">{formatSaved(stats.saved)}</p>
+            <p className="text-[10px] text-ms-muted font-medium mt-1">Saved</p>
           </div>
         </div>
-      </section>
 
-      {/* Theme Toggle */}
-      <section className="px-4">
-        <div
-          className="rounded-xl p-4 flex items-center justify-between bg-surface border border-line"
-        >
+        {/* Appearance Toggle */}
+        <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center bg-surface-alt border border-line"
-            >
-              {theme === "dark" ? (
-                <Moon className="w-5 h-5 text-ms-accent" />
-              ) : (
-                <Sun className="w-5 h-5 text-ms-accent" />
-              )}
+            <div className="w-10 h-10 rounded-2xl bg-surface-alt flex items-center justify-center">
+              {theme === "dark"
+                ? <Moon className="w-4 h-4 text-ink" />
+                : <Sun className="w-4 h-4 text-ink" />
+              }
             </div>
             <div>
-              <div className="font-medium text-ink">Appearance</div>
-              <div className="text-sm text-ms-muted">
-                {theme === "dark" ? "Dark mode" : "Light mode"}
-              </div>
+              <p className="text-sm font-semibold text-ink">Appearance</p>
+              <p className="text-[11px] text-ms-muted font-medium">
+                {theme === "dark" ? "Dark Mode" : "Light Mode"}
+              </p>
             </div>
           </div>
 
-          {/* Toggle switch */}
+          {/* Toggle pill */}
           <button
             onClick={toggleTheme}
-            className="relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none"
-            style={{
-              background: theme === "dark" ? "var(--ms-accent)" : "var(--line-strong)",
-            }}
             role="switch"
             aria-checked={theme === "dark"}
+            className="relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none"
+            style={{ background: theme === "dark" ? "var(--ms-accent)" : "var(--line-strong)" }}
           >
             <span
               className="inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform"
-              style={{
-                transform: theme === "dark" ? "translateX(22px)" : "translateX(4px)",
-              }}
+              style={{ transform: theme === "dark" ? "translateX(22px)" : "translateX(4px)" }}
             />
           </button>
         </div>
-      </section>
 
-      {/* Accent Color */}
-      <section className="px-4">
-        <div
-          className="rounded-xl p-4 bg-surface border border-line"
-        >
-          <div className="mb-3">
-            <div className="font-medium text-ink">Accent Color</div>
-            <div className="text-sm text-ms-muted">
-              Choose your app's highlight color
-            </div>
-          </div>
-          <div className="flex gap-3 flex-wrap">
+        {/* Accent Color */}
+        <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm">
+          <p className="text-sm font-bold text-ink mb-0.5">Accent Color</p>
+          <p className="text-[11px] text-ms-muted font-medium mb-4">Choose Your App's Highlight Color</p>
+          <div className="flex gap-4 flex-wrap">
             {ACCENTS.map((a) => (
               <button
                 key={a.key}
                 onClick={() => setAccent(a.key)}
-                className="flex flex-col items-center gap-1.5 group"
+                className="flex flex-col items-center gap-1.5 active:scale-90 transition-transform"
                 title={a.label}
               >
                 <div
-                  className="w-9 h-9 rounded-full transition-transform group-hover:scale-110"
+                  className="w-10 h-10 rounded-full transition-transform"
                   style={{
                     background: a.swatch,
                     outline: accent === a.key ? `3px solid ${a.swatch}` : "3px solid transparent",
@@ -179,68 +212,58 @@ export default function SettingsPage() {
                     </div>
                   )}
                 </div>
-                <span
-                  className={`text-[10px] font-medium ${accent === a.key ? "text-ms-accent" : "text-ms-muted"}`}
-                >
+                <span className={`text-[10px] font-semibold ${accent === a.key ? "text-ms-accent" : "text-ms-muted"}`}>
                   {a.label}
                 </span>
               </button>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* Settings List */}
-      <section className="px-4">
-        <div
-          className="rounded-xl overflow-hidden border border-line"
-        >
-          {settingsItems.map((item, index) => {
+        {/* Settings List */}
+        <div className="bg-surface border border-line rounded-2xl overflow-hidden shadow-sm">
+          {settingsItems.map((item, idx) => {
             const Icon = item.icon
             return (
               <button
                 key={item.id}
-                onClick={() => handleAction(item)}
-                className={`w-full cursor-pointer flex items-center gap-4 p-4 transition-colors bg-surface ${index !== settingsItems.length - 1 ? "border-b border-line" : ""}`}
+                onClick={item.onClick}
+                className={`w-full flex items-center gap-3 px-4 py-4 transition-colors active:bg-surface-alt text-left ${
+                  idx < settingsItems.length - 1 ? "border-b border-line" : ""
+                }`}
               >
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center bg-surface-alt border border-line text-ms-muted"
-                >
-                  <Icon className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-2xl bg-surface-alt flex items-center justify-center shrink-0">
+                  <Icon className="w-4 h-4 text-ink" />
                 </div>
-                <div className="flex-1 text-left">
-                  <div className="font-medium text-ink">{item.title}</div>
-                  <div className="text-sm text-ms-muted">{item.subtitle}</div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-ink">{item.title}</p>
+                  <p className="text-[11px] text-ms-muted font-medium mt-0.5">{item.subtitle}</p>
                 </div>
-                <ChevronRight className="w-5 h-5 text-ms-muted" />
+                <ChevronRight className="w-4 h-4 text-ms-muted shrink-0" />
               </button>
             )
           })}
         </div>
-      </section>
 
-      {/* Logout Section */}
-      <section className="px-4">
+        {/* Logout */}
         <button
-          onClick={() => handleAction({ id: "logout", title: "", subtitle: "", icon: LogOut, action: "logout" })}
-          className="w-full flex items-center gap-4 p-4 rounded-xl transition-colors border border-neg/30 bg-neg/10"
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl border border-neg/20 bg-neg/8 active:bg-neg/15 transition-colors"
         >
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center bg-neg/15"
-          >
-            <LogOut className="w-5 h-5 text-neg" />
+          <div className="w-10 h-10 rounded-2xl bg-neg/15 flex items-center justify-center shrink-0">
+            <LogOut className="w-4 h-4 text-neg" />
           </div>
           <div className="flex-1 text-left">
-            <div className="font-medium text-neg">Logout</div>
-            <div className="text-sm text-neg/70">Sign out of your account</div>
+            <p className="text-sm font-bold text-neg">Logout</p>
+            <p className="text-[11px] text-neg/60 font-medium mt-0.5">Sign out of your account</p>
           </div>
+          <ChevronRight className="w-4 h-4 text-neg/60 shrink-0" />
         </button>
-      </section>
 
-      {/* App Version */}
-      <section className="px-4 pb-6 text-center">
-        <div className="text-xs text-ms-muted">MoneySpent v1.0.0</div>
-      </section>
+        {/* Version */}
+        <p className="text-center text-[10px] text-ms-muted pb-2">MoneySpent v1.0.0</p>
+
+      </div>
 
       {/* View Categories Drawer */}
       <CustomDrawer
@@ -254,10 +277,8 @@ export default function SettingsPage() {
         customSubmitButton={
           <AddCategory
             trigger={
-              <button
-                className="w-full cursor-pointer rounded-xl py-2.5 flex items-center justify-center gap-2 font-semibold bg-ms-accent text-white"
-              >
-                <Plus className="w-5 h-5" />
+              <button className="w-full cursor-pointer rounded-2xl py-3.5 flex items-center justify-center gap-2 font-semibold bg-ink text-paper">
+                <Plus className="w-4 h-4" />
                 Add New Category
               </button>
             }

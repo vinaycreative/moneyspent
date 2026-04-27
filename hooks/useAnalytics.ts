@@ -100,10 +100,12 @@ export function useAnalytics({
     const months: MonthlyTrend[] = []
     for (let i = 5; i >= 0; i--) {
       const date = new Date()
+      date.setDate(1) // Avoid month rollover bugs
       date.setMonth(date.getMonth() - i)
+      
       const monthName = date.toLocaleDateString("en-US", { month: "short" })
       const monthStart = new Date(date.getFullYear(), date.getMonth(), 1)
-      const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0)
+      const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999)
 
       const monthExpenses = filteredTransactions
         .filter((t: any) => {
@@ -112,7 +114,7 @@ export function useAnalytics({
             t.type === "expense" && transactionDate >= monthStart && transactionDate <= monthEnd
           )
         })
-        .reduce((sum: number, t: any) => sum + t.amount, 0)
+        .reduce((sum: number, t: any) => sum + Number(t.amount || 0), 0)
 
       months.push({ month: monthName, amount: monthExpenses })
     }

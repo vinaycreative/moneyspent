@@ -1,17 +1,7 @@
 import React from "react"
-import CustomDrawer from "@/components/CustomDrawer"
-import { Plus, Building2, CreditCard, Wallet, PiggyBank } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Drawer } from "vaul"
+import { Building2, CreditCard, Wallet, PiggyBank } from "lucide-react"
 import { useAccountForm } from "@/hooks"
-import { CustomInput } from "@/components/CustomInput"
 
 export interface AccountFormData {
   name: string
@@ -19,6 +9,13 @@ export interface AccountFormData {
   starting_balance: string
   currency: string
 }
+
+const accountTypes = [
+  { value: "bank",    label: "Bank",   icon: Building2 },
+  { value: "credit",  label: "Card",   icon: CreditCard },
+  { value: "cash",    label: "Cash",   icon: Wallet },
+  { value: "wallet",  label: "Wallet", icon: Wallet },
+]
 
 export const AddAccount = ({ trigger }: { trigger: React.ReactNode }) => {
   const {
@@ -33,204 +30,113 @@ export const AddAccount = ({ trigger }: { trigger: React.ReactNode }) => {
   } = useAccountForm()
 
   const handleInputChange = (field: keyof AccountFormData, value: string) => {
-    setFormData({
-      ...formData,
-      [field]: value,
-    })
+    setFormData({ ...formData, [field]: value })
   }
-
-  const accountTypes = [
-    { value: "bank", label: "Bank Account", icon: Building2, color: "bg-blue-500" },
-    { value: "credit", label: "Credit Card", icon: CreditCard, color: "bg-purple-500" },
-    { value: "cash", label: "Cash", icon: Wallet, color: "bg-green-500" },
-    { value: "savings", label: "Savings", icon: PiggyBank, color: "bg-orange-500" },
-  ]
-
-  const currencies = [
-    { value: "INR", label: "Indian Rupee (₹)" },
-    { value: "USD", label: "US Dollar ($)" },
-    { value: "EUR", label: "Euro (€)" },
-    { value: "GBP", label: "British Pound (£)" },
-    { value: "JPY", label: "Japanese Yen (¥)" },
-    { value: "CAD", label: "Canadian Dollar (C$)" },
-    { value: "AUD", label: "Australian Dollar (A$)" },
-    { value: "CHF", label: "Swiss Franc (CHF)" },
-  ]
 
   const handleFormSubmit = async () => {
     try {
       await handleSubmit()
-      // The drawer will be closed automatically by the hook after successful submission
     } catch (error) {
       console.error("Failed to create account:", error)
     }
   }
 
-  const selectedType = accountTypes.find((type) => type.value === formData.type)
-
   return (
-    <CustomDrawer
-      trigger={trigger}
-      title="Add Account"
-      SubmitIcon={Plus}
-      submitTitle="Add Account"
-      submitDisabled={isSubmitDisabled}
-      submitLoading={isLoading}
-      onSubmit={handleFormSubmit}
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (open) {
-          openDrawer()
-        } else {
-          closeDrawer()
-        }
-      }}
-    >
-      <div className="grid grid-cols-2 gap-4">
-        {/* Account Name */}
-        <CustomInput
-          id="name"
-          label="Account Name"
-          name="name"
-          placeholder="Enter account name"
-          value={formData.name}
-          onChange={(e) => handleInputChange("name", e.target.value)}
-        />
+    <>
+      <div onClick={openDrawer}>{trigger}</div>
 
-        {/* Account Type */}
-        <div className="flex flex-col gap-1.5">
-          <Label className="text-sm text-gray-800 font-medium">Account Type</Label>
-          <Select
-            value={formData.type}
-            onValueChange={(value) => handleInputChange("type", value)}
-          >
-            <SelectTrigger className="w-full border-gray-300 bg-white">
-              <SelectValue placeholder="Select account type" />
-            </SelectTrigger>
-            <SelectContent>
-              {accountTypes.map((type) => {
-                const Icon = type.icon
-                return (
-                  <SelectItem key={type.value} value={type.value}>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={cn(
-                          "w-6 h-6 rounded-lg flex items-center justify-center text-white text-xs",
-                          type.color
-                        )}
+      <Drawer.Root open={isOpen} onOpenChange={(open) => (open ? openDrawer() : closeDrawer())}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/30 z-50" />
+          <Drawer.Content className="bg-paper flex flex-col rounded-t-[28px] fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto focus:outline-none shadow-2xl">
+            {/* Handle */}
+            <div className="pt-4 pb-2 flex justify-center">
+              <div className="w-10 h-1 rounded-full bg-line" />
+            </div>
+
+            <div className="px-5 pb-2">
+              <Drawer.Title className="text-xl font-bold text-ink">Add account</Drawer.Title>
+              <p className="text-[11px] text-ms-muted font-medium mt-0.5">Track all your money in one place</p>
+            </div>
+
+            <div className="px-5 pt-4 space-y-5 overflow-y-auto max-h-[70vh]">
+
+              {/* Account Type Picker */}
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted mb-3">Type</p>
+                <div className="grid grid-cols-4 gap-2">
+                  {accountTypes.map(({ value, label, icon: Icon }) => {
+                    const isSelected = formData.type === value
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => handleInputChange("type", value)}
+                        className={`flex flex-col items-center gap-2 py-3 px-2 rounded-2xl border transition-all active:scale-95 ${
+                          isSelected
+                            ? "bg-surface-alt border-line"
+                            : "bg-surface border-line text-ms-muted"
+                        }`}
                       >
-                        <Icon className="w-3 h-3 text-white" />
-                      </div>
-                      <span>{type.label}</span>
-                    </div>
-                  </SelectItem>
-                )
-              })}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Initial Balance */}
-        <CustomInput
-          id="balance"
-          label="Initial Balance"
-          name="starting_balance"
-          type="number"
-          placeholder="Enter initial balance"
-          value={formData.starting_balance}
-          onChange={(e) => handleInputChange("starting_balance", e.target.value)}
-          inputMode="numeric"
-          required
-        />
-
-        {/* Currency */}
-        <div className="flex flex-col gap-1.5">
-          <Label className="text-sm text-gray-800 font-medium">Currency</Label>
-          <Select
-            value={formData.currency}
-            onValueChange={(value) => handleInputChange("currency", value)}
-          >
-            <SelectTrigger className="w-full border-gray-300 bg-white py-3">
-              <SelectValue placeholder="Select currency" />
-            </SelectTrigger>
-            <SelectContent>
-              {currencies.map((currency) => (
-                <SelectItem key={currency.value} value={currency.value}>
-                  {currency.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Account Type Selection Cards */}
-        <div className="flex flex-col gap-1.5 col-span-2">
-          <Label className="text-gray-800 font-medium inline-block mb-1.5">
-            Quick Select Account Type
-          </Label>
-          <div className="grid grid-cols-2 gap-3">
-            {accountTypes.map((type) => {
-              const Icon = type.icon
-              const isSelected = formData.type === type.value
-              return (
-                <button
-                  key={type.value}
-                  type="button"
-                  onClick={() => handleInputChange("type", type.value)}
-                  className={cn(
-                    "p-3 border-2 rounded-md transition-all duration-200 hover:scale-105",
-                    isSelected
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  )}
-                >
-                  <div className="flex flex-col items-center gap-2">
-                    <div
-                      className={cn(
-                        "w-10 h-10 rounded-lg flex items-center justify-center text-white",
-                        type.color
-                      )}
-                    >
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <span className="text-sm font-medium text-gray-700">{type.label}</span>
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Preview */}
-        {selectedType && (
-          <div className="space-y-2 col-span-2">
-            <Label className="text-gray-800 font-medium">Preview</Label>
-            <div className="bg-gray-50 rounded-md p-4 border border-gray-200">
-              <div className="flex items-center gap-3">
-                <div
-                  className={cn(
-                    "w-12 h-12 rounded-lg flex items-center justify-center text-white",
-                    selectedType.color
-                  )}
-                >
-                  <selectedType.icon className="w-6 h-6" />
-                </div>
-                <div className="flex-1">
-                  <div className="font-medium text-gray-900">
-                    {formData.name || "Account Name"}
-                  </div>
-                  <div className="text-sm text-gray-500">{selectedType.label}</div>
-                  {formData.starting_balance && (
-                    <div className="text-sm font-medium text-gray-700">
-                      {formData.currency} {parseFloat(formData.starting_balance).toLocaleString()}
-                    </div>
-                  )}
+                        <Icon className={`w-5 h-5 ${isSelected ? "text-ink" : "text-ms-muted"}`} />
+                        <span className={`text-[11px] font-bold ${isSelected ? "text-ink" : "text-ms-muted"}`}>
+                          {label}
+                        </span>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
+
+              {/* Account Name */}
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted mb-2">Account Name</p>
+                <input
+                  type="text"
+                  placeholder="Enter account name"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
+                  className="w-full bg-surface border border-line rounded-2xl px-4 py-3.5 text-sm text-ink placeholder:text-ms-muted outline-none focus:border-ink/40 transition-colors"
+                />
+              </div>
+
+              {/* Current Balance */}
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted mb-2">Current Balance</p>
+                <div className="flex items-center bg-surface border border-line rounded-2xl px-4 focus-within:border-ink/40 transition-colors">
+                  <span className="text-ms-muted text-sm font-medium mr-2">₹</span>
+                  <input
+                    type="number"
+                    placeholder="Enter account name"
+                    value={formData.starting_balance}
+                    onChange={(e) => handleInputChange("starting_balance", e.target.value)}
+                    inputMode="numeric"
+                    className="flex-1 bg-transparent py-3.5 text-sm text-ink placeholder:text-ms-muted outline-none"
+                  />
+                </div>
+              </div>
+
             </div>
-          </div>
-        )}
-      </div>
-    </CustomDrawer>
+
+            {/* Footer */}
+            <div className="px-5 pt-4 pb-8 mt-2 border-t border-line flex gap-3">
+              <button
+                onClick={closeDrawer}
+                className="flex-1 py-4 rounded-2xl text-sm font-semibold text-ink bg-surface-alt border border-line active:scale-95 transition-transform"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleFormSubmit}
+                disabled={isSubmitDisabled || isLoading}
+                className="flex-1 py-4 rounded-2xl text-sm font-bold text-paper bg-ink active:scale-95 transition-transform disabled:opacity-50"
+              >
+                {isLoading ? "Adding…" : "Add Account"}
+              </button>
+            </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
+    </>
   )
 }

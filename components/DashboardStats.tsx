@@ -61,8 +61,8 @@ export function DashboardStats({
       </div>
 
       {/* Grid for Week and Month */}
-      <div className="grid grid-cols-2 gap-3">
-        {/* This Week */}
+      {/* <div className="grid grid-cols-2 gap-3">
+        
         <div className="bg-surface border border-line rounded-2xl p-4 flex flex-col justify-between">
           <div>
             <span className="text-[9px] font-bold tracking-widest text-ms-muted uppercase block mb-3">
@@ -77,7 +77,7 @@ export function DashboardStats({
           </div>
         </div>
 
-        {/* This Month */}
+        
         <div className="bg-surface border border-line rounded-2xl p-4 flex flex-col justify-between">
           <div>
             <span className="text-[9px] font-bold tracking-widest text-ms-muted uppercase block mb-3">
@@ -91,7 +91,7 @@ export function DashboardStats({
             Current month
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   )
 }
