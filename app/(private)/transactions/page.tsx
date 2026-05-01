@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import moment from "moment-timezone"
 import { 
   Search, 
@@ -12,12 +12,15 @@ import {
   Calendar,
   LayoutList,
   LayoutGrid,
-  Check
+  Check,
+  ArrowDownRight,
+  ArrowUpRight
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useAuth, useTransactions, useAccounts } from "@/hooks"
 import { CalendarView } from "@/components/CalendarView"
-import { AddTransaction } from "@/form/AddTransaction"
+import { AddExpense } from "@/form/AddExpense"
+import { AddIncome } from "@/form/AddIncome"
 import { EditTransaction } from "@/form/EditTransaction"
 import { Drawer } from "vaul"
 
@@ -36,6 +39,22 @@ export default function Transactions() {
   const [dateRange, setDateRange] = useState<string>("all")
   const [customStart, setCustomStart] = useState("")
   const [customEnd, setCustomEnd] = useState("")
+
+  // Temp State for Drawer
+  const [tempAccountId, setTempAccountId] = useState<string>("all")
+  const [tempDateRange, setTempDateRange] = useState<string>("all")
+  const [tempCustomStart, setTempCustomStart] = useState("")
+  const [tempCustomEnd, setTempCustomEnd] = useState("")
+
+  // Sync temp state when drawer opens
+  useEffect(() => {
+    if (isFilterOpen) {
+      setTempAccountId(selectedAccountId)
+      setTempDateRange(dateRange)
+      setTempCustomStart(customStart)
+      setTempCustomEnd(customEnd)
+    }
+  }, [isFilterOpen, selectedAccountId, dateRange, customStart, customEnd])
 
   const { accounts } = useAccounts(user?.id || "")
 
@@ -110,6 +129,22 @@ export default function Transactions() {
 
   const hasActiveFilters = selectedAccountId !== "all" || dateRange !== "all"
 
+  const displayDateText = useMemo(() => {
+    switch (dateRange) {
+      case "all": return "All Time"
+      case "today": return moment().format("dddd, MMM D")
+      case "week": return `${moment().startOf("week").format("MMM D")} - ${moment().endOf("week").format("MMM D")}`
+      case "month": return moment().format("MMMM YYYY")
+      case "year": return moment().format("YYYY")
+      case "custom":
+        if (customStart && customEnd) {
+          return `${moment(customStart).format("MMM D, YYYY")} - ${moment(customEnd).format("MMM D, YYYY")}`
+        }
+        return "Custom Range"
+      default: return moment().format("dddd, MMM D")
+    }
+  }, [dateRange, customStart, customEnd])
+
   if (authLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-paper">
@@ -126,15 +161,24 @@ export default function Transactions() {
         <div className="flex justify-between items-start">
           <div>
             <p className="text-xs text-ms-muted font-medium mb-0.5">
-              {moment().format("dddd, MMM D")}
+              {displayDateText}
             </p>
             <h1 className="text-3xl font-bold text-ink tracking-tight">Spending</h1>
           </div>
           <div className="flex items-center gap-2 mt-1">
-            <AddTransaction
+            <AddExpense
               trigger={
-                <button className="w-9 h-9 rounded-full bg-ms-warning text-white flex items-center justify-center shadow-lg shadow-ms-warning/20 transition-transform active:scale-95">
-                  <Plus size={20} />
+                <button className="h-9 px-3 rounded-full bg-surface border border-line flex items-center gap-1.5 transition-transform active:scale-95 shadow-sm text-ink hover:bg-surface-alt">
+                  <ArrowDownRight className="w-4 h-4 text-neg" />
+                  <span className="text-[11px] font-bold">Add</span>
+                </button>
+              }
+            />
+            <AddIncome
+              trigger={
+                <button className="h-9 px-3 rounded-full bg-surface border border-line flex items-center gap-1.5 transition-transform active:scale-95 shadow-sm text-ink hover:bg-surface-alt">
+                  <ArrowUpRight className="w-4 h-4 text-pos" />
+                  <span className="text-[11px] font-bold">Add</span>
                 </button>
               }
             />
@@ -173,53 +217,77 @@ export default function Transactions() {
         {/* Section Title + View Switchers */}
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-base font-bold text-ink">All Transactions</h2>
+            <h2 className="text-base font-bold text-ink">
+              {activeType === "expense" ? "Expenses" : activeType === "income" ? "Income" : "All Transactions"}
+            </h2>
             <p className="text-[11px] text-ms-muted font-medium mt-0.5">
               Found {filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? "s" : ""}
             </p>
           </div>
           {/* View Toggle Icons */}
-          <div className="flex items-center gap-1 bg-surface border border-line rounded-xl p-1 shadow-sm">
-            <button
-              onClick={() => { setActiveType("expense"); setViewMode("list") }}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-                activeType === "expense" && viewMode === "list"
-                  ? "bg-neg/10 text-neg" 
-                  : "text-ms-muted hover:text-ink"
-              }`}
-            >
-              <TrendingDown size={15} />
-            </button>
-            <button
-              onClick={() => { setActiveType("income"); setViewMode("list") }}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-                activeType === "income" && viewMode === "list"
-                  ? "bg-pos/10 text-pos" 
-                  : "text-ms-muted hover:text-ink"
-              }`}
-            >
-              <TrendingUp size={15} />
-            </button>
-            <button
-              onClick={() => { setActiveType("all"); setViewMode("list") }}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-                viewMode === "list" && activeType === "all"
-                  ? "bg-surface-alt text-ink" 
-                  : "text-ms-muted hover:text-ink"
-              }`}
-            >
-              <LayoutList size={15} />
-            </button>
-            <button
-              onClick={() => setViewMode("calendar")}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-                viewMode === "calendar"
-                  ? "bg-surface-alt text-ink" 
-                  : "text-ms-muted hover:text-ink"
-              }`}
-            >
-              <LayoutGrid size={15} />
-            </button>
+          <div className="flex items-center gap-2">
+            {/* Type Filters */}
+            <div className="flex items-center bg-surface border border-line rounded-xl p-1 shadow-sm">
+              <button
+                onClick={() => setActiveType("all")}
+                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+                  activeType === "all"
+                    ? "bg-surface-alt text-ink shadow-sm border border-line/50" 
+                    : "text-ms-muted hover:bg-surface-alt hover:text-ink"
+                }`}
+                title="All Transactions"
+              >
+                <span className="text-[10px] font-bold">ALL</span>
+              </button>
+              <button
+                onClick={() => setActiveType("expense")}
+                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+                  activeType === "expense"
+                    ? "bg-neg/10 text-neg" 
+                    : "text-ms-muted hover:bg-surface-alt hover:text-ink"
+                }`}
+                title="Filter Expenses"
+              >
+                <TrendingDown size={15} />
+              </button>
+              <button
+                onClick={() => setActiveType("income")}
+                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+                  activeType === "income"
+                    ? "bg-pos/10 text-pos" 
+                    : "text-ms-muted hover:bg-surface-alt hover:text-ink"
+                }`}
+                title="Filter Income"
+              >
+                <TrendingUp size={15} />
+              </button>
+            </div>
+
+            {/* View Mode Toggle */}
+            <div className="flex items-center bg-surface border border-line rounded-xl p-1 shadow-sm">
+              <button
+                onClick={() => setViewMode("list")}
+                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+                  viewMode === "list"
+                    ? "bg-surface-alt text-ink shadow-sm border border-line/50" 
+                    : "text-ms-muted hover:text-ink"
+                }`}
+                title="List View"
+              >
+                <LayoutList size={15} />
+              </button>
+              <button
+                onClick={() => setViewMode("calendar")}
+                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+                  viewMode === "calendar"
+                    ? "bg-surface-alt text-ink shadow-sm border border-line/50" 
+                    : "text-ms-muted hover:text-ink"
+                }`}
+                title="Calendar View"
+              >
+                <LayoutGrid size={15} />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -242,7 +310,7 @@ export default function Transactions() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto px-5 pb-24 no-scrollbar">
+      <main className="flex-1 overflow-y-auto px-5 pb-24 scrollbar-hide">
         <AnimatePresence mode="wait">
           {viewMode === "list" && (
             <motion.div
@@ -382,123 +450,148 @@ export default function Transactions() {
       {/* Filter Drawer */}
       <Drawer.Root open={isFilterOpen} onOpenChange={setIsFilterOpen}>
         <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-black/30 z-50" />
-          <Drawer.Content className="bg-paper flex flex-col rounded-t-[28px] fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto focus:outline-none shadow-2xl">
-            <div className="p-5 flex-1 overflow-y-auto no-scrollbar">
+          <Drawer.Overlay className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm" />
+          <Drawer.Content 
+            className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto focus:outline-none"
+            style={{ background: "transparent" }}
+          >
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 40, opacity: 0 }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              className="rounded-t-[32px] overflow-hidden flex flex-col"
+              style={{
+                background: "#111111", // Premium dark background
+                boxShadow: "0 -8px 60px rgba(0,0,0,0.5)",
+              }}
+            >
               {/* Handle */}
-              <div className="mx-auto w-10 h-1 flex-shrink-0 rounded-full bg-line mb-6" />
-              
-              <Drawer.Title className="text-xl font-bold text-ink mb-6 px-1">Filters</Drawer.Title>
+              <div className="flex justify-center pt-3 pb-1">
+                <div className="w-10 h-1 rounded-full bg-white/20" />
+              </div>
 
-              {/* Account Filter */}
-              <section className="mb-6">
-                <h4 className="text-[10px] font-bold text-ms-muted uppercase tracking-[0.12em] mb-3 px-1">Accounts</h4>
-                <div className="flex flex-wrap gap-2">
-                  <button 
-                    onClick={() => setSelectedAccountId("all")}
-                    className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all border ${
-                      selectedAccountId === "all" 
-                        ? "bg-ink text-paper border-ink" 
-                        : "bg-surface-alt border-line text-ink"
-                    }`}
-                  >
-                    All
-                  </button>
-                  {accounts?.map((acc: any) => (
+              {/* Top bar */}
+              <div className="px-5 pt-4 pb-2">
+                <Drawer.Title className="text-[22px] font-bold text-white">
+                  Filters
+                </Drawer.Title>
+              </div>
+
+              <div className="p-5 flex-1 overflow-y-auto scrollbar-hide pb-8">
+                {/* Account Filter */}
+                <section className="mb-8">
+                  <h4 className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-3">Accounts</h4>
+                  <div className="flex flex-wrap gap-2">
                     <button 
-                      key={acc.id}
-                      onClick={() => setSelectedAccountId(acc.id)}
-                      className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all border ${
-                        selectedAccountId === acc.id 
-                          ? "bg-ink text-paper border-ink" 
-                          : "bg-surface-alt border-line text-ink"
+                      onClick={() => setTempAccountId("all")}
+                      className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
+                        tempAccountId === "all" 
+                          ? "bg-white text-black" 
+                          : "bg-white/10 text-white/70"
                       }`}
                     >
-                      {acc.name}
+                      All
                     </button>
-                  ))}
-                </div>
-              </section>
+                    {accounts?.map((acc: any) => (
+                      <button 
+                        key={acc.id}
+                        onClick={() => setTempAccountId(acc.id)}
+                        className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
+                          tempAccountId === acc.id 
+                            ? "bg-white text-black" 
+                            : "bg-white/10 text-white/70"
+                        }`}
+                      >
+                        {acc.name}
+                      </button>
+                    ))}
+                  </div>
+                </section>
 
-              {/* Date Presets */}
-              <section className="mb-6">
-                <h4 className="text-[10px] font-bold text-ms-muted uppercase tracking-[0.12em] mb-3 px-1">Time Period</h4>
-                <div className="grid grid-cols-2 gap-2.5">
-                  {[
-                    { key: "all", label: "All time" },
-                    { key: "today", label: "Today" },
-                    { key: "week", label: "Week" },
-                    { key: "month", label: "Month" },
-                    { key: "year", label: "Year" },
-                    { key: "custom", label: "Custom Range" },
-                  ].map(({ key, label }) => (
-                    <button
-                      key={key}
-                      onClick={() => setDateRange(key)}
-                      className={`py-4 rounded-2xl text-sm font-semibold transition-all border ${
-                        dateRange === key 
-                          ? "bg-surface-alt border-line text-ink font-bold" 
-                          : "bg-surface border-line text-ink"
-                      }`}
+                {/* Date Presets */}
+                <section className="mb-8">
+                  <h4 className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-3">Time Period</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { key: "all", label: "All time" },
+                      { key: "today", label: "Today" },
+                      { key: "week", label: "Week" },
+                      { key: "month", label: "Month" },
+                      { key: "year", label: "Year" },
+                      { key: "custom", label: "Custom Range" },
+                    ].map(({ key, label }) => (
+                      <button
+                        key={key}
+                        onClick={() => setTempDateRange(key)}
+                        className={`py-4 rounded-2xl text-[14px] font-semibold transition-all border ${
+                          tempDateRange === key 
+                            ? "border-[#7EC8A4] bg-white/10 text-white shadow-[0_0_15px_rgba(126,200,164,0.15)]" 
+                            : "border-transparent bg-white/5 text-white hover:bg-white/10"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </section>
+
+                {/* Custom Date Inputs */}
+                <AnimatePresence>
+                  {tempDateRange === "custom" && (
+                    <motion.section 
+                      initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                      animate={{ opacity: 1, height: "auto", marginTop: 16 }}
+                      exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                      className="overflow-hidden"
                     >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </section>
-
-              {/* Custom Date Inputs */}
-              <AnimatePresence>
-                {dateRange === "custom" && (
-                  <motion.section 
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="space-y-3 mb-6 overflow-hidden"
-                  >
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-ms-muted uppercase px-1">Start Date</label>
-                      <input 
-                        type="date" 
-                        value={customStart}
-                        onChange={(e) => setCustomStart(e.target.value)}
-                        className="w-full bg-surface-alt border border-line rounded-2xl p-3 text-sm text-ink focus:border-ms-warning outline-none"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-ms-muted uppercase px-1">End Date</label>
-                      <input 
-                        type="date" 
-                        value={customEnd}
-                        onChange={(e) => setCustomEnd(e.target.value)}
-                        className="w-full bg-surface-alt border border-line rounded-2xl p-3 text-sm text-ink focus:border-ms-warning outline-none"
-                      />
-                    </div>
-                  </motion.section>
-                )}
-              </AnimatePresence>
-            </div>
-            
-            {/* Action Buttons */}
-            <div className="px-5 pb-8 pt-4 flex gap-3 border-t border-line">
-              <button 
-                onClick={() => {
-                  setSelectedAccountId("all")
-                  setDateRange("all")
-                  setActiveType("all")
-                  setIsFilterOpen(false)
-                }}
-                className="flex-1 py-4 rounded-2xl text-sm font-semibold text-ink bg-surface-alt border border-line active:scale-95 transition-transform"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={() => setIsFilterOpen(false)}
-                className="flex-1 py-4 rounded-2xl text-sm font-bold text-white bg-ink active:scale-98 transition-transform"
-              >
-                Apply
-              </button>
-            </div>
+                      <div className="grid grid-cols-2 gap-3 pb-2">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">Start Date</label>
+                          <input 
+                            type="date" 
+                            value={tempCustomStart}
+                            onChange={(e) => setTempCustomStart(e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-sm font-medium text-white focus:border-[#7EC8A4] outline-none transition-colors"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">End Date</label>
+                          <input 
+                            type="date" 
+                            value={tempCustomEnd}
+                            onChange={(e) => setTempCustomEnd(e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-sm font-medium text-white focus:border-[#7EC8A4] outline-none transition-colors"
+                          />
+                        </div>
+                      </div>
+                    </motion.section>
+                  )}
+                </AnimatePresence>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="px-5 pb-8 pt-4 border-t border-white/10 flex gap-3">
+                <button 
+                  onClick={() => setIsFilterOpen(false)}
+                  className="flex-1 py-4 rounded-2xl text-[15px] font-bold text-white bg-white/10 active:bg-white/20 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={() => {
+                    setSelectedAccountId(tempAccountId)
+                    setDateRange(tempDateRange)
+                    setCustomStart(tempCustomStart)
+                    setCustomEnd(tempCustomEnd)
+                    setIsFilterOpen(false)
+                  }}
+                  className="flex-1 py-4 rounded-2xl text-[15px] font-bold text-black bg-white active:bg-white/90 transition-colors shadow-lg shadow-white/20"
+                >
+                  Apply
+                </button>
+              </div>
+            </motion.div>
           </Drawer.Content>
         </Drawer.Portal>
       </Drawer.Root>

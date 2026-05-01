@@ -59,6 +59,25 @@ export function CalendarView({ transactions, selectedDate, onDateSelect }: Calen
 
   return (
     <div className="bg-surface border border-line rounded-2xl overflow-hidden shadow-sm">
+      {/* Month Navigation */}
+      <div className="flex items-center justify-between px-4 py-2 border-b border-line bg-surface-alt/30">
+        <h3 className="font-bold text-sm text-ink">{currentMonth.format("MMMM YYYY")}</h3>
+        <div className="flex gap-1">
+          <button 
+            onClick={prevMonth}
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-alt text-ms-muted hover:text-ink transition-colors active:scale-95"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <button 
+            onClick={nextMonth}
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-alt text-ms-muted hover:text-ink transition-colors active:scale-95"
+          >
+            <ChevronRight size={18} />
+          </button>
+        </div>
+      </div>
+
       {/* Day Headers */}
       <div className="grid grid-cols-7 border-b border-line">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, i) => (
