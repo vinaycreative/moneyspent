@@ -7,6 +7,8 @@ import { useAuth } from "@/hooks"
 import { useTransactions } from "@/hooks"
 import moment from "moment-timezone"
 import { AddTransaction } from "@/form/AddTransaction"
+import { AddExpense } from "@/form/AddExpense"
+import { AddIncome } from "@/form/AddIncome"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 
@@ -149,8 +151,7 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-3">
-          <AddTransaction
-            defaultType="expense"
+          <AddExpense
             trigger={
               <button className="bg-surface border border-line rounded-2xl p-4 flex items-center gap-3 w-full active:bg-surface-alt transition-colors shadow-sm">
                 <div className="w-9 h-9 rounded-xl bg-neg/10 flex items-center justify-center shrink-0">
@@ -160,8 +161,7 @@ export default function Dashboard() {
               </button>
             }
           />
-          <AddTransaction
-            defaultType="income"
+          <AddIncome
             trigger={
               <button className="bg-surface border border-line rounded-2xl p-4 flex items-center gap-3 w-full active:bg-surface-alt transition-colors shadow-sm">
                 <div className="w-9 h-9 rounded-xl bg-pos/10 flex items-center justify-center shrink-0">

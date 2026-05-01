@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  devIndicators: false,
 
   // Headers for security and caching control
   async headers() {
