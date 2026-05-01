@@ -11,7 +11,7 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
   if (isLoading) {
     return (
       <div
-        className="h-screen flex items-center justify-center bg-paper"
+        className="h-svh flex items-center justify-center bg-paper"
       >
         <div className="text-center">
           <div
@@ -27,7 +27,7 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
 
   return (
     <div
-      className="h-dvh grid grid-rows-[1fr_70px] min-w-[320px] max-w-[400px] mx-auto mobile-viewport bg-paper border-l border-r border-line"
+      className="h-svh grid grid-rows-[1fr_70px] min-w-[320px] max-w-[400px] mx-auto mobile-viewport bg-paper overflow-hidden"
     >
       <main className="overflow-y-auto mobile-scroll scrollbar-hide">{children}</main>
       <BottomNavigation />

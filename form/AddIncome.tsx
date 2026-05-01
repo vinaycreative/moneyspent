@@ -95,7 +95,7 @@ export const AddIncome = ({ trigger, onSuccess }: AddIncomeProps) => {
 
   const [isOpen, setIsOpen] = useState(false)
   const [form, setForm] = useState<IncomeFormData>(defaultForm)
-  const [activeField, setActiveField] = useState<ActiveField>(null)
+  const [activeField, setActiveField] = useState<ActiveField>("amount")
   const [isLoading, setIsLoading] = useState(false)
 
   const titleInputRef = useRef<HTMLInputElement>(null)
@@ -116,7 +116,7 @@ export const AddIncome = ({ trigger, onSuccess }: AddIncomeProps) => {
   const handleClose = useCallback(() => {
     setIsOpen(false)
     setForm(defaultForm)
-    setActiveField(null)
+    setActiveField("amount")
   }, [])
 
   // Focus relevant input when field activates
@@ -259,7 +259,8 @@ export const AddIncome = ({ trigger, onSuccess }: AddIncomeProps) => {
               </div>
 
               {/* ── Field Panels ─────────────────────────────── */}
-              <AnimatePresence mode="wait">
+              <div className="min-h-[240px]">
+                <AnimatePresence mode="wait">
 
                 {/* Amount panel */}
                 {activeField === "amount" && (
@@ -502,7 +503,8 @@ export const AddIncome = ({ trigger, onSuccess }: AddIncomeProps) => {
                   </motion.div>
                 )}
 
-              </AnimatePresence>
+                </AnimatePresence>
+              </div>
 
               {/* Bottom padding for safe area */}
               <div className="h-8" />
