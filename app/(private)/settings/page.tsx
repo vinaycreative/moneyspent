@@ -122,7 +122,7 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-paper pb-28">
-      <div className="px-5 pt-10 flex flex-col gap-6">
+      <div className="pt-10 flex flex-col gap-6">
 
         {/* Profile Hero */}
         <div className="flex flex-col items-center pt-2 pb-1">

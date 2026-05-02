@@ -156,7 +156,7 @@ export default function Transactions() {
   return (
     <div className="max-w-md mx-auto h-full flex flex-col pt-6 mobile-viewport bg-paper overflow-hidden">
       {/* Header */}
-      <header className="px-5 pb-4 space-y-4">
+      <header className="pb-4 space-y-4">
         {/* Top Row: Date + Filter Icon */}
         <div className="flex justify-between items-start">
           <div>
@@ -310,7 +310,7 @@ export default function Transactions() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto px-5 pb-24 scrollbar-hide">
+      <main className="flex-1 overflow-y-auto pb-24 scrollbar-hide">
         <AnimatePresence mode="wait">
           {viewMode === "list" && (
             <motion.div

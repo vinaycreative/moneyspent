@@ -104,7 +104,7 @@ export default function Dashboard() {
     <div className="max-w-md mx-auto min-h-screen bg-paper pt-6 pb-28">
 
       {/* Header */}
-      <header className="px-5 pb-4 flex items-start justify-between">
+      <header className="pb-4 flex items-start justify-between">
         <div>
           <p className="text-xs text-ms-muted font-medium mb-0.5">{moment().format("dddd, MMM D")}</p>
           <h1 className="text-3xl font-bold text-ink tracking-tight">Hey {firstName}</h1>
@@ -117,7 +117,7 @@ export default function Dashboard() {
         </Link>
       </header>
 
-      <div className="px-5 flex flex-col gap-5">
+      <div className="flex flex-col gap-5">
 
         {/* Date Navigator */}
         <div className="bg-surface border border-line rounded-2xl px-3 py-3.5 flex items-center justify-between shadow-sm">

@@ -72,7 +72,7 @@ export default function Analytics() {
       <div className="max-w-md mx-auto min-h-screen bg-paper pt-6 pb-28">
 
         {/* Header */}
-        <header className="px-5 pb-4 flex items-start justify-between">
+        <header className="pb-4 flex items-start justify-between">
           <div>
             <p className="text-xs text-ms-muted font-medium mb-0.5">
               {moment().format("MMMM D")}
@@ -91,7 +91,7 @@ export default function Analytics() {
           </button>
         </header>
 
-        <div className="px-5 flex flex-col gap-5">
+        <div className="flex flex-col gap-5">
 
           {/* Summary Cards */}
           <div className="grid grid-cols-2 gap-3">

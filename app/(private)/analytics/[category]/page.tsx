@@ -76,7 +76,7 @@ export default function CategoryPage() {
       <div className="max-w-md mx-auto pt-6 min-h-screen bg-paper pb-28">
 
         {/* Top nav */}
-        <div className="px-5 pb-4 flex items-center justify-between">
+        <div className="  pb-4 flex items-center justify-between">
           <button
             onClick={() => router.back()}
             className="w-9 h-9 rounded-full bg-surface border border-line flex items-center justify-center text-ink active:scale-95 transition-transform"
@@ -92,7 +92,7 @@ export default function CategoryPage() {
         </div>
 
         {/* Hero */}
-        <div className="px-5 pb-6 text-center">
+        <div className="pb-6 text-center">
           <p className="text-[10px] font-bold text-ms-muted uppercase tracking-[0.15em] mb-2">
             Your Top Category
           </p>
@@ -104,7 +104,7 @@ export default function CategoryPage() {
           </p>
         </div>
 
-        <div className="px-5 space-y-6">
+        <div className="space-y-6">
 
           {/* Trend Chart */}
           <div className="bg-surface border border-line rounded-2xl p-5 shadow-sm">

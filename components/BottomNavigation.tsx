@@ -10,7 +10,7 @@ export default function BottomNavigation() {
 
   const leftItems = [
     { name: "Home", icon: Home, path: "/dashboard" },
-    { name: "Spend", icon: ArrowRightLeft, path: "/transactions" },
+    { name: "Spend", icon: ArrowRightLeft, path: "/spend" },
   ]
 
   const rightItems = [

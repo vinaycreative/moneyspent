@@ -100,7 +100,7 @@ export default function AccountsPage() {
     <div className="max-w-md mx-auto pt-6 min-h-screen bg-paper pb-28">
 
       {/* Header */}
-      <header className="px-5 pb-4 flex items-start justify-between">
+      <header className="pb-4 flex items-start justify-between">
         <div>
           <p className="text-xs text-ms-muted font-medium mb-0.5">{moment().format("MMMM D")}</p>
           <h1 className="text-3xl font-bold text-ink tracking-tight">Account</h1>
@@ -114,7 +114,7 @@ export default function AccountsPage() {
         />
       </header>
 
-      <div className="px-5 flex flex-col gap-6">
+      <div className="flex flex-col gap-6">
 
         {/* Total Balance Card */}
         <div className="bg-surface border border-line rounded-2xl p-5 shadow-sm">
