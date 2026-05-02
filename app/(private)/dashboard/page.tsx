@@ -4,6 +4,7 @@ import Link from "next/link"
 import Header from "@/components/layout/Header"
 import StatsWidget from "@/components/dashboard/StatsWidget"
 import Page from "@/components/layout/Page"
+import { Suspense } from "react"
 
 export default function Dashboard() {
   return (
@@ -19,7 +20,9 @@ export default function Dashboard() {
           </Link>
         }
       />
-      <StatsWidget />
+      <Suspense>
+        <StatsWidget />
+      </Suspense>
     </Page>
   )
 }
