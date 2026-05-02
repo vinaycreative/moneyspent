@@ -1,11 +1,11 @@
 import { z } from "zod"
 
 // Category kind enum (API uses 'kind', frontend uses 'type')
-export const CategoryKindSchema = z.enum(["expense", "income", "transfer"])
+export const CategoryKindSchema = z.enum(["expense", "income", "transfer", "loan"])
 export type CategoryKind = z.infer<typeof CategoryKindSchema>
 
 // For backward compatibility, keep the type enum
-export const CategoryTypeSchema = z.enum(["expense", "income"])
+export const CategoryTypeSchema = z.enum(["expense", "income", "transfer", "loan"])
 export type CategoryType = z.infer<typeof CategoryTypeSchema>
 
 // API Category schema (what we receive from backend)

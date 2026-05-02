@@ -3,13 +3,15 @@
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import { Drawer } from "vaul"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, Check, Building2, CreditCard, Wallet, Plus, ChevronDown } from "lucide-react"
+import { X, Check, Building2, CreditCard, Wallet, Plus, ChevronDown, CheckCircle2 } from "lucide-react"
 import { useCategories } from "@/hooks/useCategories"
 import { useAuth } from "@/hooks"
 import { useAccounts } from "@/hooks/useAccounts"
 import { useCreateTransactionMutation } from "@/hooks/useTransactions"
 import { AddCategory } from "./AddCategory"
 import { AddAccount } from "./AddAccount"
+import { InteractiveDrawer } from "@/components/InteractiveDrawer"
+import { SentenceToken } from "@/components/SentenceToken"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -43,34 +45,7 @@ const SUGGESTED_AMOUNTS = [50, 100, 150, 200, 500, 1000]
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
-/** A dashed-underline token that highlights when active */
-const SentenceToken = ({
-  value,
-  placeholder,
-  active,
-  color = "text-[#5B9CF6]",
-  onClick,
-  icon,
-}: {
-  value?: string
-  placeholder: string
-  active: boolean
-  color?: string
-  onClick: () => void
-  icon?: React.ReactNode
-}) => (
-  <button
-    onClick={onClick}
-    className={`inline-flex items-center gap-1 font-bold transition-all duration-200 border-b-2 border-dashed rounded-lg px-2 py-0.5 mx-0.5
-      ${active ? "border-white/60 bg-white/10 scale-105" : "border-white/25 bg-white/5 hover:bg-white/10 hover:border-white/40"}
-      ${value ? color : "text-white/40"}
-    `}
-    style={{ lineHeight: 1.3 }}
-  >
-    {icon && value && <span className="text-xl leading-none">{icon}</span>}
-    <span>{value || placeholder}</span>
-  </button>
-)
+// Removed inline SentenceToken
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -138,7 +113,6 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
     setIsLoading(true)
     try {
       await createTransaction.mutateAsync({
-        user_id: user.id,
         title: form.title,
         amount: parseFloat(form.amount),
         type: "expense",
@@ -158,63 +132,25 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
   }
 
   return (
-    <>
-      <div onClick={() => setIsOpen(true)}>{trigger}</div>
-
-      <Drawer.Root open={isOpen} onOpenChange={(open) => (open ? setIsOpen(true) : handleClose())}>
-        <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm" />
-          <Drawer.Content
-            className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto focus:outline-none"
-            style={{ background: "transparent" }}
-          >
-            {/* Main card */}
-            <motion.div
-              initial={{ y: 40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 40, opacity: 0 }}
-              transition={{ type: "spring", damping: 28, stiffness: 300 }}
-              className="rounded-t-[32px] overflow-hidden"
-              style={{
-                background: "linear-gradient(160deg, #0f0f10 0%, #141418 100%)",
-                boxShadow: "0 -8px 60px rgba(0,0,0,0.5)",
-              }}
-            >
-              {/* Drag handle */}
-              <div className="flex justify-center pt-3 pb-1">
-                <div className="w-10 h-1 rounded-full bg-white/15" />
-              </div>
-
-              {/* Top bar */}
-              <div className="flex items-center justify-between px-5 pt-2 pb-4">
-                <button
-                  onClick={handleClose}
-                  className="w-9 h-9 rounded-full bg-white/8 flex items-center justify-center active:scale-95 transition-transform"
-                >
-                  <X size={17} className="text-white/70" />
-                </button>
-
-                <Drawer.Title className="text-sm font-bold text-white/50 uppercase tracking-[0.15em]">
-                  Add Expense
-                </Drawer.Title>
-
-                <button
-                  onClick={handleSubmit}
-                  disabled={isSubmitDisabled || isLoading}
-                  className={`h-9 px-4 rounded-full text-sm font-bold transition-all active:scale-95
-                    ${isSubmitDisabled || isLoading
-                      ? "bg-white/10 text-white/30"
-                      : "bg-white text-black shadow-[0_2px_20px_rgba(255,255,255,0.15)]"
-                    }`}
-                >
-                  {isLoading ? "Saving…" : "Save"}
-                </button>
-              </div>
-
-              {/* ── Sentence ─────────────────────────────────── */}
+    <InteractiveDrawer
+      isOpen={isOpen}
+      onClose={handleClose}
+      onOpenChange={(open) => (open ? setIsOpen(true) : handleClose())}
+      onOpen={() => {
+        setForm(defaultForm)
+        setActiveField("amount")
+      }}
+      title="Add Expense"
+      trigger={trigger}
+      isSubmitDisabled={isSubmitDisabled}
+      isLoading={isLoading}
+      onSubmit={handleSubmit}
+      submitText="Save"
+    >
+      {/* ── Sentence ─────────────────────────────────── */}
               <div className="px-6 pb-2">
                 <p
-                  className="text-white text-[26px] font-bold leading-[1.45] tracking-tight"
+                  className="text-ink text-[26px] font-bold leading-[1.45] tracking-tight"
                   style={{ fontFamily: "inherit" }}
                 >
                   {"I spent "}
@@ -222,7 +158,7 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
                     value={form.amount ? `₹${Number(form.amount).toLocaleString("en-IN")}` : ""}
                     placeholder="₹---"
                     active={activeField === "amount"}
-                    color="text-[#5B9CF6]"
+                    colorClass="text-neg"
                     onClick={() => handleFieldClick("amount")}
                   />
                   {" on "}
@@ -230,7 +166,7 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
                     value={form.title}
                     placeholder="---"
                     active={activeField === "title"}
-                    color="text-white"
+                    colorClass="text-ink"
                     onClick={() => handleFieldClick("title")}
                   />
                   {" for "}
@@ -238,7 +174,7 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
                     value={selectedCategory?.name}
                     placeholder="---"
                     active={activeField === "category"}
-                    color="text-[#E8A44A]"
+                    colorClass="text-orange-500"
                     icon={selectedCategory?.icon}
                     onClick={() => handleFieldClick("category")}
                   />
@@ -247,13 +183,13 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
                     value={selectedAccount?.name}
                     placeholder="---"
                     active={activeField === "account"}
-                    color="text-[#7EC8A4]"
+                    colorClass="text-blue-500"
                     onClick={() => handleFieldClick("account")}
                   />
                   {" today"}
                 </p>
 
-                <p className="text-white/30 text-[11px] font-medium mt-2 flex items-center gap-1">
+                <p className="text-ms-muted text-[11px] font-medium mt-2 flex items-center gap-1">
                   <span>⚡</span> Tap any underline to edit
                 </p>
               </div>
@@ -273,8 +209,8 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
                     className="px-5 pt-4 pb-2"
                   >
                     {/* Big amount input */}
-                    <div className="flex items-center gap-2 bg-white/6 rounded-2xl px-4 py-3 border border-white/10 focus-within:border-[#5B9CF6]/50 transition-colors">
-                      <span className="text-2xl font-bold text-[#5B9CF6]">₹</span>
+                    <div className="flex items-center gap-2 bg-surface-alt rounded-2xl px-4 py-3 border border-line focus-within:border-neg/50 transition-colors">
+                      <span className="text-2xl font-bold text-neg">₹</span>
                       <input
                         ref={amountInputRef}
                         type="number"
@@ -282,10 +218,10 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
                         placeholder="0"
                         value={form.amount}
                         onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                        className="flex-1 bg-transparent text-2xl font-bold text-white placeholder:text-white/25 outline-none"
+                        className="flex-1 bg-transparent text-2xl font-bold text-ink placeholder:text-ms-muted outline-none w-full"
                       />
                       {form.amount && (
-                        <button onClick={() => setForm({ ...form, amount: "" })} className="text-white/30 active:text-white/60">
+                        <button onClick={() => setForm({ ...form, amount: "" })} className="text-ms-muted hover:text-ink">
                           <X size={15} />
                         </button>
                       )}
@@ -293,7 +229,7 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
 
                     {/* Suggested amounts */}
                     <div className="mt-3 mb-1">
-                      <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-white/30 mb-2">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-ms-muted mb-2">
                         Suggested Amounts
                       </p>
                       <div className="flex flex-wrap gap-2">
@@ -308,8 +244,8 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
                               }}
                               className={`px-3.5 py-1.5 rounded-full text-sm font-semibold border transition-all active:scale-95
                                 ${selected
-                                  ? "bg-white text-black border-white shadow-[0_2px_12px_rgba(255,255,255,0.15)]"
-                                  : "bg-white/6 text-white/70 border-white/10"
+                                  ? "bg-ink text-paper border-ink shadow-sm"
+                                  : "bg-surface-alt text-ms-muted border-line hover:text-ink"
                                 }`}
                             >
                               ₹{amt.toLocaleString("en-IN")}
@@ -331,17 +267,17 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
                     transition={{ duration: 0.18 }}
                     className="px-5 pt-4 pb-2"
                   >
-                    <div className="flex items-center gap-3 bg-white/6 rounded-2xl px-4 py-3 border border-white/10 focus-within:border-white/30 transition-colors">
+                    <div className="flex items-center gap-3 bg-surface-alt rounded-2xl px-4 py-3 border border-line focus-within:border-ink/30 transition-colors">
                       <input
                         ref={titleInputRef}
                         type="text"
                         placeholder="What did you spend on?"
                         value={form.title}
                         onChange={(e) => setForm({ ...form, title: e.target.value })}
-                        className="flex-1 bg-transparent text-base font-semibold text-white placeholder:text-white/25 outline-none"
+                        className="flex-1 bg-transparent text-base font-semibold text-ink placeholder:text-ms-muted outline-none w-full"
                       />
                       {form.title && (
-                        <button onClick={() => setForm({ ...form, title: "" })} className="text-white/30 active:text-white/60">
+                        <button onClick={() => setForm({ ...form, title: "" })} className="text-ms-muted hover:text-ink">
                           <X size={15} />
                         </button>
                       )}
@@ -358,8 +294,8 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
                           }}
                           className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all active:scale-95
                             ${form.title === label
-                              ? "bg-white text-black border-white"
-                              : "bg-white/6 text-white/60 border-white/10"
+                              ? "bg-ink text-paper border-ink"
+                              : "bg-surface-alt text-ms-muted border-line hover:text-ink"
                             }`}
                         >
                           {label}
@@ -380,10 +316,10 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
                     className="px-5 pt-4 pb-2"
                   >
                     <div className="flex items-center justify-between mb-2.5">
-                      <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-white/30">Category</p>
+                      <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-ms-muted">Category</p>
                       <AddCategory
                         trigger={
-                          <button className="flex items-center gap-1 text-[10px] font-semibold text-white/40 active:text-white/70 transition-colors">
+                          <button className="flex items-center gap-1 text-[10px] font-semibold text-ms-muted hover:text-ink transition-colors">
                             <Plus size={10} /> New
                           </button>
                         }
@@ -393,11 +329,11 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
                     {categoriesLoading ? (
                       <div className="grid grid-cols-4 gap-2">
                         {[1, 2, 3, 4].map((i) => (
-                          <div key={i} className="h-16 rounded-2xl bg-white/5 animate-pulse" />
+                          <div key={i} className="h-16 rounded-2xl bg-surface-alt animate-pulse" />
                         ))}
                       </div>
                     ) : categories.length > 0 ? (
-                      <div className="grid grid-cols-4 gap-2 max-h-58 overflow-y-auto pb-1">
+                      <div className="grid grid-cols-4 gap-2 max-h-58 overflow-y-auto pb-1 scrollbar-hide">
                         {categories.map((cat: any) => {
                           const selected = form.categoryId === cat.id
                           return (
@@ -409,18 +345,18 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
                               }}
                               className={`relative flex flex-col items-center gap-1.5 py-3 rounded-2xl border text-center transition-all active:scale-95
                                 ${selected
-                                  ? "bg-[#E8A44A]/15 border-[#E8A44A]/40"
-                                  : "bg-white/5 border-white/8"
+                                  ? "bg-orange-500/10 border-orange-500/30 shadow-sm"
+                                  : "bg-surface border-line hover:bg-surface-alt"
                                 }`}
                             >
                               {selected && (
-                                <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 bg-[#E8A44A] rounded-full flex items-center justify-center">
-                                  <Check size={8} className="text-black" strokeWidth={3} />
+                                <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 bg-orange-500 rounded-full flex items-center justify-center">
+                                  <Check size={8} className="text-white" strokeWidth={3} />
                                 </span>
                               )}
                               <span className="text-xl leading-none">{cat.icon}</span>
                               <span className={`text-[10px] font-semibold leading-tight truncate w-full text-center px-1
-                                ${selected ? "text-[#E8A44A]" : "text-white/50"}`}>
+                                ${selected ? "text-orange-500" : "text-ms-muted"}`}>
                                 {cat.name}
                               </span>
                             </button>
@@ -428,11 +364,11 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
                         })}
                       </div>
                     ) : (
-                      <div className="bg-white/5 border border-white/8 rounded-2xl py-6 text-center">
-                        <p className="text-xs text-white/30">No expense categories yet</p>
+                      <div className="bg-surface border border-line rounded-2xl py-6 text-center">
+                        <p className="text-xs text-ms-muted">No expense categories yet</p>
                         <AddCategory
                           trigger={
-                            <button className="mt-2 text-xs font-semibold text-[#E8A44A] flex items-center gap-1 mx-auto">
+                            <button className="mt-2 text-xs font-semibold text-orange-500 hover:text-orange-400 flex items-center gap-1 mx-auto">
                               <Plus size={12} /> Add category
                             </button>
                           }
@@ -453,10 +389,10 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
                     className="px-5 pt-4 pb-2"
                   >
                     <div className="flex items-center justify-between mb-2.5">
-                      <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-white/30">Account</p>
+                      <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-ms-muted">Account</p>
                       <AddAccount
                         trigger={
-                          <button className="flex items-center gap-1 text-[10px] font-semibold text-white/40 active:text-white/70 transition-colors">
+                          <button className="flex items-center gap-1 text-[10px] font-semibold text-ms-muted hover:text-ink transition-colors">
                             <Plus size={10} /> New
                           </button>
                         }
@@ -466,7 +402,7 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
                     {accountsLoading ? (
                       <div className="grid grid-cols-2 gap-2">
                         {[1, 2].map((i) => (
-                          <div key={i} className="h-12 rounded-2xl bg-white/5 animate-pulse" />
+                          <div key={i} className="h-12 rounded-2xl bg-surface-alt animate-pulse" />
                         ))}
                       </div>
                     ) : (accounts?.length ?? 0) > 0 ? (
@@ -482,22 +418,22 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
                               }}
                               className={`flex items-center gap-2 px-3 py-3 rounded-2xl border transition-all active:scale-95
                                 ${selected
-                                  ? "bg-[#7EC8A4]/15 border-[#7EC8A4]/40 text-[#7EC8A4]"
-                                  : "bg-white/5 border-white/8 text-white/60"
+                                  ? "bg-blue-500/10 border-blue-500/30 text-blue-500 shadow-sm"
+                                  : "bg-surface border-line text-ms-muted hover:bg-surface-alt"
                                 }`}
                             >
-                              <span className={selected ? "text-[#7EC8A4]" : "text-white/40"}>
+                              <span className={selected ? "text-blue-500" : "text-ms-muted"}>
                                 {accountIcon(acc.type)}
                               </span>
-                              <span className="text-sm font-semibold truncate">{acc.name}</span>
-                              {selected && <Check size={13} className="ml-auto text-[#7EC8A4] shrink-0" strokeWidth={2.5} />}
+                              <span className="text-sm font-semibold truncate text-ink">{acc.name}</span>
+                              {selected && <CheckCircle2 size={13} className="ml-auto text-blue-500 shrink-0" strokeWidth={2.5} />}
                             </button>
                           )
                         })}
                       </div>
                     ) : (
-                      <div className="bg-white/5 border border-white/8 rounded-2xl py-6 text-center">
-                        <p className="text-xs text-white/30">No accounts yet</p>
+                      <div className="bg-surface border border-line rounded-2xl py-6 text-center">
+                        <p className="text-xs text-ms-muted">No accounts yet</p>
                       </div>
                     )}
                   </motion.div>
@@ -505,10 +441,6 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
 
                 </AnimatePresence>
               </div>
-            </motion.div>
-          </Drawer.Content>
-        </Drawer.Portal>
-      </Drawer.Root>
-    </>
+    </InteractiveDrawer>
   )
 }

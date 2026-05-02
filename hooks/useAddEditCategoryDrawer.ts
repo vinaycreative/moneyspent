@@ -4,7 +4,7 @@ import type { CreateCategoryRequest, UpdateCategoryRequest } from "@/types"
 
 export interface CategoryFormData {
   name: string
-  kind: "expense" | "income" | "transfer"
+  kind: "expense" | "income" | "transfer" | "loan" 
   icon: string
   color: string
   is_default?: boolean

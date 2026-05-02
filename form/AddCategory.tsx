@@ -1,11 +1,11 @@
 "use client"
 
-import React, { useState, useRef, useEffect, useCallback, useMemo } from "react"
-import { Drawer } from "vaul"
+import React, { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, Check, FolderPlus } from "lucide-react"
+import { X, FolderPlus } from "lucide-react"
 import { useAddEditCategoryDrawer } from "@/hooks"
-import { cn } from "@/lib/utils"
+import { InteractiveDrawer } from "@/components/InteractiveDrawer"
+import { SentenceToken } from "@/components/SentenceToken"
 
 export interface CategoryFormData {
   name: string
@@ -18,7 +18,7 @@ type ActiveField = "kind" | "name" | "icon" | "color" | null
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const suggestEmoji = (name: string, kind: "expense" | "income"): string | null => {
+const suggestEmoji = (name: string, kind: "expense" | "income" | "transfer" | "loan"): string | null => {
   if (!name || name.trim() === "") return null
   const n = name.toLowerCase()
   if (kind === "expense") {
@@ -88,53 +88,15 @@ const colorOptions = [
 
 const ALL_EMOJIS = [
   "😀","😃","😄","😁","😆","😅","😂","🤣","🥲","🥹","😊","😇","🙂","🙃","😉","😌","😍","🥰","😘","😗","😙","😚","😋","😛","😝","😜","🤪","🤨","🧐","🤓","😎","🥸","🤩","🥳","😏","😒","😞","😔","😟","😕","🙁","☹️","😣","😖","😫","😩","🥺","😢","😭","😮‍💨","😤","😠","😡","🤬","🤯","😳","🥵","🥶","😱","😨","😰","😥","😓","🫣","🤗","🫡","🤔","🫣","🤭","🫢","🤫","🤥","😶","😶‍🌫️","😐","😑","😬","🫨","🫠","🙄","😯","😦","😧","😮","😲","🥱","😴","🤤","😪","😵","😵‍💫","🫥","🤐","🥴","🤢","🤮","🤧","😷","🤒","🤕","🤑","🤠","😈","👿","👹","👺","🤡","💩","👻","💀","☠️","👽","👾","🤖","🎃","😺","😸","😹","😻","😼","😽","🙀","😿","😾",
-  // Hand gestures
   "👋","🤚","🖐️","✋","🖖","🫱","🫲","🫳","🫴","👌","🤌","🤏","✌️","🤞","🫰","🤟","🤘","🤙","👈","👉","👆","🖕","👇","☝️","👍","👎","✊","👊","🤛","🤜","👏","🙌","🫶","👐","🤲","🤝","🙏","✍️","💅","🤳","💪","🦾","🦵","🦿","🦶","👣","👂","🦻","👃","🫀","🫁","🧠","🦷","🦴","👀","👁️","👅","👄","💋","🩸",
-  // People
   "👶","👧","🧒","👦","👩","🧑","👨","👩‍🦱","🧑‍🦱","👨‍🦱","👩‍🦰","🧑‍🦰","👨‍🦰","👱‍♀️","👱","👱‍♂️","👩‍🦳","🧑‍🦳","👨‍🦳","👩‍🦲","🧑‍🦲","👨‍🦲","🧔‍♀️","🧔","🧔‍♂️","👵","🧓","👴","👲","👳‍♀️","👳","👳‍♂️","🧕","👮‍♀️","👮","👮‍♂️","👷‍♀️","👷","👷‍♂️","💂‍♀️","💂","💂‍♂️","🕵️‍♀️","🕵️","🕵️‍♂️","👩‍⚕️","🧑‍⚕️","👨‍⚕️","👩‍🌾","🧑‍🌾","👨‍🌾","👩‍🍳","🧑‍🍳","👨‍🍳","👩‍🎓","🧑‍🎓","👨‍🎓","👩‍🎤","🧑‍🎤","👨‍🎤","👩‍🏫","🧑‍🏫","👨‍🏫","👩‍🏭","🧑‍🏭","👨‍🏭","👩‍💻","🧑‍💻","👨‍💻","👩‍💼","🧑‍💼","👨‍💼","👩‍🔧","🧑‍🔧","👨‍🔧","👩‍🔬","🧑‍🔬","👨‍🔬","👩‍🎨","🧑‍🎨","👨‍🎨","👩‍🚒","🧑‍🚒","👨‍🚒","👩‍✈️","🧑‍✈️","👨‍✈️","👩‍🚀","🧑‍🚀","👨‍🚀","👩‍⚖️","🧑‍⚖️","👨‍⚖️","👰‍♀️","👰","👰‍♂️","🤵‍♀️","🤵","🤵‍♂️",
-  // Animals
   "🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐻‍❄️","🐨","🐯","🦁","🐮","🐷","🐽","🐸","🐵","🙈","🙉","🙊","🐒","🐔","🐧","🐦","🐤","🐣","🐥","🦆","🦅","🦉","🦇","🐺","🐗","🐴","🦄","🐝","🪱","🐛","🦋","🐌","🐞","🐜","🪰","🪲","🪳","🦟","🦗","🕷️","🕸️","🦂","🐢","🐍","🦎","🦖","🦕","🐙","🦑","🦐","🦞","🦀","🐡","🐠","🐟","🐬","🐳","🐋","🦈","🦭","🐊","🐅","🐆","🦓","🦍","🦧","🦣","🐘","🦛","🦏","🐪","🐫","🦒","🦘","🦬","🐃","🐂","🐄","🐎","🐖","🐏","🐑","🦙","🐐","🦌","🐕","🐩","🦮","🐕‍🦺","🐈","🐈‍⬛","🪶","🐓","🦃","🦤","🦚","🦜","🦢","🦩","🕊️","🐇","🦝","🦨","🦡","🦫","🦦","🦥","🐁","🐀","🐿️","🦔",
-  // Food
   "🍏","🍎","🍐","🍊","🍋","🍌","🍉","🍇","🍓","🫐","🍈","🍒","🍑","🥭","🍍","🥥","🥝","🍅","🍆","🥑","🥦","🥬","🥒","🌶️","🫑","🌽","🥕","🫒","🧄","🧅","🥔","🍠","🥐","🥯","🍞","🥖","🥨","🧀","🥚","🍳","🧈","🥞","🧇","🥓","🥩","🍗","🍖","🦴","🌭","🍔","🍟","🍕","🫓","🥪","🥙","🧆","🌮","🌯","🫔","🥗","🥘","🫕","🥫","🍝","🍜","🍲","🍛","🍣","🍱","🥟","🦪","🍤","🍙","🍚","🍘","🍥","🥠","🥮","🍢","🍡","🍧","🍨","🍦","🥧","🧁","🍰","🎂","🍮","🍭","🍬","🍫","🍿","🍩","🍪","🌰","🥜","🍯","🥛","🍼","🫖","☕","🍵","🧃","🥤","🧋","🍶","🍺","🍻","🥂","🍷","🥃","🍸","🍹","🧉","🍾","🧊","🥄","🍴","🍽️","🥣","🥡","🥢","🧂",
-  // Activities & Sports
   "⚽","🏀","🏈","⚾","🥎","🎾","🏐","🏉","🥏","🎱","🪀","🏓","🏸","🏒","🏑","🥍","🏏","🪃","🥅","⛳","🪁","🏹","🎣","🤿","🥊","🥋","🎽","🛹","🛼","🛷","⛸️","🥌","🎿","⛷️","🏂","🪂","🏋️‍♀️","🏋️","🏋️‍♂️","🤼‍♀️","🤼","🤼‍♂️","🤸‍♀️","🤸","🤸‍♂️","⛹️‍♀️","⛹️","⛹️‍♂️","🤺","🤾‍♀️","🤾","🤾‍♂️","🏌️‍♀️","🏌️","🏌️‍♂️","🏇","🧘‍♀️","🧘","🧘‍♂️","🏄‍♀️","🏄","🏄‍♂️","🏊‍♀️","🏊","🏊‍♂️","🤽‍♀️","🤽","🤽‍♂️","🚣‍♀️","🚣","🚣‍♂️","🧗‍♀️","🧗","🧗‍♂️","🚵‍♀️","🚵","🚵‍♂️","🚴‍♀️","🚴","🚴‍♂️","🏆","🥇","🥈","🥉","🏅","🎖️","🏵️","🎗️","🎫","🎟️","🎪","🤹‍♀️","🤹","🤹‍♂️","🎭","🩰","🎨","🎬","🎤","🎧","🎼","🎹","🥁","🪘","🎷","🎺","🪗","🎸","🪕","🎻","🎲","♟️","🎯","🎳","🎮","🎰","🧩",
-  // Travel & Places
   "🚗","🚕","🚙","🚌","🚎","🏎️","🚓","🚑","🚒","🚐","🛻","🚚","🚛","🚜","🦯","🦽","🦼","🛴","🚲","🛵","🏍️","🛺","🚨","🚔","🚍","🚘","🚖","🚡","🚠","🚟","🚃","🚋","🚞","🚝","🚄","🚅","🚈","🚂","🚆","🚇","🚊","🚉","✈️","🛫","🛬","🛩️","💺","🛰️","🚀","🛸","🚁","🛶","⛵","🚤","🛥️","🛳️","⛴️","🚢","⚓","🪝","⛽","🚧","🚦","🚥","🚏","🗺️","🗿","🗽","🗼","🏰","🏯","🏟️","🎡","🎢","🎠","⛲","⛱️","🏖️","🏝️","🏜️","🌋","⛰️","🏔️","🗻","🏕️","⛺","🛖","🏠","🏡","🏘️","🏚️","🏗️","🏭","🏢","🏬","🏣","🏤","🏥","🏦","🏨","🏪","🏫","🏩","💒","🏛️","⛪","🕌","🕍","🛕","🕋","⛩️","🛤️","🛣️","🗾","🎑","🏞️","🌅","🌄","🌠","🎇","🎆","🌇","🌆","🏙️","🌃","🌌","🌉","🌁",
-  // Objects
   "⌚","📱","📲","💻","⌨️","🖥️","🖨️","🖱️","🖲️","🕹️","🗜️","💽","💾","💿","📀","📼","📷","📸","📹","🎥","📽️","🎞️","📞","☎️","📟","📠","📺","📻","🎙️","🎚️","🎛️","🧭","⏱️","⏲️","⏰","🕰️","⌛","⏳","📡","🔋","🔌","💡","🔦","🕯️","🪔","🧯","🛢️","💸","💵","💴","💶","💷","🪙","💰","💳","💎","⚖️","🪜","🧰","🪛","🔧","🔨","⚒️","🛠️","⛏️","🪚","🔩","⚙️","🪤","🧱","⛓️","🧲","🔫","💣","🧨","🪓","🔪","🗡️","⚔️","🛡️","🚬","⚰️","🪦","⚱️","🏺","🔮","📿","🧿","💈","⚗️","🔭","🔬","🕳️","🩹","🩺","💊","💉","🩸","🧬","🦠","🧫","🧪","🌡️","🧹","🪠","🧺","🧻","🚽","🚰","🚿","🛁","🛀","🧼","🪥","🪒","🧽","🪣","🧴","🛎️","🔑","🗝️","🚪","🪑","🛋️","🛏️","🛌","🧸","🪆","🖼️","🪞","🪟","🛍️","🛒","🎁","🎈","🎏","🎀","🪄","🪅","🎊","🎉","🎎","🏮","🎐","🧧","✉️","📩","📨","📧","💌","📥","📤","📦","🏷️","🪧","📪","📫","📬","📭","📮","📯","📜","📃","📄","📑","🧾","📊","📈","📉","🗒️","🗓️","📆","📅","🗑️","📇","🗃️","🗳️","🗄️","📋","📁","📂","🗂️","🗞️","📰","📓","📔","📒","📕","📗","📘","📙","📚","📖","🔖","🧷","🔗","📎","🖇️","📐","📏","🧮","📌","📍","✂️","🖊️","🖋️","✒️","🖌️","🖍️","📝","✏️","🔍","🔎","🔏","🔐","🔒","🔓",
-  // Symbols
   "❤️","🧡","💛","💚","💙","💜","🖤","🤍","🤎","💔","❤️‍🔥","❤️‍🩹","❣️","💕","💞","💓","💗","💖","💘","💝","💟","☮️","✝️","☪️","🕉️","☸️","✡️","🔯","🕎","☯️","☦️","🛐","⛎","♈","♉","♊","♋","♌","♍","♎","♏","♐","♑","♒","♓","🆔","⚛️","🉑","☢️","☣️","📴","📳","🈶","🈚","🈸","🈺","🈷️","✴️","🆚","💮","🉐","㊙️","㊗️","🈴","🈵","🈹","🈲","🅰️","🅱️","🆎","🆑","🅾️","🆘","❌","⭕","🛑","⛔","📛","🚫","💯","💢","♨️","🚷","🚯","🚳","🚱","🔞","📵","🚭","❗️","❕","❓","❔","‼️","⁉️","🔅","🔆","〽️","⚠️","🚸","🔱","⚜️","🔰","♻️","✅","🈯","💹","❇️","✳️","❎","🌐","💠","Ⓜ️","🌀","💤","🏧","🚾","♿","🅿️","🛗","🈳","🈂️","🛂","🛃","🛄","🛅","🚹","🚺","🚼","⚧","🚻","🚮","🎦","📶","🈁","🔣","ℹ️","🔤","🔡","🔠","🆖","🆗","🆙","🆒","🆕","🆓","0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣","🔟","🔢","#️⃣","*️⃣","⏏️","▶️","⏸️","⏯️","⏹️","⏺️","⏭️","⏮️","⏩","⏪","⏫","⏬","◀️","🔼","🔽","➡️","⬅️","⬆️","⬇️","↗️","↘️","↙️","↖️","↕️","↔️","↪️","↩️","⤴️","⤵️","🔀","🔁","🔂","🔄","🔃","🎵","🎶","➕","➖","➗","✖️","🟰","♾️","💲","💱","™️","©️","®️","〰️","➰","➿","🔚","🔙","🔛","🔝","🔜"
 ]
-
-// ─── Sub-components ──────────────────────────────────────────────────────────
-
-const SentenceToken = ({
-  value,
-  placeholder,
-  active,
-  color = "text-white",
-  onClick,
-  icon,
-}: {
-  value?: string
-  placeholder: string
-  active: boolean
-  color?: string
-  onClick: () => void
-  icon?: React.ReactNode
-}) => (
-  <button
-    onClick={onClick}
-    className={`inline-flex items-center gap-1 font-bold transition-all duration-200 border-b-2 border-dashed rounded-lg px-2 py-0.5 mx-0.5
-      ${active ? "border-white/60 bg-white/10 scale-105" : "border-white/25 bg-white/5 hover:bg-white/10 hover:border-white/40"}
-      ${value ? color : "text-white/40"}
-    `}
-    style={{ lineHeight: 1.3 }}
-  >
-    {icon && value && <span className="text-xl leading-none">{icon}</span>}
-    <span>{value || placeholder}</span>
-  </button>
-)
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -154,7 +116,6 @@ export const AddCategory = ({ trigger }: { trigger: React.ReactNode }) => {
   const nameInputRef = useRef<HTMLInputElement>(null)
   const [manualIcon, setManualIcon] = useState(false)
 
-  // As user types, we'll try suggesting an emoji if they haven't picked one.
   const handleInputChange = (field: keyof CategoryFormData, value: string) => {
     if (field === "name") {
       const suggested = suggestEmoji(value, formData.kind)
@@ -171,7 +132,6 @@ export const AddCategory = ({ trigger }: { trigger: React.ReactNode }) => {
     }
   }
   
-  // When switching types, re-run suggest if we haven't manually picked an icon
   const handleTypeChange = (newKind: "expense" | "income") => {
     const suggested = suggestEmoji(formData.name, newKind)
     setFormData(prev => ({
@@ -181,14 +141,6 @@ export const AddCategory = ({ trigger }: { trigger: React.ReactNode }) => {
     }))
     setActiveField("name")
   }
-
-  // Reset state on open
-  useEffect(() => {
-    if (isOpen) {
-      setManualIcon(false)
-      setActiveField("name")
-    }
-  }, [isOpen])
 
   // Focus relevant input when field activates
   useEffect(() => {
@@ -213,302 +165,260 @@ export const AddCategory = ({ trigger }: { trigger: React.ReactNode }) => {
   const selectedColor = colorOptions.find((c) => c.value === formData.color)
 
   return (
-    <>
-      <div onClick={() => openDrawer()}>{trigger}</div>
+    <InteractiveDrawer
+      isOpen={isOpen}
+      onClose={closeDrawer}
+      onOpenChange={(open) => (open ? openDrawer() : closeDrawer())}
+      onOpen={() => {
+        setManualIcon(false)
+        setActiveField("name")
+      }}
+      title="Add Category"
+      trigger={trigger}
+      isSubmitDisabled={isSubmitDisabled}
+      isLoading={isLoading}
+      onSubmit={handleFormSubmit}
+      submitText="Save"
+    >
+      {/* ── Sentence ─────────────────────────────────── */}
+      <div className="px-6 pb-2">
+        <p
+          className="text-ink text-[24px] font-bold leading-[1.6] tracking-tight"
+          style={{ fontFamily: "inherit" }}
+        >
+          {"New "}
+          <SentenceToken
+            value={formData.kind === "expense" ? "Expense" : "Income"}
+            placeholder="---"
+            active={activeField === "kind"}
+            colorClass={formData.kind === "expense" ? "text-ms-accent" : "text-green-500"}
+            onClick={() => handleFieldClick("kind")}
+          />
+          {" category named "}
+          <SentenceToken
+            value={formData.name}
+            placeholder="---"
+            active={activeField === "name"}
+            colorClass="text-ink"
+            onClick={() => handleFieldClick("name")}
+          />
+          {" with icon "}
+          <SentenceToken
+            value={formData.icon}
+            placeholder="---"
+            active={activeField === "icon"}
+            colorClass="text-ink"
+            onClick={() => handleFieldClick("icon")}
+          />
+          {" and color "}
+          <SentenceToken
+            value={selectedColor?.name}
+            placeholder="---"
+            active={activeField === "color"}
+            colorClass="text-ink"
+            onClick={() => handleFieldClick("color")}
+          />
+          {"."}
+        </p>
 
-      <Drawer.Root open={isOpen} onOpenChange={(open) => (open ? openDrawer() : closeDrawer())}>
-        <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm" />
-          <Drawer.Content
-            className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto focus:outline-none"
-            style={{ background: "transparent" }}
-          >
+        <p className="text-ms-muted text-[11px] font-medium mt-3 mb-1 flex items-center gap-1">
+          <span>⚡</span> Tap any underline to edit
+        </p>
+      </div>
+
+      {/* ── Field Panels ─────────────────────────────── */}
+      <div className="min-h-[260px]">
+        <AnimatePresence mode="wait">
+
+          {/* Type panel */}
+          {activeField === "kind" && (
             <motion.div
-              initial={{ y: 40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 40, opacity: 0 }}
-              transition={{ type: "spring", damping: 28, stiffness: 300 }}
-              className="rounded-t-[32px] overflow-hidden"
-              style={{
-                background: "linear-gradient(160deg, #0f0f10 0%, #141418 100%)",
-                boxShadow: "0 -8px 60px rgba(0,0,0,0.5)",
-              }}
+              key="kind"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.2 }}
+              className="px-6 py-4"
             >
-              {/* Drag handle */}
-              <div className="flex justify-center pt-3 pb-1">
-                <div className="w-10 h-1 rounded-full bg-white/15" />
-              </div>
-
-              {/* Top bar */}
-              <div className="flex items-center justify-between px-5 pt-2 pb-4">
+              <p className="text-xs font-bold text-ms-muted uppercase tracking-widest mb-4">Category Type</p>
+              <div className="flex gap-3">
                 <button
-                  onClick={closeDrawer}
-                  className="w-9 h-9 rounded-full bg-white/8 flex items-center justify-center active:scale-95 transition-transform"
+                  onClick={() => handleTypeChange("expense")}
+                  className={`flex-1 py-4 rounded-2xl text-sm font-bold border transition-all ${
+                    formData.kind === "expense" ? "bg-ms-accent/20 border-ms-accent/50 text-ms-accent" : "bg-surface border-line text-ms-muted hover:bg-surface-alt"
+                  }`}
                 >
-                  <X size={17} className="text-white/70" />
+                  Expense
                 </button>
-
-                <Drawer.Title className="text-sm font-bold text-white/50 uppercase tracking-[0.15em]">
-                  Add Category
-                </Drawer.Title>
-
                 <button
-                  onClick={handleFormSubmit}
-                  disabled={isSubmitDisabled || isLoading}
-                  className={`h-9 px-4 rounded-full text-sm font-bold transition-all active:scale-95
-                    ${isSubmitDisabled || isLoading
-                      ? "bg-white/10 text-white/30"
-                      : "bg-white text-black shadow-[0_2px_20px_rgba(255,255,255,0.15)]"
-                    }`}
+                  onClick={() => handleTypeChange("income")}
+                  className={`flex-1 py-4 rounded-2xl text-sm font-bold border transition-all ${
+                    formData.kind === "income" ? "bg-green-500/20 border-green-500/50 text-green-500" : "bg-surface border-line text-ms-muted hover:bg-surface-alt"
+                  }`}
                 >
-                  {isLoading ? "Saving…" : "Save"}
+                  Income
                 </button>
               </div>
-
-              {/* ── Sentence ─────────────────────────────────── */}
-              <div className="px-6 pb-2">
-                <p
-                  className="text-white text-[24px] font-bold leading-[1.6] tracking-tight"
-                  style={{ fontFamily: "inherit" }}
-                >
-                  {"New "}
-                  <SentenceToken
-                    value={formData.kind === "expense" ? "Expense" : "Income"}
-                    placeholder="---"
-                    active={activeField === "kind"}
-                    color={formData.kind === "expense" ? "text-[#5B9CF6]" : "text-[#7EC8A4]"}
-                    onClick={() => handleFieldClick("kind")}
-                  />
-                  {" category named "}
-                  <SentenceToken
-                    value={formData.name}
-                    placeholder="---"
-                    active={activeField === "name"}
-                    color="text-white"
-                    onClick={() => handleFieldClick("name")}
-                  />
-                  {" with icon "}
-                  <SentenceToken
-                    value={formData.icon}
-                    placeholder="---"
-                    active={activeField === "icon"}
-                    color="text-white"
-                    onClick={() => handleFieldClick("icon")}
-                  />
-                  {" and color "}
-                  <SentenceToken
-                    value={selectedColor?.name}
-                    placeholder="---"
-                    active={activeField === "color"}
-                    color="text-white"
-                    onClick={() => handleFieldClick("color")}
-                  />
-                  {"."}
-                </p>
-
-                <p className="text-white/30 text-[11px] font-medium mt-3 mb-1 flex items-center gap-1">
-                  <span>⚡</span> Tap any underline to edit
-                </p>
-              </div>
-
-              {/* ── Field Panels ─────────────────────────────── */}
-              <div className="min-h-[260px]">
-                <AnimatePresence mode="wait">
-
-                  {/* Type panel */}
-                  {activeField === "kind" && (
-                    <motion.div
-                      key="kind"
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -15 }}
-                      transition={{ duration: 0.2 }}
-                      className="px-6 py-4"
-                    >
-                      <p className="text-xs font-bold text-white/40 uppercase tracking-widest mb-4">Category Type</p>
-                      <div className="flex gap-3">
-                        <button
-                          onClick={() => handleTypeChange("expense")}
-                          className={`flex-1 py-4 rounded-2xl text-sm font-bold border transition-all ${
-                            formData.kind === "expense" ? "bg-[#5B9CF6]/20 border-[#5B9CF6]/50 text-[#5B9CF6]" : "bg-white/5 border-white/10 text-white/50 hover:bg-white/10"
-                          }`}
-                        >
-                          Expense
-                        </button>
-                        <button
-                          onClick={() => handleTypeChange("income")}
-                          className={`flex-1 py-4 rounded-2xl text-sm font-bold border transition-all ${
-                            formData.kind === "income" ? "bg-[#7EC8A4]/20 border-[#7EC8A4]/50 text-[#7EC8A4]" : "bg-white/5 border-white/10 text-white/50 hover:bg-white/10"
-                          }`}
-                        >
-                          Income
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* Name panel */}
-                  {activeField === "name" && (
-                    <motion.div
-                      key="name"
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -15 }}
-                      transition={{ duration: 0.2 }}
-                      className="px-6 py-4"
-                    >
-                      <p className="text-xs font-bold text-white/40 uppercase tracking-widest mb-4">Name</p>
-                      <div className="flex items-center gap-3 bg-white/6 rounded-2xl px-4 py-3 border border-white/10 focus-within:border-white/30 transition-colors">
-                        <input
-                          ref={nameInputRef}
-                          type="text"
-                          placeholder="e.g. Subscriptions, Groceries..."
-                          value={formData.name}
-                          onChange={(e) => handleInputChange("name", e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" && formData.name) setActiveField("icon")
-                          }}
-                          className="flex-1 bg-transparent text-lg font-bold text-white placeholder:text-white/20 outline-none w-full"
-                        />
-                        {formData.name && (
-                          <button onClick={() => handleInputChange("name", "")} className="text-white/30 active:text-white/60 shrink-0">
-                            <X size={16} />
-                          </button>
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* Icon panel */}
-                  {activeField === "icon" && (
-                    <motion.div
-                      key="icon"
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -15 }}
-                      transition={{ duration: 0.2 }}
-                      className="px-6 py-2 flex flex-col h-[280px]"
-                    >
-                      <p className="text-xs font-bold text-white/40 uppercase tracking-widest mb-3 shrink-0">Select Icon</p>
-                      <div className="flex-1 overflow-y-auto scrollbar-hide grid grid-cols-7 gap-2 content-start pb-6">
-                        {ALL_EMOJIS.map((icon, idx) => {
-                          const selected = formData.icon === icon
-                          return (
-                            <button
-                              key={idx}
-                              onClick={() => {
-                                handleInputChange("icon", icon)
-                                setActiveField("color")
-                              }}
-                              className={`aspect-square flex items-center justify-center text-[26px] rounded-xl transition-all active:scale-95
-                                ${selected 
-                                  ? "bg-white/20 border border-white/40 shadow-inner scale-110 z-10" 
-                                  : "bg-white/5 border border-transparent hover:bg-white/10"
-                                }`}
-                            >
-                              {icon}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* Color panel */}
-                  {activeField === "color" && (
-                    <motion.div
-                      key="color"
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -15 }}
-                      transition={{ duration: 0.2 }}
-                      className="px-6 py-4 flex flex-col"
-                    >
-                      <p className="text-xs font-bold text-white/40 uppercase tracking-widest mb-4 shrink-0">Select Theme Color</p>
-                      
-                      <div className="overflow-y-auto scrollbar-hide pr-2 grid grid-cols-6 gap-x-3 gap-y-4 content-start">
-                        {colorOptions.map((color) => {
-                          const selected = formData.color === color.value
-                          return (
-                            <button
-                              key={color.value}
-                              onClick={() => {
-                                handleInputChange("color", color.value)
-                                if (formData.name && formData.icon) {
-                                  setActiveField(null)
-                                }
-                              }}
-                              className={`aspect-square rounded-full transition-all active:scale-95 flex items-center justify-center
-                                ${color.name === "Gray" ? "bg-gray-400" :
-                                  color.name === "Red" ? "bg-red-400" :
-                                  color.name === "Orange" ? "bg-orange-400" :
-                                  color.name === "Yellow" ? "bg-yellow-400" :
-                                  color.name === "Green" ? "bg-green-400" :
-                                  color.name === "Blue" ? "bg-blue-400" :
-                                  color.name === "Purple" ? "bg-purple-400" :
-                                  color.name === "Pink" ? "bg-pink-400" :
-                                  color.name === "Indigo" ? "bg-indigo-400" :
-                                  color.name === "Teal" ? "bg-teal-400" :
-                                  color.name === "Cyan" ? "bg-cyan-400" :
-                                  color.name === "Lime" ? "bg-lime-400" :
-                                  color.name === "Emerald" ? "bg-emerald-400" :
-                                  color.name === "Rose" ? "bg-rose-400" :
-                                  "bg-violet-400"}
-                                ${selected ? "ring-2 ring-white ring-offset-2 ring-offset-[#111] scale-110 z-10" : "hover:scale-105 opacity-90 hover:opacity-100"}
-                              `}
-                            >
-                              {selected && <div className="w-2 h-2 bg-white rounded-full shadow-sm" />}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* Preview panel */}
-                  {!activeField && formData.name && formData.icon && formData.color && (
-                    <motion.div
-                      key="preview"
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -15 }}
-                      transition={{ duration: 0.2 }}
-                      className="px-6 py-6 flex flex-col items-center justify-center"
-                    >
-                      <div className="flex flex-col items-center gap-3">
-                        <div 
-                          className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl shadow-lg border border-white/10"
-                          style={{ backgroundColor: formData.color }}
-                        >
-                          {formData.icon}
-                        </div>
-                        <div className="text-center">
-                          <p className="text-white font-bold text-xl">{formData.name}</p>
-                          <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mt-1">{formData.kind}</p>
-                        </div>
-                      </div>
-                      
-                      <button
-                        onClick={handleFormSubmit}
-                        disabled={isSubmitDisabled || isLoading}
-                        className={`mt-8 w-full max-w-[220px] h-12 rounded-full font-bold transition-all active:scale-95 flex items-center justify-center gap-2
-                          ${isSubmitDisabled || isLoading
-                            ? "bg-white/10 text-white/30"
-                            : "bg-white text-black shadow-[0_4px_20px_rgba(255,255,255,0.2)]"
-                          }`}
-                      >
-                        {isLoading ? "Saving..." : <><FolderPlus size={18} /> Save Category</>}
-                      </button>
-                    </motion.div>
-                  )}
-
-                </AnimatePresence>
-              </div>
-
             </motion.div>
-          </Drawer.Content>
-        </Drawer.Portal>
-      </Drawer.Root>
-    </>
+          )}
+
+          {/* Name panel */}
+          {activeField === "name" && (
+            <motion.div
+              key="name"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.2 }}
+              className="px-6 py-4"
+            >
+              <p className="text-xs font-bold text-ms-muted uppercase tracking-widest mb-4">Name</p>
+              <div className="flex items-center gap-3 bg-surface-alt rounded-2xl px-4 py-3 border border-line focus-within:border-ink/30 transition-colors">
+                <input
+                  ref={nameInputRef}
+                  type="text"
+                  placeholder="e.g. Subscriptions, Groceries..."
+                  value={formData.name}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && formData.name) setActiveField("icon")
+                  }}
+                  className="flex-1 bg-transparent text-lg font-bold text-ink placeholder:text-ms-muted outline-none w-full"
+                />
+                {formData.name && (
+                  <button onClick={() => handleInputChange("name", "")} className="text-ms-muted hover:text-ink shrink-0">
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Icon panel */}
+          {activeField === "icon" && (
+            <motion.div
+              key="icon"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.2 }}
+              className="px-6 py-2 flex flex-col h-[280px]"
+            >
+              <p className="text-xs font-bold text-ms-muted uppercase tracking-widest mb-3 shrink-0">Select Icon</p>
+              <div className="flex-1 overflow-y-auto scrollbar-hide grid grid-cols-7 gap-2 content-start pb-6">
+                {ALL_EMOJIS.map((icon, idx) => {
+                  const selected = formData.icon === icon
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        handleInputChange("icon", icon)
+                        setActiveField("color")
+                      }}
+                      className={`aspect-square flex items-center justify-center text-[26px] rounded-xl transition-all active:scale-95
+                        ${selected 
+                          ? "bg-surface-alt border border-ink/40 shadow-inner scale-110 z-10" 
+                          : "bg-surface border border-transparent hover:bg-surface-alt"
+                        }`}
+                    >
+                      {icon}
+                    </button>
+                  )
+                })}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Color panel */}
+          {activeField === "color" && (
+            <motion.div
+              key="color"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.2 }}
+              className="px-6 py-4 flex flex-col"
+            >
+              <p className="text-xs font-bold text-ms-muted uppercase tracking-widest mb-4 shrink-0">Select Theme Color</p>
+              
+              <div className="overflow-y-auto scrollbar-hide pr-2 grid grid-cols-6 gap-x-3 gap-y-4 content-start">
+                {colorOptions.map((color) => {
+                  const selected = formData.color === color.value
+                  return (
+                    <button
+                      key={color.value}
+                      onClick={() => {
+                        handleInputChange("color", color.value)
+                        if (formData.name && formData.icon) {
+                          setActiveField(null)
+                        }
+                      }}
+                      className={`aspect-square rounded-full transition-all active:scale-95 flex items-center justify-center
+                        ${color.name === "Gray" ? "bg-gray-400" :
+                          color.name === "Red" ? "bg-red-400" :
+                          color.name === "Orange" ? "bg-orange-400" :
+                          color.name === "Yellow" ? "bg-yellow-400" :
+                          color.name === "Green" ? "bg-green-400" :
+                          color.name === "Blue" ? "bg-blue-400" :
+                          color.name === "Purple" ? "bg-purple-400" :
+                          color.name === "Pink" ? "bg-pink-400" :
+                          color.name === "Indigo" ? "bg-indigo-400" :
+                          color.name === "Teal" ? "bg-teal-400" :
+                          color.name === "Cyan" ? "bg-cyan-400" :
+                          color.name === "Lime" ? "bg-lime-400" :
+                          color.name === "Emerald" ? "bg-emerald-400" :
+                          color.name === "Rose" ? "bg-rose-400" :
+                          "bg-violet-400"}
+                        ${selected ? "ring-2 ring-ink ring-offset-2 ring-offset-paper scale-110 z-10" : "hover:scale-105 opacity-90 hover:opacity-100"}
+                      `}
+                    >
+                      {selected && <div className="w-2 h-2 bg-paper rounded-full shadow-sm" />}
+                    </button>
+                  )
+                })}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Preview panel */}
+          {!activeField && formData.name && formData.icon && formData.color && (
+            <motion.div
+              key="preview"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.2 }}
+              className="px-6 py-6 flex flex-col items-center justify-center"
+            >
+              <div className="flex flex-col items-center gap-3">
+                <div 
+                  className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl shadow-lg border border-line/20"
+                  style={{ backgroundColor: formData.color }}
+                >
+                  {formData.icon}
+                </div>
+                <div className="text-center">
+                  <p className="text-ink font-bold text-xl">{formData.name}</p>
+                  <p className="text-ms-muted text-[10px] font-bold uppercase tracking-widest mt-1">{formData.kind}</p>
+                </div>
+              </div>
+              
+              <button
+                onClick={handleFormSubmit}
+                disabled={isSubmitDisabled || isLoading}
+                className={`mt-8 w-full max-w-[220px] h-12 rounded-full font-bold transition-all active:scale-95 flex items-center justify-center gap-2
+                  ${isSubmitDisabled || isLoading
+                    ? "bg-surface-alt text-ms-muted"
+                    : "bg-ink text-paper shadow-[0_4px_20px_rgba(0,0,0,0.1)]"
+                  }`}
+              >
+                {isLoading ? "Saving..." : <><FolderPlus size={18} /> Save Category</>}
+              </button>
+            </motion.div>
+          )}
+
+        </AnimatePresence>
+      </div>
+    </InteractiveDrawer>
   )
 }
