@@ -12,7 +12,7 @@ const Header = ({ subText, mainText, rightComponent }: Header) => {
 
   const firstName = userName?.split(" ")?.[0]
   return (
-    <header className="h-full flex items-start justify-between">
+    <header className="h-fit flex items-start justify-between">
       <div>
         <p className="text-xs text-ms-muted font-medium mb-0.5">{subText}</p>
         <h1 className="text-3xl font-bold text-ink tracking-tight">

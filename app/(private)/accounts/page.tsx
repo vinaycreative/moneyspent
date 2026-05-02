@@ -18,6 +18,7 @@ import { DeleteConfirmationSheet } from "@/components/DeleteConfirmationSheet"
 import { AddAccount } from "@/form/AddAccount"
 import { EditAccount } from "@/form/EditAccount"
 import moment from "moment"
+import Page from "@/components/layout/Page"
 
 export default function AccountsPage() {
   const { user, isLoading, isAuthenticated } = useAuth()
@@ -27,38 +28,63 @@ export default function AccountsPage() {
   const [selectedAccount, setSelectedAccount] = useState<ApiAccount | null>(null)
   const [isEditOpen, setIsEditOpen] = useState(false)
 
-  const handleCloseEdit = () => { setSelectedAccount(null); setIsEditOpen(false) }
-  const handleOpenEdit = (account: ApiAccount) => { setSelectedAccount(account); setIsEditOpen(true) }
+  const handleCloseEdit = () => {
+    setSelectedAccount(null)
+    setIsEditOpen(false)
+  }
+  const handleOpenEdit = (account: ApiAccount) => {
+    setSelectedAccount(account)
+    setIsEditOpen(true)
+  }
 
-  const { accounts, isLoading: accountsLoading, isError: accountsError } = useAccounts(user?.id || "")
+  const {
+    accounts,
+    isLoading: accountsLoading,
+    isError: accountsError,
+  } = useAccounts(user?.id || "")
 
   const activeAccounts = accounts?.filter((acc: ApiAccount) => !acc.is_archived)
-  const totalBalance = activeAccounts?.reduce((sum: number, acc: ApiAccount) => sum + acc.current_balance, 0) ?? 0
+  const totalBalance =
+    activeAccounts?.reduce((sum: number, acc: ApiAccount) => sum + acc.current_balance, 0) ?? 0
   const accountCount = activeAccounts?.length ?? 0
 
   const deleteAccountMutation = useDeleteAccountMutation()
 
   const getAccountIcon = (type: string) => {
     switch (type) {
-      case "bank": return Building2
-      case "credit": return CreditCard
-      case "cash": return Wallet
-      case "wallet": return Wallet
-      case "savings": return PiggyBank
-      case "investment": return PiggyBank
-      default: return Building2
+      case "bank":
+        return Building2
+      case "credit":
+        return CreditCard
+      case "cash":
+        return Wallet
+      case "wallet":
+        return Wallet
+      case "savings":
+        return PiggyBank
+      case "investment":
+        return PiggyBank
+      default:
+        return Building2
     }
   }
 
   const getAccountTypeLabel = (type: string) => {
     switch (type) {
-      case "bank": return "Bank"
-      case "credit": return "Credit Card"
-      case "cash": return "Cash"
-      case "wallet": return "Wallet"
-      case "savings": return "Savings"
-      case "investment": return "Investment"
-      default: return type
+      case "bank":
+        return "Bank"
+      case "credit":
+        return "Credit Card"
+      case "cash":
+        return "Cash"
+      case "wallet":
+        return "Wallet"
+      case "savings":
+        return "Savings"
+      case "investment":
+        return "Investment"
+      default:
+        return type
     }
   }
 
@@ -97,8 +123,7 @@ export default function AccountsPage() {
   }
 
   return (
-    <div className="max-w-md mx-auto pt-6 min-h-screen bg-paper pb-28">
-
+    <Page>
       {/* Header */}
       <header className="pb-4 flex items-start justify-between">
         <div>
@@ -115,11 +140,12 @@ export default function AccountsPage() {
       </header>
 
       <div className="flex flex-col gap-6">
-
         {/* Total Balance Card */}
         <div className="bg-surface border border-line rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted">Total Balance</p>
+            <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted">
+              Total Balance
+            </p>
             <button
               onClick={() => setShowBalances(!showBalances)}
               className="text-ms-muted active:scale-95 transition-transform"
@@ -137,10 +163,11 @@ export default function AccountsPage() {
           )}
 
           <p className="text-xs text-ms-muted font-medium">
-            {accountsLoading
-              ? <span className="inline-block h-3 w-16 rounded bg-surface-alt animate-pulse" />
-              : `${accountCount} Account${accountCount !== 1 ? "s" : ""}`
-            }
+            {accountsLoading ? (
+              <span className="inline-block h-3 w-16 rounded bg-surface-alt animate-pulse" />
+            ) : (
+              `${accountCount} Account${accountCount !== 1 ? "s" : ""}`
+            )}
           </p>
         </div>
 
@@ -154,7 +181,10 @@ export default function AccountsPage() {
           {accountsLoading ? (
             <div className="bg-surface border border-line rounded-2xl overflow-hidden">
               {[1, 2].map((i) => (
-                <div key={i} className="flex items-center gap-4 px-4 py-4 border-b border-line last:border-0 animate-pulse">
+                <div
+                  key={i}
+                  className="flex items-center gap-4 px-4 py-4 border-b border-line last:border-0 animate-pulse"
+                >
                   <div className="w-11 h-11 rounded-2xl bg-surface-alt shrink-0" />
                   <div className="flex-1 space-y-2">
                     <div className="h-4 w-24 rounded bg-surface-alt" />
@@ -185,7 +215,9 @@ export default function AccountsPage() {
 
                     {/* Name + type */}
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm text-ink leading-tight">{account.name}</p>
+                      <p className="font-semibold text-sm text-ink leading-tight">
+                        {account.name}
+                      </p>
                       <p className="text-[11px] text-ms-muted font-medium mt-0.5">
                         {getAccountTypeLabel(account.type)}
                       </p>
@@ -196,8 +228,7 @@ export default function AccountsPage() {
                       <p className="font-bold text-sm text-ink">
                         {showBalances
                           ? `₹${account.current_balance.toLocaleString("en-IN")}`
-                          : "₹ ••••"
-                        }
+                          : "₹ ••••"}
                       </p>
                       <p className="text-[10px] text-ms-muted font-medium mt-0.5">
                         {account.current_balance >= 0 ? "Available" : "Due"}
@@ -243,7 +274,6 @@ export default function AccountsPage() {
             }
           />
         </div>
-
       </div>
 
       {/* Delete confirmation */}
@@ -269,7 +299,9 @@ export default function AccountsPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-ms-muted">Balance:</span>
-                  <span className={`font-medium ${a.current_balance >= 0 ? "text-pos" : "text-neg"}`}>
+                  <span
+                    className={`font-medium ${a.current_balance >= 0 ? "text-pos" : "text-neg"}`}
+                  >
                     ₹ {a.current_balance.toLocaleString()}
                   </span>
                 </div>
@@ -288,6 +320,6 @@ export default function AccountsPage() {
           onOpenChange={setIsEditOpen}
         />
       )}
-    </div>
+    </Page>
   )
 }

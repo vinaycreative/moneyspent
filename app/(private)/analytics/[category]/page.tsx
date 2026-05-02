@@ -7,6 +7,7 @@ import { useAuth, useCategoryTransactions } from "@/hooks"
 import { Drawer } from "vaul"
 import { motion, AnimatePresence } from "framer-motion"
 import moment from "moment-timezone"
+import Page from "@/components/layout/Page"
 
 export default function CategoryPage() {
   const router = useRouter()
@@ -31,7 +32,8 @@ export default function CategoryPage() {
   })
 
   const totalAmount = (transactions || []).reduce(
-    (sum: number, t: { amount: number }) => sum + t.amount, 0
+    (sum: number, t: { amount: number }) => sum + t.amount,
+    0,
   )
 
   // Build trend data — last 4 months
@@ -67,16 +69,18 @@ export default function CategoryPage() {
   }
 
   const RANGE_LABELS: Record<string, string> = {
-    all: "All Time", today: "Today", week: "This Week",
-    month: "This Month", year: "This Year", custom: "Custom Range",
+    all: "All Time",
+    today: "Today",
+    week: "This Week",
+    month: "This Month",
+    year: "This Year",
+    custom: "Custom Range",
   }
 
   return (
     <>
-      <div className="max-w-md mx-auto pt-6 min-h-screen bg-paper pb-28">
-
-        {/* Top nav */}
-        <div className="  pb-4 flex items-center justify-between">
+      <Page className="overflow-auto">
+        <div className="pb-4 flex items-center justify-between">
           <button
             onClick={() => router.back()}
             className="w-9 h-9 rounded-full bg-surface border border-line flex items-center justify-center text-ink active:scale-95 transition-transform"
@@ -100,12 +104,12 @@ export default function CategoryPage() {
             {categoryLabel}
           </h1>
           <p className="text-sm text-ms-muted">
-            You spent <span className="font-bold text-ink">₹{totalAmount.toLocaleString()}</span> on {categoryLabel.toLowerCase()} this period.
+            You spent <span className="font-bold text-ink">₹{totalAmount.toLocaleString()}</span>{" "}
+            on {categoryLabel.toLowerCase()} this period.
           </p>
         </div>
 
         <div className="space-y-6">
-
           {/* Trend Chart */}
           <div className="bg-surface border border-line rounded-2xl p-5 shadow-sm">
             <p className="text-[10px] font-bold text-ms-muted uppercase tracking-[0.12em] mb-5">
@@ -128,7 +132,9 @@ export default function CategoryPage() {
                         style={{ height: `${pct}%` }}
                       />
                     </div>
-                    <div className={`text-[11px] font-bold mt-2 ${data.isCurrent ? "text-pos" : "text-ms-muted"}`}>
+                    <div
+                      className={`text-[11px] font-bold mt-2 ${data.isCurrent ? "text-pos" : "text-ms-muted"}`}
+                    >
                       {data.month}
                     </div>
                   </div>
@@ -173,16 +179,22 @@ export default function CategoryPage() {
 
                     {/* Details */}
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-sm text-ink leading-tight truncate">{t.title}</div>
+                      <div className="font-semibold text-sm text-ink leading-tight truncate">
+                        {t.title}
+                      </div>
                       <div className="text-[11px] text-ms-muted font-medium mt-0.5">
-                        {moment(t.occurred_at).tz("Asia/Kolkata").format("DD MMM")} · {t.accounts?.name} · {t.categories?.name}
+                        {moment(t.occurred_at).tz("Asia/Kolkata").format("DD MMM")} ·{" "}
+                        {t.accounts?.name} · {t.categories?.name}
                       </div>
                     </div>
 
                     {/* Amount + time */}
                     <div className="text-right shrink-0">
-                      <div className={`font-bold text-sm ${t.type === "income" ? "text-pos" : "text-neg"}`}>
-                        {t.type === "income" ? "+ " : "- "}{t.amount.toLocaleString()} ₹
+                      <div
+                        className={`font-bold text-sm ${t.type === "income" ? "text-pos" : "text-neg"}`}
+                      >
+                        {t.type === "income" ? "+ " : "- "}
+                        {t.amount.toLocaleString()} ₹
                       </div>
                       <div className="text-[10px] text-ms-muted font-medium mt-0.5">
                         {moment(t.occurred_at).tz("Asia/Kolkata").format("hh:mm a")}
@@ -199,7 +211,7 @@ export default function CategoryPage() {
             )}
           </div>
         </div>
-      </div>
+      </Page>
 
       {/* Filter Drawer */}
       <Drawer.Root open={showDateFilter} onOpenChange={setShowDateFilter}>
@@ -208,7 +220,9 @@ export default function CategoryPage() {
           <Drawer.Content className="bg-paper flex flex-col rounded-t-[28px] fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto focus:outline-none shadow-2xl">
             <div className="p-5">
               <div className="mx-auto w-10 h-1 rounded-full bg-line mb-6" />
-              <Drawer.Title className="text-xl font-bold text-ink mb-5 px-1">Time Period</Drawer.Title>
+              <Drawer.Title className="text-xl font-bold text-ink mb-5 px-1">
+                Time Period
+              </Drawer.Title>
 
               <div className="grid grid-cols-2 gap-2.5 mb-4">
                 {(["all", "today", "week", "month", "year"] as const).map((preset) => (
@@ -229,7 +243,10 @@ export default function CategoryPage() {
 
             <div className="px-5 pb-8 pt-3 border-t border-line flex gap-3">
               <button
-                onClick={() => { setSelectedDateRange("all"); setShowDateFilter(false) }}
+                onClick={() => {
+                  setSelectedDateRange("all")
+                  setShowDateFilter(false)
+                }}
                 className="flex-1 py-4 rounded-2xl text-sm font-semibold text-ink bg-surface-alt border border-line active:scale-95 transition-transform"
               >
                 Cancel
