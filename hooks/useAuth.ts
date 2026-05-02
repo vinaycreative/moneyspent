@@ -16,33 +16,33 @@ interface UseAuthReturn {
 
 // Simplified auth hook - backend handles all complexity
 export const useAuth = (options?: { enabled?: boolean }): UseAuthReturn => {
-  const { 
-    data: user, 
-    isLoading, 
-    isError, 
-    error 
-  } = useFetchLoggedInUser(options)
-  
+  const { data: user, isLoading, isError, error } = useFetchLoggedInUser(options)
+
   const signOutMutation = useSignOut()
-  
+
   // Derived values for UI components
-  const userName = user?.name || "Unknown User"
+  const userName = user?.name || ""
   const userInitials = user?.name
-    ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
     : "??"
-  const hasAvatar = Boolean(user?.avatar_url)
+  const hasAvatar = Boolean(user)
   const isAuthenticated = Boolean(user && !isError)
-  
+
   return {
     user,
     isLoading: isLoading || signOutMutation.isPending,
     isError: isError || signOutMutation.isError,
     isAuthenticated,
     error: error || signOutMutation.error,
-    
+
     // Actions
     signOut: () => signOutMutation.mutate(),
-    
+
     // Derived values for UI
     userName,
     userInitials,
