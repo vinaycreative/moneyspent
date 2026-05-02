@@ -21,6 +21,7 @@ import { useViewCategoriesDrawer, useAddEditCategoryDrawer, useTransactions } fr
 import { useRouter } from "next/navigation"
 import ViewAllCategories from "@/components/ViewAllCategories"
 import { useMemo } from "react"
+import Page from "@/components/layout/Page"
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth()
@@ -79,7 +80,7 @@ export default function SettingsPage() {
 
   const avatarLetter = user?.name
     ? user.name.charAt(0).toUpperCase()
-    : user?.email?.charAt(0).toUpperCase() ?? "U"
+    : (user?.email?.charAt(0).toUpperCase() ?? "U")
 
   const settingsItems = [
     {
@@ -120,9 +121,8 @@ export default function SettingsPage() {
   ]
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-paper pb-28">
-      <div className="pt-10 flex flex-col gap-6">
-
+    <Page className="overflow-auto">
+      <div className="pt-4 flex flex-col gap-6">
         {/* Profile Hero */}
         <div className="flex flex-col items-center pt-2 pb-1">
           {/* Avatar */}
@@ -156,10 +156,11 @@ export default function SettingsPage() {
         <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-surface-alt flex items-center justify-center">
-              {theme === "dark"
-                ? <Moon className="w-4 h-4 text-ink" />
-                : <Sun className="w-4 h-4 text-ink" />
-              }
+              {theme === "dark" ? (
+                <Moon className="w-4 h-4 text-ink" />
+              ) : (
+                <Sun className="w-4 h-4 text-ink" />
+              )}
             </div>
             <div>
               <p className="text-sm font-semibold text-ink">Appearance</p>
@@ -187,7 +188,9 @@ export default function SettingsPage() {
         {/* Accent Color */}
         <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm">
           <p className="text-sm font-bold text-ink mb-0.5">Accent Color</p>
-          <p className="text-[11px] text-ms-muted font-medium mb-4">Choose Your App's Highlight Color</p>
+          <p className="text-[11px] text-ms-muted font-medium mb-4">
+            Choose Your App's Highlight Color
+          </p>
           <div className="flex gap-4 flex-wrap">
             {ACCENTS.map((a) => (
               <button
@@ -202,7 +205,10 @@ export default function SettingsPage() {
                     background: a.swatch,
                     outline: accent === a.key ? `3px solid ${a.swatch}` : "3px solid transparent",
                     outlineOffset: 2,
-                    boxShadow: accent === a.key ? `0 0 0 1px var(--surface), 0 0 0 4px ${a.swatch}40` : "none",
+                    boxShadow:
+                      accent === a.key
+                        ? `0 0 0 1px var(--surface), 0 0 0 4px ${a.swatch}40`
+                        : "none",
                   }}
                 >
                   {accent === a.key && (
@@ -211,7 +217,9 @@ export default function SettingsPage() {
                     </div>
                   )}
                 </div>
-                <span className={`text-[10px] font-semibold ${accent === a.key ? "text-ms-accent" : "text-ms-muted"}`}>
+                <span
+                  className={`text-[10px] font-semibold ${accent === a.key ? "text-ms-accent" : "text-ms-muted"}`}
+                >
                   {a.label}
                 </span>
               </button>
@@ -261,9 +269,7 @@ export default function SettingsPage() {
 
         {/* Version */}
         <p className="text-center text-[10px] text-ms-muted pb-2">MoneySpent v1.0.0</p>
-
       </div>
-
-    </div>
+    </Page>
   )
 }
