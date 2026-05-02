@@ -26,7 +26,6 @@ export default function SettingsPage() {
   const { user, signOut } = useAuth()
   const { theme, accent, toggle: toggleTheme, setAccent } = useTheme()
   const [currency] = useState("INR")
-  const { isOpen: isViewOpen, openDrawer: openViewDrawer, closeDrawer: closeViewDrawer } = useViewCategoriesDrawer()
   useAddEditCategoryDrawer()
   const router = useRouter()
 
@@ -95,7 +94,7 @@ export default function SettingsPage() {
       title: "Categories",
       subtitle: "Manage transaction categories",
       icon: Tag,
-      onClick: openViewDrawer,
+      onClick: () => router.push("/settings/categories"),
     },
     {
       id: "currency",
@@ -265,30 +264,6 @@ export default function SettingsPage() {
 
       </div>
 
-      {/* View Categories Drawer */}
-      <CustomDrawer
-        trigger={<div style={{ display: "none" }} />}
-        title="Manage Categories"
-        SubmitIcon={Tag}
-        submitTitle="Add Category"
-        submitDisabled={true}
-        open={isViewOpen}
-        onOpenChange={(open: boolean) => !open && closeViewDrawer()}
-        customSubmitButton={
-          <AddCategory
-            trigger={
-              <button className="w-full cursor-pointer rounded-2xl py-3.5 flex items-center justify-center gap-2 font-semibold bg-ink text-paper">
-                <Plus className="w-4 h-4" />
-                Add New Category
-              </button>
-            }
-          />
-        }
-      >
-        <ViewAllCategories />
-      </CustomDrawer>
-
-      <AddCategory trigger={<div style={{ display: "none" }} />} />
     </div>
   )
 }
