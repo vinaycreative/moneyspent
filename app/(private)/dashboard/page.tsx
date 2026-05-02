@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
-import { ChevronLeft, ChevronRight, ArrowDownRight, ArrowUpRight, ChevronRight as ChevRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, ArrowDownRight, ArrowUpRight, ChevronRight as ChevRight, Settings } from "lucide-react"
 import { DashboardStats } from "@/components/DashboardStats"
 import { useAuth } from "@/hooks"
 import { useTransactions } from "@/hooks"
@@ -109,7 +109,12 @@ export default function Dashboard() {
           <p className="text-xs text-ms-muted font-medium mb-0.5">{moment().format("dddd, MMM D")}</p>
           <h1 className="text-3xl font-bold text-ink tracking-tight">Hey {firstName}</h1>
         </div>
-        
+        <Link 
+          href="/settings"
+          className="w-10 h-10 rounded-full bg-surface border border-line flex items-center justify-center shadow-sm active:scale-95 transition-all text-ms-muted hover:text-ink"
+        >
+          <Settings size={18} />
+        </Link>
       </header>
 
       <div className="px-5 flex flex-col gap-5">

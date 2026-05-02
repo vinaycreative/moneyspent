@@ -1,349 +1,469 @@
-import React from "react"
-import { Drawer } from "vaul"
-import { Plus, Building2, CreditCard, Wallet, ArrowDownRight, ArrowUpRight } from "lucide-react"
-import { useCategories } from "@/hooks/useCategories"
-import { useAuth } from "@/hooks"
-import { useAccounts } from "@/hooks/useAccounts"
-import { useEditTransactionDrawer } from "@/hooks"
-import { useUpdateTransactionMutation } from "@/hooks"
-import { AddCategory } from "./AddCategory"
-import { AddAccount } from "./AddAccount"
+"use client"
 
-export interface EditTransactionFormData {
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react"
+import { Drawer } from "vaul"
+import { X, Search, Check } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { useCategories, useAccounts, useAuth, useUpdateTransactionMutation } from "@/hooks"
+
+// ── Types ──────────────────────────────────────────────────
+type ActiveField = "type" | "amount" | "title" | "category" | "account" | null
+
+interface EditTransactionFormData {
   title: string
-  type: string
-  occurred_at: Date | undefined
+  type: "expense" | "income"
   amount: string
-  description: string
   category_id: string
   account_id: string
+  occurred_at?: Date
 }
 
 interface EditTransactionProps {
   trigger: React.ReactNode
   transaction: any
-  onClose?: () => void
   isOpen: boolean
   onOpenChange: (open: boolean) => void
+  onClose?: () => void
 }
 
-const accountIcon = (type: string) => {
-  if (type === "credit") return <CreditCard size={15} />
-  if (type === "cash" || type === "wallet") return <Wallet size={15} />
-  return <Building2 size={15} />
+// ── Helper: Sentence Token ─────────────────────────────────
+const SentenceToken = ({
+  value,
+  placeholder,
+  active,
+  onClick,
+  color = "text-white",
+  icon,
+}: {
+  value?: string
+  placeholder?: string
+  active: boolean
+  onClick: () => void
+  color?: string
+  icon?: string
+}) => {
+  return (
+    <span
+      onClick={onClick}
+      className={`inline-flex items-center cursor-pointer transition-colors border-b-2
+        ${active ? `border-white/40 ${color}` : `border-white/20 hover:border-white/40 ${value ? color : "text-white/30"}`}
+      `}
+      style={{ paddingBottom: "2px", position: "relative", top: "2px", borderBottomStyle: "dashed" }}
+    >
+      {icon && <span className="mr-1.5 text-xl relative -top-0.5">{icon}</span>}
+      {value || placeholder}
+    </span>
+  )
 }
 
-export const EditTransaction = ({
-  trigger,
-  transaction,
-  onClose,
-  isOpen,
-  onOpenChange,
-}: EditTransactionProps) => {
+export function EditTransaction({ trigger, transaction, isOpen, onOpenChange, onClose }: EditTransactionProps) {
   const { user } = useAuth()
-  const {
-    activeTab,
-    setActiveTab,
-    formData,
-    setFormData,
-    isSubmitDisabled,
-    isLoading,
-  } = useEditTransactionDrawer()
+  
+  const [form, setForm] = useState<EditTransactionFormData>({
+    title: "",
+    type: "expense",
+    amount: "",
+    category_id: "",
+    account_id: "",
+  })
+  
+  const [activeField, setActiveField] = useState<ActiveField>(null)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const titleInputRef = useRef<HTMLInputElement>(null)
+  const amountInputRef = useRef<HTMLInputElement>(null)
+  const [categorySearch, setCategorySearch] = useState("")
 
   const updateTransaction = useUpdateTransactionMutation()
 
-  const { data: categories, isLoading: categoriesLoading } = useCategories(user?.id!, undefined, !!user?.id)
-  const { accounts, isLoading: accountsLoading } = useAccounts(user?.id!)
+  const { data: categories, isLoading: catLoading } = useCategories(user?.id || "", undefined, !!user?.id)
+  const { accounts, isLoading: accLoading } = useAccounts(user?.id || "")
 
-  const filteredCategories = categories?.filter((cat: any) => cat.type === activeTab) || []
-
-  // Populate form when transaction changes or drawer opens
-  React.useEffect(() => {
+  // Populate form on open
+  useEffect(() => {
     if (transaction && isOpen) {
-      setFormData({
+      setForm({
         title: transaction.title || "",
         type: transaction.type || "expense",
-        occurred_at: transaction.occurred_at ? new Date(transaction.occurred_at) : undefined,
         amount: transaction.amount?.toString() || "",
-        description: transaction.description || "",
         category_id: transaction.category_id || "",
         account_id: transaction.account_id || "",
+        occurred_at: transaction.occurred_at ? new Date(transaction.occurred_at) : undefined,
       })
-      setActiveTab(transaction.type || "expense")
+      setActiveField(null)
+      setCategorySearch("")
     }
   }, [transaction, isOpen])
 
-  const handleFormSubmit = async () => {
+  // Filter categories by type
+  const filteredCategories = useMemo(() => {
+    if (!categories) return []
+    let list = categories.filter(c => c.type === form.type)
+    if (categorySearch) {
+      list = list.filter(c => c.name.toLowerCase().includes(categorySearch.toLowerCase()))
+    }
+    return list
+  }, [categories, form.type, categorySearch])
+
+  const selectedCategory = categories?.find(c => c.id === form.category_id)
+  const selectedAccount = accounts?.find(a => a.id === form.account_id)
+
+  const handleClose = useCallback(() => {
+    onOpenChange(false)
+    onClose?.()
+    setActiveField(null)
+  }, [onOpenChange, onClose])
+
+  // Focus management
+  useEffect(() => {
+    if (!isOpen) return
+    if (activeField === "amount") {
+      setTimeout(() => amountInputRef.current?.focus(), 100)
+    } else if (activeField === "title") {
+      setTimeout(() => titleInputRef.current?.focus(), 100)
+    }
+  }, [activeField, isOpen])
+
+  const handleFieldClick = (field: ActiveField) => {
+    setActiveField(activeField === field ? null : field)
+  }
+
+  const isSubmitDisabled = !form.title || !form.amount || !form.category_id || !form.account_id || Number(form.amount) <= 0
+
+  const handleSubmit = async () => {
+    if (isSubmitDisabled) return
+    setIsLoading(true)
     try {
       await updateTransaction.mutateAsync({
         id: transaction.id,
         data: {
-          title: formData.title,
-          amount: parseFloat(formData.amount) || 0,
-          type: activeTab,
-          category_id: formData.category_id,
-          account_id: formData.account_id,
-          occurred_at: formData.occurred_at
-            ? formData.occurred_at.toISOString()
-            : transaction.occurred_at,
-          description: formData.description || "",
+          title: form.title,
+          amount: parseFloat(form.amount),
+          type: form.type,
+          category_id: form.category_id,
+          account_id: form.account_id,
+          occurred_at: form.occurred_at ? form.occurred_at.toISOString() : transaction.occurred_at,
+          description: transaction.description,
           updated_at: new Date().toISOString(),
         },
       })
-      onOpenChange(false)
-      onClose?.()
-    } catch (error) {
-      console.error("Failed to update transaction:", error)
+      handleClose()
+    } catch (err) {
+      console.error("Failed to update transaction:", err)
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const isExpense = activeTab === "expense"
-  const submitDisabled =
-    !formData.title.trim() ||
-    !formData.amount.trim() ||
-    !formData.category_id ||
-    !formData.account_id ||
-    updateTransaction.isPending
+  const isExpense = form.type === "expense"
 
   return (
     <>
-      <div>{trigger}</div>
+      <div onClick={() => onOpenChange(true)}>{trigger}</div>
 
-      <Drawer.Root
-        open={isOpen}
-        onOpenChange={(open) => {
-          onOpenChange(open)
-          if (!open) onClose?.()
-        }}
-      >
+      <Drawer.Root open={isOpen} onOpenChange={(open) => (open ? onOpenChange(true) : handleClose())}>
         <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-black/30 z-50" />
-          <Drawer.Content className="bg-paper flex flex-col rounded-t-[28px] fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto focus:outline-none shadow-2xl max-h-[92vh]">
+          <Drawer.Overlay className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm" />
+          <Drawer.Content
+            className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto focus:outline-none"
+            style={{ background: "transparent" }}
+          >
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 40, opacity: 0 }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              className="rounded-t-[32px] overflow-hidden"
+              style={{
+                background: "linear-gradient(160deg, #0f0f10 0%, #141418 100%)",
+                boxShadow: "0 -8px 60px rgba(0,0,0,0.5)",
+              }}
+            >
+              {/* Drag handle */}
+              <div className="flex justify-center pt-3 pb-1">
+                <div className="w-10 h-1 rounded-full bg-white/15" />
+              </div>
 
-            {/* Handle */}
-            <div className="pt-4 pb-1 flex justify-center shrink-0">
-              <div className="w-10 h-1 rounded-full bg-line" />
-            </div>
+              {/* Top bar */}
+              <div className="flex items-center justify-between px-5 pt-2 pb-4">
+                <button
+                  onClick={handleClose}
+                  className="w-9 h-9 rounded-full bg-white/8 flex items-center justify-center active:scale-95 transition-transform"
+                >
+                  <X size={17} className="text-white/70" />
+                </button>
 
-            {/* Header */}
-            <div className="px-5 pb-3 shrink-0">
-              <Drawer.Title className="text-xl font-bold text-ink">Edit Transaction</Drawer.Title>
-              <p className="text-[11px] text-ms-muted font-medium mt-0.5">Update your transaction details</p>
-            </div>
+                <Drawer.Title className="text-sm font-bold text-white/50 uppercase tracking-[0.15em]">
+                  Edit Transaction
+                </Drawer.Title>
 
-            {/* Scrollable body */}
-            <div className="px-5 overflow-y-auto flex-1 space-y-5 pb-4">
+                <button
+                  onClick={handleSubmit}
+                  disabled={isSubmitDisabled || isLoading}
+                  className={`h-9 px-4 rounded-full text-sm font-bold transition-all active:scale-95
+                    ${isSubmitDisabled || isLoading
+                      ? "bg-white/10 text-white/30"
+                      : "bg-white text-black shadow-[0_2px_20px_rgba(255,255,255,0.15)]"
+                    }`}
+                >
+                  {isLoading ? "Saving…" : "Save"}
+                </button>
+              </div>
 
-              {/* Type Tabs */}
-              <div className="grid grid-cols-2 gap-2">
-                {(["expense", "income"] as const).map((type) => {
-                  const active = activeTab === type
-                  const isExp = type === "expense"
-                  return (
-                    <button
-                      key={type}
-                      onClick={() => {
-                        setActiveTab(type)
-                        setFormData({ ...formData, type, category_id: "" })
-                      }}
-                      className={`flex items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-bold border transition-all ${
-                        active
-                          ? isExp
-                            ? "bg-neg/10 text-neg border-neg/30"
-                            : "bg-pos/10 text-pos border-pos/30"
-                          : "bg-surface border-line text-ms-muted"
-                      }`}
+              {/* ── Sentence ─────────────────────────────────── */}
+              <div className="px-6 pb-2">
+                <p
+                  className="text-white text-[26px] font-bold leading-[1.45] tracking-tight"
+                  style={{ fontFamily: "inherit" }}
+                >
+                  {"I "}
+                  <SentenceToken
+                    value={isExpense ? "spent" : "received"}
+                    active={activeField === "type"}
+                    color="text-white"
+                    onClick={() => handleFieldClick("type")}
+                  />
+                  {" "}
+                  <SentenceToken
+                    value={form.amount ? `₹${Number(form.amount).toLocaleString("en-IN")}` : ""}
+                    placeholder="₹---"
+                    active={activeField === "amount"}
+                    color={isExpense ? "text-[#5B9CF6]" : "text-[#7EC8A4]"}
+                    onClick={() => handleFieldClick("amount")}
+                  />
+                  {isExpense ? " on " : " from "}
+                  <SentenceToken
+                    value={form.title}
+                    placeholder="---"
+                    active={activeField === "title"}
+                    color="text-white"
+                    onClick={() => handleFieldClick("title")}
+                  />
+                  {isExpense ? " for " : " as "}
+                  <SentenceToken
+                    value={selectedCategory?.name}
+                    placeholder="---"
+                    active={activeField === "category"}
+                    color="text-[#E8A44A]"
+                    icon={selectedCategory?.icon}
+                    onClick={() => handleFieldClick("category")}
+                  />
+                  {isExpense ? " from " : " to "}
+                  <SentenceToken
+                    value={selectedAccount?.name}
+                    placeholder="---"
+                    active={activeField === "account"}
+                    color={isExpense ? "text-[#7EC8A4]" : "text-[#5B9CF6]"}
+                    onClick={() => handleFieldClick("account")}
+                  />
+                  {"."}
+                </p>
+              </div>
+
+              {/* ── Field Panels ─────────────────────────────── */}
+              <div className="min-h-[240px]">
+                <AnimatePresence mode="wait">
+
+                  {/* Type panel */}
+                  {activeField === "type" && (
+                    <motion.div
+                      key="type"
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -15 }}
+                      transition={{ duration: 0.2 }}
+                      className="px-6 py-6"
                     >
-                      {isExp
-                        ? <ArrowDownRight size={15} className={active ? "text-neg" : "text-ms-muted"} />
-                        : <ArrowUpRight size={15} className={active ? "text-pos" : "text-ms-muted"} />
-                      }
-                      {isExp ? "Expense" : "Income"}
-                    </button>
-                  )
-                })}
-              </div>
-
-              {/* Amount */}
-              <div>
-                <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted mb-2">Amount</p>
-                <div className={`flex items-center bg-surface border rounded-2xl px-4 focus-within:border-ink/40 transition-colors ${
-                  isExpense ? "border-neg/25" : "border-pos/25"
-                }`}>
-                  <span className={`text-lg font-bold mr-2 ${isExpense ? "text-neg" : "text-pos"}`}>₹</span>
-                  <input
-                    type="number"
-                    placeholder="0"
-                    value={formData.amount}
-                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                    inputMode="decimal"
-                    className="flex-1 bg-transparent py-4 text-xl font-bold text-ink placeholder:text-ms-muted outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Title */}
-              <div>
-                <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted mb-2">Title</p>
-                <input
-                  type="text"
-                  placeholder="What did you spend on?"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full bg-surface border border-line rounded-2xl px-4 py-3.5 text-sm text-ink placeholder:text-ms-muted outline-none focus:border-ink/40 transition-colors"
-                />
-              </div>
-
-              {/* Date */}
-              <div>
-                <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted mb-2">Date</p>
-                <input
-                  type="datetime-local"
-                  value={
-                    formData.occurred_at
-                      ? new Date(formData.occurred_at.getTime() - formData.occurred_at.getTimezoneOffset() * 60000)
-                          .toISOString()
-                          .slice(0, 16)
-                      : ""
-                  }
-                  onChange={(e) =>
-                    setFormData({ ...formData, occurred_at: e.target.value ? new Date(e.target.value) : undefined })
-                  }
-                  className="w-full bg-surface border border-line rounded-2xl px-4 py-3.5 text-sm text-ink outline-none focus:border-ink/40 transition-colors"
-                />
-              </div>
-
-              {/* Category */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted">Category</p>
-                  <AddCategory
-                    trigger={
-                      <button className="text-[10px] font-semibold text-ms-muted flex items-center gap-0.5 active:opacity-70">
-                        <Plus size={11} /> New
-                      </button>
-                    }
-                  />
-                </div>
-
-                {categoriesLoading ? (
-                  <div className="grid grid-cols-4 gap-2">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="h-16 rounded-2xl bg-surface-alt animate-pulse" />
-                    ))}
-                  </div>
-                ) : filteredCategories.length > 0 ? (
-                  <div className="grid grid-cols-4 gap-2">
-                    {filteredCategories.map((cat: any) => {
-                      const selected = formData.category_id === cat.id
-                      return (
+                      <p className="text-xs font-bold text-white/40 uppercase tracking-widest mb-4">Transaction Type</p>
+                      <div className="flex gap-3">
                         <button
-                          key={cat.id}
-                          onClick={() => setFormData({ ...formData, category_id: cat.id })}
-                          className={`flex flex-col items-center gap-1.5 py-3 rounded-2xl border text-center transition-all active:scale-95 ${
-                            selected
-                              ? "bg-surface-alt border-ink/20"
-                              : "bg-surface border-line"
+                          onClick={() => {
+                            setForm({ ...form, type: "expense", category_id: "" })
+                            setActiveField("amount")
+                          }}
+                          className={`flex-1 py-4 rounded-2xl text-sm font-bold border transition-all ${
+                            isExpense ? "bg-[#5B9CF6]/20 border-[#5B9CF6]/50 text-[#5B9CF6]" : "bg-white/5 border-white/10 text-white/50"
                           }`}
                         >
-                          <span className="text-xl leading-none">{cat.icon}</span>
-                          <span className={`text-[10px] font-semibold leading-tight truncate w-full text-center px-1 ${
-                            selected ? "text-ink" : "text-ms-muted"
-                          }`}>
-                            {cat.name}
-                          </span>
+                          Spent (Expense)
                         </button>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <div className="bg-surface border border-line rounded-2xl py-6 text-center">
-                    <p className="text-xs text-ms-muted">No categories found</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Account */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted">Account</p>
-                  <AddAccount
-                    trigger={
-                      <button className="text-[10px] font-semibold text-ms-muted flex items-center gap-0.5 active:opacity-70">
-                        <Plus size={11} /> New
-                      </button>
-                    }
-                  />
-                </div>
-
-                {accountsLoading ? (
-                  <div className="grid grid-cols-2 gap-2">
-                    {[1, 2].map((i) => (
-                      <div key={i} className="h-12 rounded-2xl bg-surface-alt animate-pulse" />
-                    ))}
-                  </div>
-                ) : (accounts?.length ?? 0) > 0 ? (
-                  <div className="grid grid-cols-2 gap-2">
-                    {accounts?.map((acc: any) => {
-                      const selected = formData.account_id === acc.id
-                      return (
                         <button
-                          key={acc.id}
-                          onClick={() => setFormData({ ...formData, account_id: acc.id })}
-                          className={`flex items-center gap-2 px-3 py-3 rounded-2xl border transition-all active:scale-95 ${
-                            selected
-                              ? "bg-ink text-paper border-ink"
-                              : "bg-surface border-line text-ink"
+                          onClick={() => {
+                            setForm({ ...form, type: "income", category_id: "" })
+                            setActiveField("amount")
+                          }}
+                          className={`flex-1 py-4 rounded-2xl text-sm font-bold border transition-all ${
+                            !isExpense ? "bg-[#7EC8A4]/20 border-[#7EC8A4]/50 text-[#7EC8A4]" : "bg-white/5 border-white/10 text-white/50"
                           }`}
                         >
-                          <span className={selected ? "text-paper" : "text-ms-muted"}>
-                            {accountIcon(acc.type)}
-                          </span>
-                          <span className="text-sm font-semibold truncate">{acc.name}</span>
+                          Received (Income)
                         </button>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <div className="bg-surface border border-line rounded-2xl py-6 text-center">
-                    <p className="text-xs text-ms-muted">No accounts yet</p>
-                  </div>
-                )}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Amount panel */}
+                  {activeField === "amount" && (
+                    <motion.div
+                      key="amount"
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -15 }}
+                      transition={{ duration: 0.2 }}
+                      className="px-6 py-6"
+                    >
+                      <p className="text-xs font-bold text-white/40 uppercase tracking-widest mb-4">Enter Amount</p>
+                      <div className="flex items-center">
+                        <span className="text-4xl font-light text-white/30 mr-2">₹</span>
+                        <input
+                          ref={amountInputRef}
+                          type="number"
+                          inputMode="decimal"
+                          value={form.amount}
+                          onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                          onKeyDown={(e) => { if (e.key === "Enter") setActiveField("title") }}
+                          placeholder="0"
+                          className="bg-transparent text-5xl font-bold text-white placeholder:text-white/20 outline-none w-full"
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Title panel */}
+                  {activeField === "title" && (
+                    <motion.div
+                      key="title"
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -15 }}
+                      transition={{ duration: 0.2 }}
+                      className="px-6 py-6"
+                    >
+                      <p className="text-xs font-bold text-white/40 uppercase tracking-widest mb-4">
+                        {isExpense ? "What did you spend on?" : "Where did this come from?"}
+                      </p>
+                      <input
+                        ref={titleInputRef}
+                        type="text"
+                        value={form.title}
+                        onChange={(e) => setForm({ ...form, title: e.target.value })}
+                        onKeyDown={(e) => { if (e.key === "Enter" && form.title) setActiveField("category") }}
+                        placeholder={isExpense ? "e.g. Lunch, Uber, Groceries" : "e.g. Salary, Freelance"}
+                        className="bg-transparent text-3xl font-bold text-white placeholder:text-white/20 outline-none w-full border-b border-white/10 pb-2 focus:border-white/40 transition-colors"
+                      />
+                    </motion.div>
+                  )}
+
+                  {/* Category panel */}
+                  {activeField === "category" && (
+                    <motion.div
+                      key="category"
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -15 }}
+                      transition={{ duration: 0.2 }}
+                      className="px-6 py-6 flex flex-col h-[300px]"
+                    >
+                      <div className="relative mb-4 shrink-0">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                        <input
+                          type="text"
+                          placeholder="Search categories..."
+                          value={categorySearch}
+                          onChange={(e) => setCategorySearch(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder:text-white/40 outline-none focus:border-white/30 transition-colors"
+                        />
+                      </div>
+                      
+                      <div className="flex-1 overflow-y-auto scrollbar-hide pb-10 pr-2">
+                        {catLoading ? (
+                          <div className="flex items-center justify-center h-20 text-white/40 text-sm">Loading...</div>
+                        ) : filteredCategories.length > 0 ? (
+                          <div className="grid grid-cols-4 gap-3">
+                            {filteredCategories.map((cat) => {
+                              const selected = form.category_id === cat.id
+                              return (
+                                <button
+                                  key={cat.id}
+                                  onClick={() => {
+                                    setForm({ ...form, category_id: cat.id })
+                                    setActiveField("account")
+                                  }}
+                                  className={`relative flex flex-col items-center gap-1.5 py-3 rounded-2xl border text-center transition-all active:scale-95
+                                    ${selected
+                                      ? "bg-white/15 border-white/30 shadow-inner"
+                                      : "bg-white/5 border-white/5 hover:bg-white/10"
+                                    }`}
+                                >
+                                  {selected && (
+                                    <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white flex items-center justify-center shadow-md">
+                                      <Check size={10} className="text-black" />
+                                    </div>
+                                  )}
+                                  <span className="text-2xl leading-none">{cat.icon}</span>
+                                  <span className={`text-[10px] font-semibold leading-tight w-full truncate px-1 ${selected ? "text-white" : "text-white/60"}`}>
+                                    {cat.name}
+                                  </span>
+                                </button>
+                              )
+                            })}
+                          </div>
+                        ) : (
+                          <div className="text-center py-8 text-white/40 text-sm">No categories found.</div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Account panel */}
+                  {activeField === "account" && (
+                    <motion.div
+                      key="account"
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -15 }}
+                      transition={{ duration: 0.2 }}
+                      className="px-6 py-6"
+                    >
+                      <p className="text-xs font-bold text-white/40 uppercase tracking-widest mb-4">Select Account</p>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        {accLoading ? (
+                          <div className="col-span-2 flex items-center justify-center h-20 text-white/40 text-sm">Loading...</div>
+                        ) : accounts?.map((acc) => {
+                          const selected = form.account_id === acc.id
+                          return (
+                            <button
+                              key={acc.id}
+                              onClick={() => {
+                                setForm({ ...form, account_id: acc.id })
+                                setActiveField(null)
+                              }}
+                              className={`flex items-center gap-3 p-4 rounded-2xl border transition-all active:scale-95
+                                ${selected
+                                  ? "bg-white text-black border-white shadow-[0_4px_15px_rgba(255,255,255,0.1)]"
+                                  : "bg-white/5 border-white/10 hover:bg-white/10"
+                                }`}
+                            >
+                              <div className="flex-1 text-left min-w-0">
+                                <p className={`text-sm font-bold truncate ${selected ? "text-black" : "text-white"}`}>
+                                  {acc.name}
+                                </p>
+                              </div>
+                              {selected && <Check size={16} className="shrink-0" />}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+
+                </AnimatePresence>
               </div>
 
-              {/* Note */}
-              <div>
-                <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted mb-2">Note (optional)</p>
-                <input
-                  type="text"
-                  placeholder="Add a note…"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full bg-surface border border-line rounded-2xl px-4 py-3.5 text-sm text-ink placeholder:text-ms-muted outline-none focus:border-ink/40 transition-colors"
-                />
-              </div>
-
-            </div>
-
-            {/* Footer */}
-            <div className="px-5 pt-3 pb-8 border-t border-line shrink-0 flex gap-3">
-              <button
-                onClick={() => { onOpenChange(false); onClose?.() }}
-                className="flex-1 py-4 rounded-2xl text-sm font-semibold text-ink bg-surface-alt border border-line active:scale-95 transition-transform"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleFormSubmit}
-                disabled={submitDisabled}
-                className={`flex-1 py-4 rounded-2xl text-sm font-bold text-paper active:scale-95 transition-all disabled:opacity-40 ${
-                  isExpense ? "bg-neg" : "bg-pos"
-                }`}
-              >
-                {updateTransaction.isPending ? "Saving…" : "Save Changes"}
-              </button>
-            </div>
-
+              {/* Bottom padding for safe area */}
+              <div className="h-8" />
+            </motion.div>
           </Drawer.Content>
         </Drawer.Portal>
       </Drawer.Root>

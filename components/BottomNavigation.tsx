@@ -19,7 +19,7 @@ export default function BottomNavigation() {
   ]
 
   return (
-    <div className="h-[70px] flex items-center bg-paper border-t border-line relative z-[2]">
+    <div className="fixed bottom-0 left-0 right-0 h-[70px] flex items-center bg-paper border-t border-line z-10">
       <div className="max-w-md mx-auto flex items-center justify-between w-full px-6">
         <div className="flex items-center gap-6">
           {leftItems.map((item) => {
@@ -47,7 +47,7 @@ export default function BottomNavigation() {
         <div className="flex flex-col items-center justify-center pointer-events-auto">
           <AddExpense
             trigger={
-              <div className="w-[48px] h-[48px] bg-[#8B9DFE] rounded-full flex items-center justify-center shadow-md text-white cursor-pointer hover:scale-105 active:scale-95 transition-all">
+              <div className="w-[48px] h-[48px] bg-ms-accent rounded-full flex items-center justify-center shadow-md text-white cursor-pointer hover:scale-105 active:scale-95 transition-all">
                 <Plus size={24} strokeWidth={2.5} />
               </div>
             }

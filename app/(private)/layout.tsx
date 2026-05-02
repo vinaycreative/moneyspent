@@ -26,11 +26,14 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
   }
 
   return (
-    <div
-      className="h-svh grid grid-rows-[1fr_70px] min-w-[320px] max-w-[400px] mx-auto mobile-viewport bg-paper overflow-hidden"
+    <>
+    <main
+      className="h-[calc(100dvh-70px)] min-w-[320px] max-w-[400px] mx-auto mobile-viewport bg-paper mobile-scroll scrollbar-hide"
     >
-      <main className="overflow-y-auto mobile-scroll scrollbar-hide">{children}</main>
+      {/* <main className="overflow-y-auto mobile-scroll scrollbar-hide">{children}</main> */}
+      {children}
+    </main>
       <BottomNavigation />
-    </div>
+    </>
   )
 }
