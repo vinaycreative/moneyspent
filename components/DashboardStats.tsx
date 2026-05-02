@@ -25,7 +25,7 @@ export function DashboardStats({
     <div className="flex flex-col gap-4">
       {/* Selected Day Spend Card */}
 
-      <div className="relative bg-surface border border-line rounded-3xl p-5 shadow-sm overflow-hidden">
+      <div className="relative bg-surface border border-line rounded-3xl p-5  overflow-hidden">
         <div className="flex justify-between items-center mb-4">
           <span className="text-[10px] font-bold tracking-widest text-ms-muted uppercase">
             Spent {isToday ? "Today" : "on this day"}

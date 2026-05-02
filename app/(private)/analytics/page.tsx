@@ -16,7 +16,7 @@ export default function Analytics() {
 
   const [selectedDateRange, setSelectedDateRange] = useState<
     "all" | "today" | "week" | "month" | "year" | "custom"
-  >("all")
+  >("month")
   const [showDateFilter, setShowDateFilter] = useState(false)
   const [customStartDate, setCustomStartDate] = useState("")
   const [customEndDate, setCustomEndDate] = useState("")
@@ -95,7 +95,7 @@ export default function Analytics() {
           {/* Summary Cards */}
           <div className="grid grid-cols-2 gap-3">
             {/* Spent */}
-            <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm">
+            <div className="bg-surface border border-line rounded-2xl p-4 ">
               <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted mb-1.5">
                 Spent
               </p>
@@ -109,7 +109,7 @@ export default function Analytics() {
             </div>
 
             {/* Income */}
-            <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm">
+            <div className="bg-surface border border-line rounded-2xl p-4 ">
               <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted mb-1.5">
                 Income
               </p>
@@ -123,7 +123,7 @@ export default function Analytics() {
             </div>
 
             {/* Savings - full width */}
-            <div className="col-span-2 bg-surface border border-line rounded-2xl p-4 shadow-sm flex items-center justify-between">
+            <div className="col-span-2 bg-surface border border-line rounded-2xl p-4  flex items-center justify-between">
               <div>
                 <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted mb-1.5">
                   Save
@@ -197,7 +197,7 @@ export default function Analytics() {
                             `/analytics/${encodeURIComponent(cat.category.toLowerCase())}`,
                           )
                         }
-                        className="w-full bg-surface border border-line rounded-2xl p-4 shadow-sm active:bg-surface-alt transition-colors text-left"
+                        className="w-full bg-surface border border-line rounded-2xl p-4  active:bg-surface-alt transition-colors text-left"
                       >
                         {/* Content Header */}
                         <div className="flex items-center gap-4 mb-4">
@@ -210,7 +210,10 @@ export default function Analytics() {
                                 {cat.category.replace(/_/g, " ")}
                               </p>
                               <p className="text-base font-bold text-ink">
-                                ₹{Number(cat.amount).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+                                ₹
+                                {Number(cat.amount).toLocaleString("en-IN", {
+                                  maximumFractionDigits: 0,
+                                })}
                               </p>
                             </div>
                             <div className="flex justify-between items-center">
@@ -267,7 +270,7 @@ export default function Analytics() {
               </p>
             </div>
 
-            <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm space-y-2">
+            <div className="bg-surface border border-line rounded-2xl p-4  space-y-2">
               {trendBars.map((bar, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <span

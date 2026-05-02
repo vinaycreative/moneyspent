@@ -11,13 +11,13 @@ export interface InteractiveDrawerProps {
   onOpen?: () => void
   title: string
   trigger?: React.ReactNode
-  
+
   // Header Actions
   isSubmitDisabled?: boolean
   isLoading?: boolean
   onSubmit: () => void
   submitText?: React.ReactNode
-  
+
   // Content
   children: React.ReactNode
 }
@@ -33,9 +33,8 @@ export const InteractiveDrawer = ({
   isLoading,
   onSubmit,
   submitText = "Save",
-  children
+  children,
 }: InteractiveDrawerProps) => {
-
   const handleOpenChange = (open: boolean) => {
     if (open && onOpen) {
       onOpen()
@@ -87,12 +86,14 @@ export const InteractiveDrawer = ({
                       "h-9 px-4 rounded-full text-sm font-bold transition-all active:scale-95",
                       isSubmitDisabled || isLoading
                         ? "bg-surface-alt text-ms-muted"
-                        : "bg-ink text-paper shadow-sm"
+                        : "bg-ink text-paper ",
                     )}
                   >
                     {isLoading ? "Saving…" : submitText}
                   </button>
-                ) : <div className="w-9" />}
+                ) : (
+                  <div className="w-9" />
+                )}
               </div>
 
               {/* Content area */}

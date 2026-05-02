@@ -138,22 +138,22 @@ export default function SettingsPage() {
 
         {/* Stats Row */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-surface border border-line rounded-2xl p-4 text-center shadow-sm">
+          <div className="bg-surface border border-line rounded-2xl p-4 text-center ">
             <p className="text-xl font-black text-ink">{stats.logged}</p>
             <p className="text-[10px] text-ms-muted font-medium mt-1">Logged</p>
           </div>
-          <div className="bg-surface border border-line rounded-2xl p-4 text-center shadow-sm">
+          <div className="bg-surface border border-line rounded-2xl p-4 text-center ">
             <p className="text-xl font-black text-ink">{stats.streak}</p>
             <p className="text-[10px] text-ms-muted font-medium mt-1">Streak</p>
           </div>
-          <div className="bg-surface border border-line rounded-2xl p-4 text-center shadow-sm">
+          <div className="bg-surface border border-line rounded-2xl p-4 text-center ">
             <p className="text-xl font-black text-ink">{formatSaved(stats.saved)}</p>
             <p className="text-[10px] text-ms-muted font-medium mt-1">Saved</p>
           </div>
         </div>
 
         {/* Appearance Toggle */}
-        <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-surface border border-line rounded-2xl p-4  flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-surface-alt flex items-center justify-center">
               {theme === "dark" ? (
@@ -179,14 +179,14 @@ export default function SettingsPage() {
             style={{ background: theme === "dark" ? "var(--ms-accent)" : "var(--line-strong)" }}
           >
             <span
-              className="inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform"
+              className="inline-block h-5 w-5 rounded-full bg-white  transition-transform"
               style={{ transform: theme === "dark" ? "translateX(22px)" : "translateX(4px)" }}
             />
           </button>
         </div>
 
         {/* Accent Color */}
-        <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm">
+        <div className="bg-surface border border-line rounded-2xl p-4 ">
           <p className="text-sm font-bold text-ink mb-0.5">Accent Color</p>
           <p className="text-[11px] text-ms-muted font-medium mb-4">
             Choose Your App's Highlight Color
@@ -213,7 +213,7 @@ export default function SettingsPage() {
                 >
                   {accent === a.key && (
                     <div className="w-full h-full rounded-full flex items-center justify-center">
-                      <div className="w-2.5 h-2.5 rounded-full bg-white shadow-sm" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-white " />
                     </div>
                   )}
                 </div>
@@ -228,7 +228,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Settings List */}
-        <div className="bg-surface border border-line rounded-2xl overflow-hidden shadow-sm">
+        <div className="bg-surface border border-line rounded-2xl overflow-hidden ">
           {settingsItems.map((item, idx) => {
             const Icon = item.icon
             return (

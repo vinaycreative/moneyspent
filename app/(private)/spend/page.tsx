@@ -172,7 +172,7 @@ export default function Transactions() {
           <div className="flex items-center gap-2 mt-1">
             <AddExpense
               trigger={
-                <button className="h-9 px-3 rounded-full bg-surface border border-line flex items-center gap-1.5 transition-transform active:scale-95 shadow-sm text-ink hover:bg-surface-alt">
+                <button className="h-9 px-3 rounded-full bg-surface border border-line flex items-center gap-1.5 transition-transform active:scale-95  text-ink hover:bg-surface-alt">
                   <ArrowDownRight className="w-4 h-4 text-neg" />
                   <span className="text-[11px] font-bold">Add</span>
                 </button>
@@ -180,7 +180,7 @@ export default function Transactions() {
             />
             <AddIncome
               trigger={
-                <button className="h-9 px-3 rounded-full bg-surface border border-line flex items-center gap-1.5 transition-transform active:scale-95 shadow-sm text-ink hover:bg-surface-alt">
+                <button className="h-9 px-3 rounded-full bg-surface border border-line flex items-center gap-1.5 transition-transform active:scale-95  text-ink hover:bg-surface-alt">
                   <ArrowUpRight className="w-4 h-4 text-pos" />
                   <span className="text-[11px] font-bold">Add</span>
                 </button>
@@ -205,7 +205,7 @@ export default function Transactions() {
       <section className="pb-4 space-y-4">
         {/* Summary Cards */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm">
+          <div className="bg-surface border border-line rounded-2xl p-4 ">
             <div className="text-[9px] font-bold text-ms-muted uppercase tracking-[0.12em] mb-1.5">
               Spent
             </div>
@@ -213,7 +213,7 @@ export default function Transactions() {
               - ₹{totalExpenses.toLocaleString()}
             </div>
           </div>
-          <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm">
+          <div className="bg-surface border border-line rounded-2xl p-4 ">
             <div className="text-[9px] font-bold text-ms-muted uppercase tracking-[0.12em] mb-1.5">
               Earned
             </div>
@@ -241,12 +241,12 @@ export default function Transactions() {
           {/* View Toggle Icons */}
           <div className="flex items-center gap-2">
             {/* Type Filters */}
-            <div className="flex items-center bg-surface border border-line rounded-xl p-1 shadow-sm">
+            <div className="flex items-center bg-surface border border-line rounded-xl p-1 ">
               <button
                 onClick={() => setActiveType("all")}
                 className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
                   activeType === "all"
-                    ? "bg-surface-alt text-ink shadow-sm border border-line/50"
+                    ? "bg-surface-alt text-ink  border border-line/50"
                     : "text-ms-muted hover:bg-surface-alt hover:text-ink"
                 }`}
                 title="All Transactions"
@@ -278,12 +278,12 @@ export default function Transactions() {
             </div>
 
             {/* View Mode Toggle */}
-            <div className="flex items-center bg-surface border border-line rounded-xl p-1 shadow-sm">
+            <div className="flex items-center bg-surface border border-line rounded-xl p-1 ">
               <button
                 onClick={() => setViewMode("list")}
                 className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
                   viewMode === "list"
-                    ? "bg-surface-alt text-ink shadow-sm border border-line/50"
+                    ? "bg-surface-alt text-ink  border border-line/50"
                     : "text-ms-muted hover:text-ink"
                 }`}
                 title="List View"
@@ -294,7 +294,7 @@ export default function Transactions() {
                 onClick={() => setViewMode("calendar")}
                 className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
                   viewMode === "calendar"
-                    ? "bg-surface-alt text-ink shadow-sm border border-line/50"
+                    ? "bg-surface-alt text-ink  border border-line/50"
                     : "text-ms-muted hover:text-ink"
                 }`}
                 title="Calendar View"
@@ -313,7 +313,7 @@ export default function Transactions() {
             placeholder="Search transactions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-11 pr-10 py-3 rounded-2xl text-sm focus:outline-none bg-surface border border-line text-ink placeholder:text-ms-muted shadow-sm"
+            className="w-full pl-11 pr-10 py-3 rounded-2xl text-sm focus:outline-none bg-surface border border-line text-ink placeholder:text-ms-muted "
           />
           {searchQuery && (
             <button
@@ -342,7 +342,7 @@ export default function Transactions() {
                   <p className="text-xs font-medium">Loading transactions...</p>
                 </div>
               ) : Object.keys(groupedTransactions).length > 0 ? (
-                <div className="bg-surface border border-line rounded-2xl overflow-hidden shadow-sm">
+                <div className="bg-surface border border-line rounded-2xl overflow-hidden ">
                   {Object.keys(groupedTransactions)
                     .sort()
                     .reverse()
@@ -443,7 +443,7 @@ export default function Transactions() {
               <div>
                 <h3 className="text-base font-bold text-ink mb-3">Transactions</h3>
                 {transactionsForSelectedDate.length > 0 ? (
-                  <div className="bg-surface border border-line rounded-2xl overflow-hidden shadow-sm">
+                  <div className="bg-surface border border-line rounded-2xl overflow-hidden ">
                     {transactionsForSelectedDate.map((t) => (
                       <div
                         key={t.id}
@@ -485,7 +485,7 @@ export default function Transactions() {
                     ))}
                   </div>
                 ) : (
-                  <div className="bg-surface border border-line rounded-2xl p-8 text-center shadow-sm">
+                  <div className="bg-surface border border-line rounded-2xl p-8 text-center ">
                     <p className="text-xs text-ms-muted font-medium">
                       No transactions on this day
                     </p>

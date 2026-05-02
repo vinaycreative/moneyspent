@@ -37,7 +37,7 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  
+
   /* Custom MoneySpent tokens mapping */
   --color-paper: var(--paper);
   --color-surface: var(--surface);
@@ -62,38 +62,38 @@
   --radius: 0.625rem;
 
   /* Shadcn/Radix semantic vars — mapped to MoneySpent palette */
-  --background:         #faf9f5;
-  --foreground:         #161714;
-  --card:               #ffffff;
-  --card-foreground:    #161714;
-  --popover:            #ffffff;
+  --background: #faf9f5;
+  --foreground: #161714;
+  --card: #ffffff;
+  --card-foreground: #161714;
+  --popover: #ffffff;
   --popover-foreground: #161714;
-  --primary:            #161714;
+  --primary: #161714;
   --primary-foreground: #faf9f5;
-  --secondary:          #f1efe8;
+  --secondary: #f1efe8;
   --secondary-foreground: #161714;
-  --muted:              #f1efe8;
-  --muted-foreground:   #767469;
-  --accent:             #f1efe8;
-  --accent-foreground:  #161714;
-  --destructive:        #c93a3a;
-  --border:             #ece9df;
-  --input:              #ece9df;
-  --ring:               #0f8a55;
+  --muted: #f1efe8;
+  --muted-foreground: #767469;
+  --accent: #f1efe8;
+  --accent-foreground: #161714;
+  --destructive: #c93a3a;
+  --border: #ece9df;
+  --input: #ece9df;
+  --ring: #0f8a55;
 
   /* Custom MoneySpent tokens */
-  --paper:              #faf9f5;
-  --surface:            #ffffff;
-  --surface-alt:        #f1efe8;
-  --ink:                #161714;
-  --ms-muted:           #767469;
-  --line:               #ece9df;
-  --line-strong:        #ddd9cc;
-  --ms-accent:          #0f8a55;
-  --pos:                #0f8a55;
-  --neg:                #c93a3a;
-  --ms-warning:          #f4a261;
-  --card-shadow:        0 1px 0 rgba(20,20,14,.025), 0 2px 6px -2px rgba(20,20,14,.04);
+  --paper: #faf9f5;
+  --surface: #ffffff;
+  --surface-alt: #f1efe8;
+  --ink: #161714;
+  --ms-muted: #767469;
+  --line: #ece9df;
+  --line-strong: #ddd9cc;
+  --ms-accent: #0f8a55;
+  --pos: #0f8a55;
+  --neg: #c93a3a;
+  --ms-warning: #f4a261;
+  --card-shadow: 0 1px 0 rgba(20, 20, 14, 0.025), 0 2px 6px -2px rgba(20, 20, 14, 0.04);
 
   /* Charts */
   --chart-1: oklch(0.646 0.222 41.116);
@@ -103,50 +103,50 @@
   --chart-5: oklch(0.769 0.188 70.08);
 
   /* Sidebar */
-  --sidebar:                  #f1efe8;
-  --sidebar-foreground:       #161714;
-  --sidebar-primary:          #161714;
+  --sidebar: #f1efe8;
+  --sidebar-foreground: #161714;
+  --sidebar-primary: #161714;
   --sidebar-primary-foreground: #faf9f5;
-  --sidebar-accent:           #ece9df;
+  --sidebar-accent: #ece9df;
   --sidebar-accent-foreground: #161714;
-  --sidebar-border:           #ece9df;
-  --sidebar-ring:             #0f8a55;
+  --sidebar-border: #ece9df;
+  --sidebar-ring: #0f8a55;
 }
 
 /* ── Dark mode ── */
 .dark {
-  --background:         #0d0e0c;
-  --foreground:         #f1efe8;
-  --card:               #15171a;
-  --card-foreground:    #f1efe8;
-  --popover:            #15171a;
+  --background: #0d0e0c;
+  --foreground: #f1efe8;
+  --card: #15171a;
+  --card-foreground: #f1efe8;
+  --popover: #15171a;
   --popover-foreground: #f1efe8;
-  --primary:            #f1efe8;
+  --primary: #f1efe8;
   --primary-foreground: #0d0e0c;
-  --secondary:          #1d2024;
+  --secondary: #1d2024;
   --secondary-foreground: #f1efe8;
-  --muted:              #1d2024;
-  --muted-foreground:   #898981;
-  --accent:             #1d2024;
-  --accent-foreground:  #f1efe8;
-  --destructive:        #ee7d96;
-  --border:             #25282d;
-  --input:              #25282d;
-  --ring:               #3ab87f;
+  --muted: #1d2024;
+  --muted-foreground: #898981;
+  --accent: #1d2024;
+  --accent-foreground: #f1efe8;
+  --destructive: #ee7d96;
+  --border: #25282d;
+  --input: #25282d;
+  --ring: #3ab87f;
 
   /* Custom MoneySpent tokens */
-  --paper:              #0d0e0c;
-  --surface:            #15171a;
-  --surface-alt:        #1d2024;
-  --ink:                #f1efe8;
-  --ms-muted:           #898981;
-  --line:               #25282d;
-  --line-strong:        #34383e;
-  --ms-accent:          #3ab87f;
-  --pos:                #3ab87f;
-  --neg:                #ee7d96;
-  --ms-warning:          #f4a261;
-  --card-shadow:        0 1px 0 rgba(0,0,0,.2), 0 2px 6px -2px rgba(0,0,0,.4);
+  --paper: #0d0e0c;
+  --surface: #15171a;
+  --surface-alt: #1d2024;
+  --ink: #f1efe8;
+  --ms-muted: #898981;
+  --line: #25282d;
+  --line-strong: #34383e;
+  --ms-accent: #3ab87f;
+  --pos: #3ab87f;
+  --neg: #ee7d96;
+  --ms-warning: #f4a261;
+  --card-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 2px 6px -2px rgba(0, 0, 0, 0.4);
 
   /* Charts */
   --chart-1: oklch(0.488 0.243 264.376);
@@ -156,14 +156,14 @@
   --chart-5: oklch(0.645 0.246 16.439);
 
   /* Sidebar */
-  --sidebar:                  #15171a;
-  --sidebar-foreground:       #f1efe8;
-  --sidebar-primary:          #3ab87f;
+  --sidebar: #15171a;
+  --sidebar-foreground: #f1efe8;
+  --sidebar-primary: #3ab87f;
   --sidebar-primary-foreground: #0d0e0c;
-  --sidebar-accent:           #1d2024;
+  --sidebar-accent: #1d2024;
   --sidebar-accent-foreground: #f1efe8;
-  --sidebar-border:           #25282d;
-  --sidebar-ring:             #3ab87f;
+  --sidebar-border: #25282d;
+  --sidebar-ring: #3ab87f;
 }
 
 @layer base {
@@ -177,28 +177,61 @@
 
 /* ── Animations (MoneySpent design system) ── */
 @keyframes bar-rise {
-  from { transform: scaleY(0); opacity: 0; }
-  to   { transform: scaleY(1); opacity: 1; }
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
 }
 @keyframes cell-in {
-  from { transform: scale(.7); opacity: 0; }
-  to   { transform: scale(1);  opacity: 1; }
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 @keyframes dash-in {
-  to { stroke-dashoffset: 0; }
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 @keyframes pop {
-  0%   { transform: scale(0); opacity: 0; }
-  70%  { transform: scale(1.2); }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 @keyframes scan {
-  0%, 100% { top: 22%; }
-  50%       { top: 78%; }
+  0%,
+  100% {
+    top: 22%;
+  }
+  50% {
+    top: 78%;
+  }
 }
 @keyframes fade-rise {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ── Mobile utilities ── */
@@ -247,4 +280,8 @@
   .mobile-viewport {
     min-height: -webkit-fill-available;
   }
+}
+
+.custom-shadow {
+  box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
 }

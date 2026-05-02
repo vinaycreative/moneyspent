@@ -141,7 +141,7 @@ export default function AccountsPage() {
 
       <div className="flex flex-col gap-6">
         {/* Total Balance Card */}
-        <div className="bg-surface border border-line rounded-2xl p-5 shadow-sm">
+        <div className="bg-surface border border-line rounded-2xl p-5 ">
           <div className="flex items-center justify-between mb-2">
             <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-ms-muted">
               Total Balance
@@ -198,7 +198,7 @@ export default function AccountsPage() {
               ))}
             </div>
           ) : (activeAccounts?.length ?? 0) > 0 ? (
-            <div className="bg-surface border border-line rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-surface border border-line rounded-2xl overflow-hidden ">
               {activeAccounts?.map((account: ApiAccount, idx: number) => {
                 const Icon = getAccountIcon(account.type)
                 return (
@@ -267,7 +267,7 @@ export default function AccountsPage() {
           <h2 className="text-base font-bold text-ink mb-3">Quick Actions</h2>
           <AddAccount
             trigger={
-              <button className="w-36 bg-surface border border-line rounded-2xl p-4 text-left active:bg-surface-alt transition-colors shadow-sm">
+              <button className="w-36 bg-surface border border-line rounded-2xl p-4 text-left active:bg-surface-alt transition-colors ">
                 <Plus className="w-5 h-5 text-ink mb-2" />
                 <p className="text-sm font-bold text-ink">Add Account</p>
               </button>

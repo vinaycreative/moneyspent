@@ -875,17 +875,19 @@ export function CategoryFormContent({
       {/* Icon Selection */}
       <div className="space-y-2">
         <Label className="font-medium text-ink">Icon</Label>
-        <div
-          className="grid grid-cols-8 gap-2 max-h-32 overflow-y-auto rounded-xl p-3 border border-line bg-surface-alt"
-        >
+        <div className="grid grid-cols-8 gap-2 max-h-32 overflow-y-auto rounded-xl p-3 border border-line bg-surface-alt">
           {iconOptions.map((icon, index) => (
             <button
               key={index}
               onClick={() => handleInputChange("icon", icon)}
               className="w-8 h-8 rounded-lg flex items-center justify-center text-lg transition-colors"
               style={{
-                background: formData.icon === icon ? "color-mix(in oklab, var(--ms-accent) 20%, var(--surface))" : "transparent",
-                border: formData.icon === icon ? "2px solid var(--ms-accent)" : "2px solid transparent",
+                background:
+                  formData.icon === icon
+                    ? "color-mix(in oklab, var(--ms-accent) 20%, var(--surface))"
+                    : "transparent",
+                border:
+                  formData.icon === icon ? "2px solid var(--ms-accent)" : "2px solid transparent",
               }}
             >
               {icon}
@@ -909,7 +911,7 @@ export function CategoryFormContent({
               }}
             >
               {formData.color === color.value && (
-                <div className="w-4 h-4 bg-white rounded-full shadow-sm"></div>
+                <div className="w-4 h-4 bg-white rounded-full "></div>
               )}
             </button>
           ))}
@@ -919,11 +921,11 @@ export function CategoryFormContent({
       {/* Preview */}
       <div className="space-y-2">
         <Label className="font-medium text-ink">Preview</Label>
-        <div
-          className="rounded-xl p-4 bg-surface-alt border border-line"
-        >
+        <div className="rounded-xl p-4 bg-surface-alt border border-line">
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${formData.color} text-white text-lg`}>
+            <div
+              className={`w-10 h-10 rounded-lg flex items-center justify-center ${formData.color} text-white text-lg`}
+            >
               {formData.icon}
             </div>
             <div className="flex-1">

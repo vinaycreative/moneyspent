@@ -93,13 +93,16 @@ function HeroIllustration() {
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0)
   const [showSignIn, setShowSignIn] = useState(false)
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true)
 
   const nextStep = () => {
+    setIsAutoPlaying(true)
     if (currentStep < onboardingSteps.length - 1) setCurrentStep(currentStep + 1)
     else setShowSignIn(true)
   }
 
   const prevStep = () => {
+    setIsAutoPlaying(true)
     if (currentStep > 0) setCurrentStep(currentStep - 1)
   }
 
@@ -165,17 +168,42 @@ export default function OnboardingPage() {
             {onboardingSteps.map((_, i) => (
               <button
                 key={i}
-                onClick={() => setCurrentStep(i)}
+                onClick={() => {
+                  setIsAutoPlaying(true)
+                  setCurrentStep(i)
+                }}
+                className="relative overflow-hidden"
                 style={{
-                  width: i === currentStep ? 24 : 6,
+                  width: i === currentStep ? 32 : 6,
                   height: 6, borderRadius: 3,
-                  background: i === currentStep ? "var(--ink)"
-                    : i < currentStep ? "var(--ms-accent)"
-                    : "var(--surface-alt)",
-                  transition: "all .25s",
+                  background: i < currentStep ? "var(--ms-accent)" : "var(--surface-alt)",
+                  transition: "all .3s ease",
                   border: "none", cursor: "pointer", padding: 0,
                 }}
-              />
+              >
+                {i === currentStep && isAutoPlaying && (
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: "100%" }}
+                    transition={{ duration: 4, ease: "linear" }}
+                    className="absolute top-0 left-0 bottom-0"
+                    style={{ background: "var(--ink)" }}
+                    onAnimationComplete={() => {
+                      if (i < onboardingSteps.length - 1) {
+                        setCurrentStep(i + 1)
+                      } else {
+                        setIsAutoPlaying(false)
+                      }
+                    }}
+                  />
+                )}
+                {i === currentStep && !isAutoPlaying && (
+                  <div
+                    className="absolute top-0 left-0 bottom-0 w-full"
+                    style={{ background: "var(--ink)" }}
+                  />
+                )}
+              </button>
             ))}
           </div>
           <span className="text-sm font-medium text-ms-muted">

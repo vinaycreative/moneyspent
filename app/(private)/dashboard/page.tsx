@@ -14,7 +14,7 @@ export default function Dashboard() {
         rightComponent={
           <Link
             href="/settings"
-            className="w-10 h-10 rounded-full bg-surface border border-line flex items-center justify-center shadow-sm active:scale-95 transition-all text-ms-muted hover:text-ink"
+            className="w-10 h-10 rounded-full bg-surface border border-line flex items-center justify-center  active:scale-95 transition-all text-ms-muted hover:text-ink"
           >
             <Settings size={18} />
           </Link>

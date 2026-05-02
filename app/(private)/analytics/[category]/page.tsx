@@ -111,7 +111,7 @@ export default function CategoryPage() {
 
         <div className="space-y-6">
           {/* Trend Chart */}
-          <div className="bg-surface border border-line rounded-2xl p-5 shadow-sm">
+          <div className="bg-surface border border-line rounded-2xl p-5 ">
             <p className="text-[10px] font-bold text-ms-muted uppercase tracking-[0.12em] mb-5">
               {categoryLabel.toUpperCase()} Spend Trend
             </p>
@@ -161,7 +161,7 @@ export default function CategoryPage() {
                 ))}
               </div>
             ) : (transactions || []).length > 0 ? (
-              <div className="bg-surface border border-line rounded-2xl overflow-hidden shadow-sm">
+              <div className="bg-surface border border-line rounded-2xl overflow-hidden ">
                 {(transactions as any[]).map((t: any, idx: number) => (
                   <div
                     key={t.id}

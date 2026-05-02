@@ -54,11 +54,12 @@ export default function CategoriesSettingsPage() {
   }
 
   const renderCategoryGroup = (title: string | null, items: any[]) => {
-    if (!items || items.length === 0) return (
-      <div className="text-center py-10 px-6 bg-surface border border-line rounded-2xl shadow-sm">
-        <p className="text-ms-muted text-sm font-medium">No categories found.</p>
-      </div>
-    )
+    if (!items || items.length === 0)
+      return (
+        <div className="text-center py-10 px-6 bg-surface border border-line rounded-2xl ">
+          <p className="text-ms-muted text-sm font-medium">No categories found.</p>
+        </div>
+      )
     return (
       <div className="mb-8">
         {title && (
@@ -66,7 +67,7 @@ export default function CategoriesSettingsPage() {
             {title}
           </h2>
         )}
-        <div className="bg-surface border border-line rounded-2xl overflow-hidden shadow-sm">
+        <div className="bg-surface border border-line rounded-2xl overflow-hidden ">
           {items.map((category, idx) => {
             const isLast = idx === items.length - 1
             return (
@@ -80,7 +81,7 @@ export default function CategoriesSettingsPage() {
                 <div className="flex items-center gap-4">
                   <div
                     className={cn(
-                      "w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-sm border border-white/5",
+                      "w-10 h-10 rounded-xl flex items-center justify-center text-xl  border border-white/5",
                       getIconClass(category.color),
                     )}
                     style={getIconStyle(category.color)}
@@ -189,7 +190,7 @@ export default function CategoriesSettingsPage() {
                   onClick={() => setActiveTab(tab)}
                   className={cn(
                     "relative flex-1 py-3 text-sm font-bold rounded-full transition-colors z-10 capitalize",
-                    activeTab === tab ? "text-black" : "text-ms-muted hover:text-ink"
+                    activeTab === tab ? "text-black" : "text-ms-muted hover:text-ink",
                   )}
                 >
                   {activeTab === tab && (

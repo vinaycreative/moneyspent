@@ -58,18 +58,18 @@ export function CalendarView({ transactions, selectedDate, onDateSelect }: Calen
   }
 
   return (
-    <div className="bg-surface border border-line rounded-2xl overflow-hidden shadow-sm">
+    <div className="bg-surface border border-line rounded-2xl overflow-hidden ">
       {/* Month Navigation */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-line bg-surface-alt/30">
         <h3 className="font-bold text-sm text-ink">{currentMonth.format("MMMM YYYY")}</h3>
         <div className="flex gap-1">
-          <button 
+          <button
             onClick={prevMonth}
             className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-alt text-ms-muted hover:text-ink transition-colors active:scale-95"
           >
             <ChevronLeft size={18} />
           </button>
-          <button 
+          <button
             onClick={nextMonth}
             className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-alt text-ms-muted hover:text-ink transition-colors active:scale-95"
           >
@@ -81,8 +81,8 @@ export function CalendarView({ transactions, selectedDate, onDateSelect }: Calen
       {/* Day Headers */}
       <div className="grid grid-cols-7 border-b border-line">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, i) => (
-          <div 
-            key={day} 
+          <div
+            key={day}
             className={`text-center text-[10px] font-bold py-3 ${
               i === 0 ? "text-neg" : "text-ms-muted"
             }`}
@@ -111,24 +111,26 @@ export function CalendarView({ transactions, selectedDate, onDateSelect }: Calen
               key={dateStr}
               onClick={() => onDateSelect(day.toDate())}
               className={`h-16 flex flex-col items-center justify-start pt-2 transition-all relative border-b border-r border-line ${
-                isSelected
-                  ? "bg-surface-alt"
-                  : "hover:bg-surface-alt/50"
+                isSelected ? "bg-surface-alt" : "hover:bg-surface-alt/50"
               }`}
             >
               {/* Day Number */}
-              <span className={`
+              <span
+                className={`
                 text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full leading-none
                 ${isSelected ? "bg-ink text-paper" : isToday ? "text-ms-accent font-bold" : isSunday ? "text-neg" : "text-ink"}
-              `}>
+              `}
+              >
                 {day.date()}
               </span>
 
               {/* Amount Below */}
               {hasTransactions && (
-                <span className={`text-[9px] font-semibold mt-0.5 ${
-                  isSelected ? "text-ink/70" : "text-ms-muted"
-                }`}>
+                <span
+                  className={`text-[9px] font-semibold mt-0.5 ${
+                    isSelected ? "text-ink/70" : "text-ms-muted"
+                  }`}
+                >
                   {totals.expense > 0 ? formatAmount(totals.expense) : formatAmount(totals.income)}
                 </span>
               )}

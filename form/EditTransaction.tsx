@@ -27,9 +27,15 @@ interface EditTransactionProps {
   onClose?: () => void
 }
 
-export function EditTransaction({ trigger, transaction, isOpen, onOpenChange, onClose }: EditTransactionProps) {
+export function EditTransaction({
+  trigger,
+  transaction,
+  isOpen,
+  onOpenChange,
+  onClose,
+}: EditTransactionProps) {
   const { user } = useAuth()
-  
+
   const [form, setForm] = useState<EditTransactionFormData>({
     title: "",
     type: "expense",
@@ -37,7 +43,7 @@ export function EditTransaction({ trigger, transaction, isOpen, onOpenChange, on
     category_id: "",
     account_id: "",
   })
-  
+
   const [activeField, setActiveField] = useState<ActiveField>(null)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -47,7 +53,11 @@ export function EditTransaction({ trigger, transaction, isOpen, onOpenChange, on
 
   const updateTransaction = useUpdateTransactionMutation()
 
-  const { data: categories, isLoading: catLoading } = useCategories(user?.id || "", undefined, !!user?.id)
+  const { data: categories, isLoading: catLoading } = useCategories(
+    user?.id || "",
+    undefined,
+    !!user?.id,
+  )
   const { accounts, isLoading: accLoading } = useAccounts(user?.id || "")
 
   // Populate form on open
@@ -69,15 +79,15 @@ export function EditTransaction({ trigger, transaction, isOpen, onOpenChange, on
   // Filter categories by type
   const filteredCategories = useMemo(() => {
     if (!categories) return []
-    let list = categories.filter(c => c.type === form.type)
+    let list = categories.filter((c) => c.type === form.type)
     if (categorySearch) {
-      list = list.filter(c => c.name.toLowerCase().includes(categorySearch.toLowerCase()))
+      list = list.filter((c) => c.name.toLowerCase().includes(categorySearch.toLowerCase()))
     }
     return list
   }, [categories, form.type, categorySearch])
 
-  const selectedCategory = categories?.find(c => c.id === form.category_id)
-  const selectedAccount = accounts?.find(a => a.id === form.account_id)
+  const selectedCategory = categories?.find((c) => c.id === form.category_id)
+  const selectedAccount = accounts?.find((a) => a.id === form.account_id)
 
   const handleClose = useCallback(() => {
     onOpenChange(false)
@@ -99,7 +109,12 @@ export function EditTransaction({ trigger, transaction, isOpen, onOpenChange, on
     setActiveField(activeField === field ? null : field)
   }
 
-  const isSubmitDisabled = !form.title || !form.amount || !form.category_id || !form.account_id || Number(form.amount) <= 0
+  const isSubmitDisabled =
+    !form.title ||
+    !form.amount ||
+    !form.category_id ||
+    !form.account_id ||
+    Number(form.amount) <= 0
 
   const handleSubmit = async () => {
     if (isSubmitDisabled) return
@@ -156,8 +171,7 @@ export function EditTransaction({ trigger, transaction, isOpen, onOpenChange, on
             active={activeField === "type"}
             colorClass="text-ink"
             onClick={() => handleFieldClick("type")}
-          />
-          {" "}
+          />{" "}
           <SentenceToken
             value={form.amount ? `₹${Number(form.amount).toLocaleString("en-IN")}` : ""}
             placeholder="₹---"
@@ -201,7 +215,6 @@ export function EditTransaction({ trigger, transaction, isOpen, onOpenChange, on
       {/* ── Field Panels ─────────────────────────────── */}
       <div className="min-h-[240px]">
         <AnimatePresence mode="wait">
-
           {/* Type panel */}
           {activeField === "type" && (
             <motion.div
@@ -212,7 +225,9 @@ export function EditTransaction({ trigger, transaction, isOpen, onOpenChange, on
               transition={{ duration: 0.2 }}
               className="px-6 py-6"
             >
-              <p className="text-xs font-bold text-ms-muted uppercase tracking-widest mb-4">Transaction Type</p>
+              <p className="text-xs font-bold text-ms-muted uppercase tracking-widest mb-4">
+                Transaction Type
+              </p>
               <div className="flex gap-3">
                 <button
                   onClick={() => {
@@ -220,7 +235,9 @@ export function EditTransaction({ trigger, transaction, isOpen, onOpenChange, on
                     setActiveField("amount")
                   }}
                   className={`flex-1 py-4 rounded-2xl text-sm font-bold border transition-all ${
-                    isExpense ? "bg-neg/10 border-neg/30 text-neg shadow-sm" : "bg-surface border-line text-ms-muted hover:bg-surface-alt"
+                    isExpense
+                      ? "bg-neg/10 border-neg/30 text-neg "
+                      : "bg-surface border-line text-ms-muted hover:bg-surface-alt"
                   }`}
                 >
                   Spent (Expense)
@@ -231,7 +248,9 @@ export function EditTransaction({ trigger, transaction, isOpen, onOpenChange, on
                     setActiveField("amount")
                   }}
                   className={`flex-1 py-4 rounded-2xl text-sm font-bold border transition-all ${
-                    !isExpense ? "bg-pos/10 border-pos/30 text-pos shadow-sm" : "bg-surface border-line text-ms-muted hover:bg-surface-alt"
+                    !isExpense
+                      ? "bg-pos/10 border-pos/30 text-pos "
+                      : "bg-surface border-line text-ms-muted hover:bg-surface-alt"
                   }`}
                 >
                   Received (Income)
@@ -250,21 +269,30 @@ export function EditTransaction({ trigger, transaction, isOpen, onOpenChange, on
               transition={{ duration: 0.2 }}
               className="px-6 py-6"
             >
-              <p className="text-xs font-bold text-ms-muted uppercase tracking-widest mb-4">Enter Amount</p>
+              <p className="text-xs font-bold text-ms-muted uppercase tracking-widest mb-4">
+                Enter Amount
+              </p>
               <div className="flex items-center gap-2 bg-surface-alt rounded-2xl px-4 py-3 border border-line focus-within:border-ink/50 transition-colors">
-                <span className={`text-2xl font-bold ${isExpense ? "text-neg" : "text-pos"}`}>₹</span>
+                <span className={`text-2xl font-bold ${isExpense ? "text-neg" : "text-pos"}`}>
+                  ₹
+                </span>
                 <input
                   ref={amountInputRef}
                   type="number"
                   inputMode="decimal"
                   value={form.amount}
                   onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                  onKeyDown={(e) => { if (e.key === "Enter") setActiveField("title") }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") setActiveField("title")
+                  }}
                   placeholder="0"
                   className="flex-1 bg-transparent text-2xl font-bold text-ink placeholder:text-ms-muted outline-none w-full"
                 />
                 {form.amount && (
-                  <button onClick={() => setForm({ ...form, amount: "" })} className="text-ms-muted hover:text-ink">
+                  <button
+                    onClick={() => setForm({ ...form, amount: "" })}
+                    className="text-ms-muted hover:text-ink"
+                  >
                     <X size={15} />
                   </button>
                 )}
@@ -291,12 +319,19 @@ export function EditTransaction({ trigger, transaction, isOpen, onOpenChange, on
                   type="text"
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  onKeyDown={(e) => { if (e.key === "Enter" && form.title) setActiveField("category") }}
-                  placeholder={isExpense ? "e.g. Lunch, Uber, Groceries" : "e.g. Salary, Freelance"}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && form.title) setActiveField("category")
+                  }}
+                  placeholder={
+                    isExpense ? "e.g. Lunch, Uber, Groceries" : "e.g. Salary, Freelance"
+                  }
                   className="flex-1 bg-transparent text-base font-semibold text-ink placeholder:text-ms-muted outline-none w-full"
                 />
                 {form.title && (
-                  <button onClick={() => setForm({ ...form, title: "" })} className="text-ms-muted hover:text-ink">
+                  <button
+                    onClick={() => setForm({ ...form, title: "" })}
+                    className="text-ms-muted hover:text-ink"
+                  >
                     <X size={15} />
                   </button>
                 )}
@@ -324,10 +359,12 @@ export function EditTransaction({ trigger, transaction, isOpen, onOpenChange, on
                   className="w-full bg-surface border border-line rounded-xl pl-10 pr-4 py-3 text-sm text-ink placeholder:text-ms-muted outline-none focus:border-ink/30 transition-colors"
                 />
               </div>
-              
+
               <div className="flex-1 overflow-y-auto scrollbar-hide pr-2">
                 {catLoading ? (
-                  <div className="flex items-center justify-center h-40 text-ms-muted text-sm">Loading...</div>
+                  <div className="flex items-center justify-center h-40 text-ms-muted text-sm">
+                    Loading...
+                  </div>
                 ) : filteredCategories.length > 0 ? (
                   <div className="grid grid-cols-4 gap-3">
                     {filteredCategories.map((cat) => {
@@ -340,9 +377,10 @@ export function EditTransaction({ trigger, transaction, isOpen, onOpenChange, on
                             setActiveField("account")
                           }}
                           className={`relative flex flex-col items-center gap-1.5 py-3 rounded-2xl border text-center transition-all active:scale-95
-                            ${selected
-                              ? "bg-orange-500/10 border-orange-500/30 shadow-sm"
-                              : "bg-surface border-line hover:bg-surface-alt"
+                            ${
+                              selected
+                                ? "bg-orange-500/10 border-orange-500/30 "
+                                : "bg-surface border-line hover:bg-surface-alt"
                             }`}
                         >
                           {selected && (
@@ -351,7 +389,9 @@ export function EditTransaction({ trigger, transaction, isOpen, onOpenChange, on
                             </div>
                           )}
                           <span className="text-2xl leading-none">{cat.icon}</span>
-                          <span className={`text-[10px] font-semibold leading-tight w-full truncate px-1 ${selected ? "text-orange-500" : "text-ms-muted"}`}>
+                          <span
+                            className={`text-[10px] font-semibold leading-tight w-full truncate px-1 ${selected ? "text-orange-500" : "text-ms-muted"}`}
+                          >
                             {cat.name}
                           </span>
                         </button>
@@ -359,7 +399,9 @@ export function EditTransaction({ trigger, transaction, isOpen, onOpenChange, on
                     })}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-ms-muted text-sm">No categories found.</div>
+                  <div className="text-center py-8 text-ms-muted text-sm">
+                    No categories found.
+                  </div>
                 )}
               </div>
             </motion.div>
@@ -375,39 +417,47 @@ export function EditTransaction({ trigger, transaction, isOpen, onOpenChange, on
               transition={{ duration: 0.2 }}
               className="px-6 py-6"
             >
-              <p className="text-xs font-bold text-ms-muted uppercase tracking-widest mb-4">Select Account</p>
-              
+              <p className="text-xs font-bold text-ms-muted uppercase tracking-widest mb-4">
+                Select Account
+              </p>
+
               <div className="grid grid-cols-2 gap-3">
                 {accLoading ? (
-                  <div className="col-span-2 flex items-center justify-center h-20 text-ms-muted text-sm">Loading...</div>
-                ) : accounts?.map((acc) => {
-                  const selected = form.account_id === acc.id
-                  return (
-                    <button
-                      key={acc.id}
-                      onClick={() => {
-                        setForm({ ...form, account_id: acc.id })
-                        setActiveField(null)
-                      }}
-                      className={`flex items-center gap-3 p-4 rounded-2xl border transition-all active:scale-95
-                        ${selected
-                          ? "bg-blue-500/10 border-blue-500/30 shadow-sm text-blue-500"
-                          : "bg-surface border-line text-ms-muted hover:bg-surface-alt"
+                  <div className="col-span-2 flex items-center justify-center h-20 text-ms-muted text-sm">
+                    Loading...
+                  </div>
+                ) : (
+                  accounts?.map((acc) => {
+                    const selected = form.account_id === acc.id
+                    return (
+                      <button
+                        key={acc.id}
+                        onClick={() => {
+                          setForm({ ...form, account_id: acc.id })
+                          setActiveField(null)
+                        }}
+                        className={`flex items-center gap-3 p-4 rounded-2xl border transition-all active:scale-95
+                        ${
+                          selected
+                            ? "bg-blue-500/10 border-blue-500/30  text-blue-500"
+                            : "bg-surface border-line text-ms-muted hover:bg-surface-alt"
                         }`}
-                    >
-                      <div className="flex-1 text-left min-w-0">
-                        <p className={`text-sm font-bold truncate ${selected ? "text-blue-500" : "text-ink"}`}>
-                          {acc.name}
-                        </p>
-                      </div>
-                      {selected && <CheckCircle2 size={16} className="shrink-0 text-blue-500" />}
-                    </button>
-                  )
-                })}
+                      >
+                        <div className="flex-1 text-left min-w-0">
+                          <p
+                            className={`text-sm font-bold truncate ${selected ? "text-blue-500" : "text-ink"}`}
+                          >
+                            {acc.name}
+                          </p>
+                        </div>
+                        {selected && <CheckCircle2 size={16} className="shrink-0 text-blue-500" />}
+                      </button>
+                    )
+                  })
+                )}
               </div>
             </motion.div>
           )}
-
         </AnimatePresence>
       </div>
     </InteractiveDrawer>

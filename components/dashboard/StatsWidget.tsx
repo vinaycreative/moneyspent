@@ -112,7 +112,7 @@ const StatsWidget = () => {
     <section className="h-full grid grid-rows-[auto_1fr] space-y-4 overflow-hidden">
       <div className="space-y-3">
         {/* Date Navigator */}
-        <div className="bg-surface border border-line rounded-2xl px-3 py-3.5 flex items-center justify-between shadow-sm">
+        <div className="bg-surface border border-line rounded-2xl px-3 py-3.5 flex items-center justify-between ">
           <button
             onClick={goToPreviousDate}
             className="w-8 h-8 rounded-xl flex items-center justify-center active:bg-surface-alt transition-colors"
@@ -164,14 +164,14 @@ const StatsWidget = () => {
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-ink">Transactions</h2>
           <Link
-            href="/transactions"
+            href="/spend"
             className="text-[11px] font-semibold text-ms-muted flex items-center gap-0.5 active:opacity-70 transition-opacity"
           >
             View all <ChevRight size={13} />
           </Link>
         </div>
 
-        <div className="bg-surface border border-line rounded-2xl h-full overflow-hidden shadow-sm relative">
+        <div className="bg-surface border border-line rounded-2xl h-full overflow-hidden relative">
           <AnimatePresence mode="wait">
             {transactionsLoading ? (
               <motion.div
@@ -208,7 +208,11 @@ const StatsWidget = () => {
                     key={t.id}
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: Math.min(idx, 15) * 0.05, duration: 0.3, ease: "easeOut" }}
+                    transition={{
+                      delay: Math.min(idx, 15) * 0.05,
+                      duration: 0.3,
+                      ease: "easeOut",
+                    }}
                     className={`flex items-center gap-3 px-4 py-3.5 transition-colors active:bg-surface-alt ${
                       idx < transactionsForSelectedDate.length - 1 ? "border-b border-line" : ""
                     }`}
