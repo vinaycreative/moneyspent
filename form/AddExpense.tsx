@@ -61,8 +61,8 @@ const SentenceToken = ({
 }) => (
   <button
     onClick={onClick}
-    className={`inline-flex items-center gap-1 font-bold transition-all duration-200 border-b-2 border-dashed
-      ${active ? "border-white/60 scale-105" : "border-white/25"}
+    className={`inline-flex items-center gap-1 font-bold transition-all duration-200 border-b-2 border-dashed rounded-lg px-2 py-0.5 mx-0.5
+      ${active ? "border-white/60 bg-white/10 scale-105" : "border-white/25 bg-white/5 hover:bg-white/10 hover:border-white/40"}
       ${value ? color : "text-white/40"}
     `}
     style={{ lineHeight: 1.3 }}
@@ -259,7 +259,7 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
               </div>
 
               {/* ── Field Panels ─────────────────────────────── */}
-              <div className="min-h-[240px]">
+              <div className="min-h-[280px]">
                 <AnimatePresence mode="wait">
 
                 {/* Amount panel */}
@@ -397,7 +397,7 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
                         ))}
                       </div>
                     ) : categories.length > 0 ? (
-                      <div className="grid grid-cols-4 gap-2 max-h-44 overflow-y-auto pb-1">
+                      <div className="grid grid-cols-4 gap-2 max-h-58 overflow-y-auto pb-1">
                         {categories.map((cat: any) => {
                           const selected = form.categoryId === cat.id
                           return (
@@ -505,9 +505,6 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
 
                 </AnimatePresence>
               </div>
-
-              {/* Bottom padding for safe area */}
-              <div className="h-8" />
             </motion.div>
           </Drawer.Content>
         </Drawer.Portal>
