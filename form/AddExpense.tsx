@@ -161,7 +161,7 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
       isSubmitDisabled={isSubmitDisabled}
       isLoading={isLoading}
       onSubmit={handleSubmit}
-      submitText="Save"
+      showSubmit={false}
     >
       {/* ── Sentence ─────────────────────────────────── */}
       <div className="px-6 pb-2">
@@ -211,7 +211,7 @@ export const AddExpense = ({ trigger, onSuccess }: AddExpenseProps) => {
       </div>
 
       {/* ── Field Panels ─────────────────────────────── */}
-      <div className="min-h-[280px]">
+      <div className="flex-1 flex flex-col">
         <AnimatePresence mode="wait">
           {/* Amount panel */}
           {activeField === "amount" && (

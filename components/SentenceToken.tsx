@@ -21,15 +21,14 @@ export const SentenceToken = ({
   <button
     onClick={onClick}
     className={cn(
-      "inline-flex items-center gap-1 font-bold transition-all duration-200 border-b-2 border-dashed rounded-lg px-2 py-0.5 mx-0.5",
+      "inline-flex items-center gap-1.5 font-bold transition-all duration-200 border-b-2 rounded-lg px-2 py-0.5 mx-0.5 whitespace-nowrap",
       active 
-        ? "border-ink/60 bg-surface-alt scale-105" 
-        : "border-line bg-surface hover:bg-surface-alt",
-      value ? colorClass : "text-ms-muted"
+        ? "border-ms-accent bg-ms-accent/10 scale-[1.02] text-ms-accent shadow-sm" 
+        : cn("border-dashed border-line bg-surface/50 hover:bg-surface-alt", !value ? "text-ms-muted/40" : colorClass)
     )}
     style={{ lineHeight: 1.3 }}
   >
-    {icon && value && <span className="text-xl leading-none">{icon}</span>}
+    {icon && value && <span className="text-xl leading-none shrink-0">{icon}</span>}
     <span>{value || placeholder}</span>
   </button>
 )

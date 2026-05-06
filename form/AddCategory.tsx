@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, FolderPlus } from "lucide-react"
+import { X, FolderPlus, CheckCircle2 } from "lucide-react"
 import { useAddEditCategoryDrawer } from "@/hooks"
 import { InteractiveDrawer } from "@/components/InteractiveDrawer"
 import { SentenceToken } from "@/components/SentenceToken"
@@ -1576,7 +1576,7 @@ export const AddCategory = ({ trigger }: { trigger: React.ReactNode }) => {
       isSubmitDisabled={isSubmitDisabled}
       isLoading={isLoading}
       onSubmit={handleFormSubmit}
-      submitText="Save"
+      showSubmit={false}
     >
       {/* ── Sentence ─────────────────────────────────── */}
       <div className="px-6 pb-2">
@@ -1625,7 +1625,7 @@ export const AddCategory = ({ trigger }: { trigger: React.ReactNode }) => {
       </div>
 
       {/* ── Field Panels ─────────────────────────────── */}
-      <div className="min-h-[260px]">
+      <div className="flex-1 flex flex-col">
         <AnimatePresence mode="wait">
           {/* Type panel */}
           {activeField === "kind" && (
@@ -1809,51 +1809,56 @@ export const AddCategory = ({ trigger }: { trigger: React.ReactNode }) => {
             </motion.div>
           )}
 
-          {/* Preview panel */}
-          {!activeField && formData.name && formData.icon && formData.color && (
-            <motion.div
-              key="preview"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.2 }}
-              className="px-6 py-6 flex flex-col items-center justify-center"
-            >
-              <div className="flex flex-col items-center gap-3">
-                <div
-                  className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl shadow-lg border border-line/20"
-                  style={{ backgroundColor: formData.color }}
-                >
-                  {formData.icon}
-                </div>
-                <div className="text-center">
-                  <p className="text-ink font-bold text-xl">{formData.name}</p>
-                  <p className="text-ms-muted text-[10px] font-bold uppercase tracking-widest mt-1">
-                    {formData.kind}
-                  </p>
-                </div>
-              </div>
-
-              <button
-                onClick={handleFormSubmit}
-                disabled={isSubmitDisabled || isLoading}
-                className={`mt-8 w-full max-w-[220px] h-12 rounded-full font-bold transition-all active:scale-95 flex items-center justify-center gap-2
-                  ${
-                    isSubmitDisabled || isLoading
-                      ? "bg-surface-alt text-ms-muted"
-                      : "bg-ink text-paper shadow-[0_4px_20px_rgba(0,0,0,0.1)]"
-                  }`}
+            {/* Summary / Save panel */}
+            {activeField === null && (
+              <motion.div
+                key="summary"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="px-5 pt-12 pb-6 flex flex-col items-center justify-end min-h-[240px]"
               >
-                {isLoading ? (
-                  "Saving..."
-                ) : (
-                  <>
-                    <FolderPlus size={18} /> Save Category
-                  </>
-                )}
-              </button>
-            </motion.div>
-          )}
+                <div className="flex flex-col items-center gap-3 mb-10">
+                  <div
+                    className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl shadow-lg border border-line/20"
+                    style={{ backgroundColor: formData.color }}
+                  >
+                    {formData.icon}
+                  </div>
+                  <div className="text-center">
+                    <p className="text-ink font-bold text-xl">{formData.name}</p>
+                    <p className="text-ms-muted text-[10px] font-bold uppercase tracking-widest mt-1">
+                      {formData.kind}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleFormSubmit}
+                  disabled={isSubmitDisabled || isLoading}
+                  className="w-full py-4.5 rounded-[22px] bg-ink text-paper font-bold text-lg shadow-xl active:scale-[0.98] transition-all disabled:opacity-40 flex items-center justify-center gap-3"
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-paper/30 border-t-paper rounded-full animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 size={22} />
+                      <span>Save Category</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => setActiveField("name")}
+                  className="mt-5 text-sm font-semibold text-ms-muted hover:text-ink transition-colors"
+                >
+                  Wait, I need to edit something
+                </button>
+              </motion.div>
+            )}
         </AnimatePresence>
       </div>
     </InteractiveDrawer>

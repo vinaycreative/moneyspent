@@ -17,6 +17,7 @@ export interface InteractiveDrawerProps {
   isLoading?: boolean
   onSubmit: () => void
   submitText?: React.ReactNode
+  showSubmit?: boolean
 
   // Content
   children: React.ReactNode
@@ -33,41 +34,43 @@ export const InteractiveDrawer = ({
   isLoading,
   onSubmit,
   submitText = "Save",
+  showSubmit = true,
   children,
 }: InteractiveDrawerProps) => {
   const { isKeyboardVisible } = useMobileKeyboard()
 
   const handleOpenChange = (open: boolean) => {
-    if (open && onOpen) {
-      onOpen()
+    if (open) {
+      if (onOpen) onOpen()
+      onOpenChange(true)
+    } else {
+      onOpenChange(false)
+      onClose()
     }
-    onOpenChange(open)
   }
 
   return (
     <>
       {trigger && <div onClick={() => handleOpenChange(true)}>{trigger}</div>}
 
-      <Drawer.Root open={isOpen} onOpenChange={handleOpenChange} shouldScaleBackground>
+      <Drawer.Root 
+        open={isOpen} 
+        onOpenChange={handleOpenChange}
+        repositionInputs={false} // We handle this manually for better control
+      >
         <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm" />
+          <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[9998] backdrop-blur-sm" />
           <Drawer.Content
-            className={cn(
-              "fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto focus:outline-none flex flex-col",
-              "transition-all duration-300 ease-in-out"
-            )}
-            style={{ 
-              maxHeight: isKeyboardVisible ? 'calc(100dvh - 20px)' : '96dvh'
-            }}
+            className="flex flex-col bg-paper rounded-t-[32px] h-full max-h-[96dvh] fixed bottom-0 left-0 right-0 z-[9998] max-w-md mx-auto focus:outline-none"
           >
-            <div className="rounded-t-[32px] overflow-hidden bg-paper shadow-[0_-8px_60px_rgba(0,0,0,0.15)] dark:shadow-[0_-8px_60px_rgba(0,0,0,0.5)] border border-line flex flex-col h-full">
+            <div className="flex flex-col h-full w-full overflow-hidden rounded-t-[32px] border border-line relative">
               {/* Drag handle */}
-              <div className="flex justify-center pt-3 pb-1 shrink-0">
-                <div className="w-10 h-1 rounded-full bg-ink/10 dark:bg-white/15" />
+              <div className="pt-3 flex justify-center shrink-0">
+                <div className="w-10 h-1 rounded-full bg-line-strong" />
               </div>
 
               {/* Top bar */}
-              <div className="flex items-center justify-between px-5 pt-2 pb-4 shrink-0">
+              <div className="flex items-center justify-between px-5 pt-2 pb-4 shrink-0 bg-paper z-10">
                 <button
                   onClick={onClose}
                   className="w-9 h-9 rounded-full bg-surface-alt flex items-center justify-center active:scale-95 transition-transform"
@@ -75,11 +78,11 @@ export const InteractiveDrawer = ({
                   <X size={17} className="text-ms-muted" />
                 </button>
 
-                <Drawer.Title className="text-sm font-bold text-ms-muted uppercase tracking-[0.15em]">
+                <Drawer.Title className="text-[11px] font-bold text-ms-muted uppercase tracking-[0.2em] opacity-70">
                   {title}
                 </Drawer.Title>
 
-                {submitText ? (
+                {showSubmit && submitText ? (
                   <button
                     onClick={onSubmit}
                     disabled={isSubmitDisabled || isLoading}
@@ -97,8 +100,8 @@ export const InteractiveDrawer = ({
                 )}
               </div>
 
-              {/* Content area - scrollable if needed */}
-              <div className="overflow-y-auto flex-1 pb-safe">
+              {/* Scrollable Content Area */}
+              <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide pb-safe">
                 {children}
               </div>
             </div>
