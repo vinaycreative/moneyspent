@@ -458,6 +458,42 @@ export function EditTransaction({
               </div>
             </motion.div>
           )}
+
+          {/* Summary / Save panel */}
+          {activeField === null && (
+            <motion.div
+              key="summary"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="px-5 pt-12 pb-6 flex flex-col items-center justify-end min-h-[240px]"
+            >
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitDisabled || isLoading}
+                className="w-full py-4.5 rounded-[22px] bg-ink text-paper font-bold text-lg shadow-xl active:scale-[0.98] transition-all disabled:opacity-40 flex items-center justify-center gap-3"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-paper/30 border-t-paper rounded-full animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 size={22} />
+                    <span>Save Changes</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={() => setActiveField("amount")}
+                className="mt-5 text-sm font-semibold text-ms-muted hover:text-ink transition-colors"
+              >
+                Wait, I need to edit something
+              </button>
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     </InteractiveDrawer>

@@ -8,6 +8,7 @@ import { useAccounts } from "@/hooks/useAccounts"
 import { useAddTransactionDrawer } from "@/hooks"
 import { AddCategory } from "./AddCategory"
 import { AddAccount } from "./AddAccount"
+import { useMobileKeyboard } from "@/hooks/useMobileKeyboard"
 
 export interface TransactionFormData {
   type: string
@@ -49,6 +50,7 @@ export const AddTransaction = ({ trigger, defaultType }: AddTransactionProps) =>
     user?.id || "", undefined, !!user?.id
   )
   const { accounts, isLoading: accountsLoading } = useAccounts(user?.id!)
+  const { isKeyboardVisible } = useMobileKeyboard()
 
   const filteredCategories = categories?.filter((cat: any) => cat.type === activeTab) || []
 
@@ -77,7 +79,12 @@ export const AddTransaction = ({ trigger, defaultType }: AddTransactionProps) =>
       <Drawer.Root open={isOpen} onOpenChange={(open) => (open ? handleOpen() : closeDrawer())}>
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/30 z-50" />
-          <Drawer.Content className="bg-paper flex flex-col rounded-t-[28px] fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto focus:outline-none shadow-2xl max-h-[92vh]">
+          <Drawer.Content 
+            className="bg-paper flex flex-col rounded-t-[28px] fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto focus:outline-none shadow-2xl transition-all duration-300"
+            style={{ 
+              maxHeight: isKeyboardVisible ? 'calc(100dvh - 20px)' : '92vh'
+            }}
+          >
 
             {/* Handle */}
             <div className="pt-4 pb-1 flex justify-center shrink-0">
@@ -133,6 +140,7 @@ export const AddTransaction = ({ trigger, defaultType }: AddTransactionProps) =>
                   <input
                     type="number"
                     placeholder="0"
+                    autoFocus
                     value={formData.amount}
                     onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                     inputMode="decimal"
