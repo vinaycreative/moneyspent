@@ -4,6 +4,7 @@ import { useState, useMemo } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { ArrowLeft, SlidersHorizontal } from "lucide-react"
 import { useAuth, useCategoryTransactions } from "@/hooks"
+import { EditTransaction } from "@/form/EditTransaction"
 import { Drawer } from "vaul"
 import { motion, AnimatePresence } from "framer-motion"
 import moment from "moment-timezone"
@@ -17,6 +18,9 @@ export default function CategoryPage() {
   const [showDateFilter, setShowDateFilter] = useState(false)
   const [customStartDate, setCustomStartDate] = useState("")
   const [customEndDate, setCustomEndDate] = useState("")
+
+  const [selectedTransaction, setSelectedTransaction] = useState<any>(null)
+  const [isEditOpen, setIsEditOpen] = useState(false)
 
   const category = params.category as string
   const decodedCategory = decodeURIComponent(category)
@@ -165,7 +169,11 @@ export default function CategoryPage() {
                 {(transactions as any[]).map((t: any, idx: number) => (
                   <div
                     key={t.id}
-                    className={`flex items-center gap-3 px-4 py-3.5 transition-colors active:bg-surface-alt ${
+                    onClick={() => {
+                      setSelectedTransaction(t)
+                      setIsEditOpen(true)
+                    }}
+                    className={`flex items-center gap-3 px-4 py-3.5 transition-colors active:bg-surface-alt cursor-pointer ${
                       idx < (transactions as any[]).length - 1 ? "border-b border-line" : ""
                     }`}
                   >
@@ -261,6 +269,16 @@ export default function CategoryPage() {
           </Drawer.Content>
         </Drawer.Portal>
       </Drawer.Root>
+
+      {/* Edit Drawer */}
+      {selectedTransaction && (
+        <EditTransaction
+          trigger={<div style={{ display: "none" }}></div>}
+          transaction={selectedTransaction}
+          isOpen={isEditOpen}
+          onOpenChange={setIsEditOpen}
+        />
+      )}
     </>
   )
 }

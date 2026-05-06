@@ -16,6 +16,7 @@ import moment from "moment-timezone"
 import { AddTransaction } from "@/form/AddTransaction"
 import { AddExpense } from "@/form/AddExpense"
 import { AddIncome } from "@/form/AddIncome"
+import { EditTransaction } from "@/form/EditTransaction"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import Header from "@/components/layout/Header"
@@ -48,6 +49,9 @@ const StatsWidget = () => {
     { limit: 1000 },
     !!user?.id,
   )
+
+  const [selectedTransaction, setSelectedTransaction] = useState<any>(null)
+  const [isEditOpen, setIsEditOpen] = useState(false)
 
   const updateDateInUrl = (newDate: Date) => {
     const dateStr = moment(newDate).format("YYYY-MM-DD")
@@ -213,7 +217,11 @@ const StatsWidget = () => {
                       duration: 0.3,
                       ease: "easeOut",
                     }}
-                    className={`flex items-center gap-3 px-4 py-3.5 transition-colors active:bg-surface-alt ${
+                    onClick={() => {
+                      setSelectedTransaction(t)
+                      setIsEditOpen(true)
+                    }}
+                    className={`flex items-center gap-3 px-4 py-3.5 transition-colors active:bg-surface-alt cursor-pointer ${
                       idx < transactionsForSelectedDate.length - 1 ? "border-b border-line" : ""
                     }`}
                   >
@@ -269,6 +277,16 @@ const StatsWidget = () => {
           </AnimatePresence>
         </div>
       </div>
+
+      {/* Edit Drawer */}
+      {selectedTransaction && (
+        <EditTransaction
+          trigger={<div style={{ display: "none" }}></div>}
+          transaction={selectedTransaction}
+          isOpen={isEditOpen}
+          onOpenChange={setIsEditOpen}
+        />
+      )}
     </section>
   )
 }
